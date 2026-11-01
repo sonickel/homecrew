@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php bin/console:*)",
+      "Bash(php bin/phpunit:*)",
+      "Bash(composer:*)",
+      "Bash(symfony:*)",
+      "Bash(vendor/bin/phpstan:*)",
+      "Bash(vendor/bin/php-cs-fixer:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(php -v)",
+      "Bash(php -m)"
+    ],
+    "deny": [
+      "Read(./.env.local)",
+      "Read(./.env.*.local)",
+      "Read(./config/secrets/prod/**)"
+    ]
+  }
+}
