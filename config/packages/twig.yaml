@@ -1,5 +1,8 @@
 twig:
     file_name_pattern: '*.twig'
+    # Display time zone of the household; becomes app_setting.timezone later (M2)
+    date:
+        timezone: 'Europe/Berlin'
 
 when@test:
     twig:

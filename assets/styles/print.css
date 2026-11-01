@@ -1,0 +1,44 @@
+/* Print views: A4 portrait, black and white, no navigation, at least 12pt */
+@page {
+    size: A4 portrait;
+    margin: 15mm;
+}
+
+@layer utilities {
+    @media print {
+        html,
+        :root[data-font] {
+            font-size: 12pt;
+        }
+
+        :root[data-font="gross"],
+        :root[data-font="sehr_gross"] {
+            font-size: 14pt;
+        }
+
+        body {
+            background: #ffffff;
+            color: #000000;
+        }
+
+        .hc-topbar,
+        .hc-skip-link,
+        .hc-no-print {
+            display: none !important;
+        }
+
+        .hc-page {
+            max-width: none;
+            padding: 0;
+        }
+
+        a {
+            color: #000000;
+            text-decoration: none;
+        }
+
+        .hc-print-section {
+            break-before: page;
+        }
+    }
+}

@@ -1,0 +1,6 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <twig:PageHeader :title="'Willkommen bei HomeCrew'|trans" />
+    <twig:EmptyState icon="tabler:home" :message="'HomeCrew wird gerade eingerichtet. Bald siehst du hier, was heute zu tun ist.'|trans" />
+{% endblock %}

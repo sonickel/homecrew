@@ -27,7 +27,7 @@ Ein Tablet hängt im Flur oder steht in der Küche. Fast jeden Tag kommt jemand 
 
 ## Typografie
 - **Eine Schrift: Atkinson Hyperlegible Next** (vom Braille Institute für Lesbarkeit entwickelt, SIL OFL), **lokal als woff2** ausgeliefert, Schnitte 400 und 700; Fallback `system-ui, sans-serif`. Ziffern tabellarisch (`font-variant-numeric: tabular-nums`) für Uhrzeiten.
-- Grundgröße: Handy 18 px, Tablet 20 px; Stufen ×1,25 (18 · 22,5 · 28 · 35 · 44). Schriftgröße pro Person/Gerät über `html[data-font="normal|gross|sehr-gross"]` (+25 % / +50 %), Layout muss bei „sehr groß" funktionieren (umbrechen statt abschneiden).
+- Grundgröße: Handy 13,5 px, Tablet 15 px (75 % des ersten Entwurfs, Entscheidung 01.11.); Stufen ×1,25 (Tablet: 15 · 18,75 · 23,4 · 29,3 · 36,6). Schriftgröße pro Person/Gerät über `html[data-font="normal|gross|sehr_gross"]` (Werte wie `app_user.font_size`, +25 % / +50 %), Layout muss bei „sehr groß" funktionieren (umbrechen statt abschneiden). Eingabefelder später mindestens 16 px (sonst zoomt iOS beim Antippen).
 - Satzanfang groß (keine GROSSBUCHSTABEN-Labels), Zeilenlänge ≤ 70 Zeichen, Zeilenabstand 1,5 für Fließtext.
 
 ## Layout
@@ -75,6 +75,8 @@ A4 hochkant, schwarz-weiß, ohne Navigation; oben Haushalt + Datum; Kästchen �
 ## Technik
 - Reines CSS mit Cascade Layers: `@layer tokens, base, components, utilities;` – Dateien unter `assets/styles/`, über AssetMapper eingebunden, **kein Build-Schritt, kein CSS-Framework nötig**.
 - Keine externen Schriften, Skripte oder CDNs (Content-Security-Policy).
+- **Kein Inline-`<script>`/`<style>` und keine `style=""`-Attribute**: Seiten, die Turbo nachlädt, behalten die CSP der ersten Seite (deren Nonce) – Inline-Code würde blockiert. Verhalten nur über Stimulus-Controller, Aussehen nur über CSS-Dateien.
+- CSS wird in `templates/base.html.twig` per `<link>` eingebunden, **nicht** aus JavaScript importiert (CSS-Importe werden in der Importmap zu `data:`-Modulen, die die CSP blockiert).
 - Turbo für schnelle Seitenwechsel, Stimulus nur für echte Interaktion (Rückgängig-Timer, Bildschirmschoner, Upload).
 
 ## Vorgehen bei einer neuen Seite

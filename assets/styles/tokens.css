@@ -1,0 +1,105 @@
+@layer tokens {
+    :root {
+        /* Colours (contrast checked: text >= 4.5:1, controls/large text >= 3:1) */
+        --hc-ink: #18222b;
+        --hc-paper: #f4f6f7;
+        --hc-surface: #ffffff;
+        --hc-enamel: #1e4d8c;
+        --hc-on-enamel: #ffffff;
+        --hc-signal: #f4c430;
+        --hc-on-signal: #18222b;
+        --hc-line: #d3d9de;
+        --hc-border: #6b7782;
+        --hc-ok: #2e7d4f;
+        --hc-due: #8a5300;
+        --hc-late: #b42318;
+        --hc-emergency: #b42318;
+        --hc-on-emergency: #ffffff;
+        --hc-focus: var(--hc-enamel);
+
+        /* Roles derived from the palette (overridden in high contrast) */
+        --hc-topbar-bg: var(--hc-enamel);
+        --hc-topbar-fg: var(--hc-on-enamel);
+        --hc-topbar-border: transparent;
+        --hc-primary-bg: var(--hc-enamel);
+        --hc-primary-fg: var(--hc-on-enamel);
+        --hc-secondary-bg: var(--hc-surface);
+        --hc-secondary-fg: var(--hc-enamel);
+        --hc-danger-bg: var(--hc-late);
+        --hc-danger-fg: #ffffff;
+        --hc-signal-bg: var(--hc-signal);
+        --hc-signal-fg: var(--hc-on-signal);
+
+        /* Spacing scale 4 · 8 · 12 · 16 · 24 · 32 px */
+        --hc-space-1: 4px;
+        --hc-space-2: 8px;
+        --hc-space-3: 12px;
+        --hc-space-4: 16px;
+        --hc-space-5: 24px;
+        --hc-space-6: 32px;
+
+        /* Shapes and lines */
+        --hc-radius-control: 6px;
+        --hc-line-width: 1px;
+        --hc-border-width: 2px;
+        --hc-focus-width: 3px;
+
+        /* Touch targets (team tablet uses 56px later) */
+        --hc-target: 48px;
+
+        /* Typography: base 13.5px phone / 15px tablet at browser default (75 % of the first draft, decided 01.11.),
+           steps x1.25, scaled per person/device */
+        --hc-font-family: "Atkinson Hyperlegible Next", system-ui, sans-serif;
+        --hc-font-base: 84.375%; /* 13.5px at the browser default of 16px; respects the user's browser setting */
+        --hc-font-scale: 1;
+        --hc-text-0: 1rem;
+        --hc-text-1: 1.25rem;
+        --hc-text-2: 1.5625rem;
+        --hc-text-3: 1.953rem;
+        --hc-text-4: 2.441rem;
+        --hc-leading: 1.5;
+        --hc-leading-tight: 1.2;
+        --hc-measure: 70ch;
+    }
+
+    @media (min-width: 48em) {
+        :root {
+            --hc-font-base: 93.75%; /* 15px */
+        }
+    }
+
+    :root[data-font="gross"] {
+        --hc-font-scale: 1.25;
+    }
+
+    :root[data-font="sehr_gross"] {
+        --hc-font-scale: 1.5;
+    }
+
+    /* High contrast: black on white, thicker lines, no coloured areas behind text */
+    :root[data-contrast="hoch"] {
+        --hc-ink: #000000;
+        --hc-paper: #ffffff;
+        --hc-surface: #ffffff;
+        --hc-enamel: #0b2e5c;
+        --hc-line: #000000;
+        --hc-border: #000000;
+        --hc-ok: #1b5e36;
+        --hc-due: #6b4000;
+        --hc-late: #8f1b12;
+        --hc-focus: #000000;
+        --hc-line-width: 2px;
+        --hc-border-width: 3px;
+        --hc-topbar-bg: #ffffff;
+        --hc-topbar-fg: #000000;
+        --hc-topbar-border: #000000;
+        --hc-primary-bg: #000000;
+        --hc-primary-fg: #ffffff;
+        --hc-secondary-bg: #ffffff;
+        --hc-secondary-fg: #000000;
+        --hc-danger-bg: #ffffff;
+        --hc-danger-fg: #8f1b12;
+        --hc-signal-bg: #ffffff;
+        --hc-signal-fg: #000000;
+    }
+}

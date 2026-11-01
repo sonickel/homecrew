@@ -9,7 +9,7 @@ Diese Datei liest Claude Code bei jedem Start. Kurz halten; Details stehen in `d
 Abweichungen vom Konzept nur nach Rückfrage; danach das Konzept-Dokument mit anpassen. `docs/archiv/` ist historisch und nicht maßgeblich.
 
 ## Umgebung
-- **Lokal (jetzt)**: WSL2 Debian, Projekt unter `/var/www/homecrew`, VS Code im WSL-Modus. PHP 8.4 CLI, Composer, **Symfony CLI** als Webserver (`symfony server:start -d` → https://127.0.0.1:8000, im Windows-Browser erreichbar), **MariaDB lokal in WSL**. Zugangsdaten nur in `.env.local` (nie committen, nie ausgeben).
+- **Lokal (jetzt)**: WSL2 Debian, Projekt unter `/var/www/homecrew`, VS Code im WSL-Modus. PHP 8.4 CLI, Composer, **Symfony CLI** als Webserver (`symfony server:start -d` → https://localhost:8000, im Windows-Browser erreichbar; `localhost` statt IP, weil Passkeys keine IP-Adresse akzeptieren), **MariaDB lokal in WSL**. Zugangsdaten nur in `.env.local` (nie committen, nie ausgeben).
 - **Lokal bewusst nicht**: Docker, FrankenPHP, Mercure, whisper, cloudflared. Die App muss ohne diese Dienste voll funktionieren (Live-Aktualisierung optional, Fallback: normales Neuladen/Turbo).
 - **Später**: Raspberry Pi 5 mit Docker Compose (FrankenPHP inkl. Mercure, MariaDB in derselben Version wie lokal, Worker, cloudflared, optional whisper). Deshalb: Konfiguration nur über Umgebungsvariablen/Einstellungen, keine absoluten Pfade, keine Sonderwege für lokal im Code.
 
@@ -24,7 +24,7 @@ Abweichungen vom Konzept nur nach Rückfrage; danach das Konzept-Dokument mit an
 ## Befehle
 - Server: `symfony server:start -d` · `symfony server:stop` · Logs: `symfony server:log`
 - Migrationen: `php bin/console doctrine:migrations:diff` (Ergebnis immer von Hand prüfen!) · `php bin/console doctrine:migrations:migrate`
-- Qualität: `composer qa` (wird in Meilenstein 0 angelegt: CS-Fixer, PHPStan, Twig/YAML/Container-Lint, PHPUnit)
+- Qualität: `composer qa` (CS-Fixer, Twig/YAML/Container-Lint, PHPStan Level 8, PHPUnit – bricht beim ersten Fehler ab) · `composer qa:fix` (Code-Stil automatisch korrigieren)
 - Referenzschema testen: `mariadb homecrew_smoke < docs/datenbank/schema.sql && mariadb homecrew_smoke < docs/datenbank/smoke_test.sql` (leere DB; letzte Zeile muss „ALLE PRÜFUNGEN OK" sein)
 
 ## Arbeitsweise
@@ -53,3 +53,5 @@ Abweichungen vom Konzept nur nach Rückfrage; danach das Konzept-Dokument mit an
 
 ## Gelernt
 <!-- Fehler und Korrekturen hier festhalten, damit sie sich nicht wiederholen. -->
+- CSS nie aus JavaScript importieren: AssetMapper macht daraus `data:`-Module, die die strikte CSP blockiert – dann läuft gar kein JS (Turbo/Stimulus). BrowserKit-Tests merken das nicht; nach Änderungen an Assets im echten Browser prüfen (Konsole ohne CSP-Fehler, `typeof Turbo === "object"`). (M0)
+- Die lokale CA der Symfony CLI liegt unter `~/.config/symfony-cli/certs/` (nicht `~/.symfony5`). (M0)

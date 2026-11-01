@@ -1,0 +1,96 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestaltung – HomeCrew{% endblock %}
+
+{% block body %}
+    <twig:PageHeader title="Gestaltung" intro="Nur in der Entwicklung: Tokens, Schriftgrößen und hoher Kontrast auf einen Blick." />
+
+    <section class="hc-section" aria-labelledby="ansicht">
+        <h2 id="ansicht">Ansicht</h2>
+        <p>Schriftgröße</p>
+        <div class="hc-button-row">
+            {% for size in font_sizes %}
+                <twig:Button
+                    :variant="size.value == hc_font_size ? 'primary' : 'secondary'"
+                    :href="path('app_dev_styleguide', {schrift: size.value, kontrast: hc_high_contrast ? 'hoch' : 'normal'})"
+                    aria-current="{{ size.value == hc_font_size ? 'true' : 'false' }}"
+                >{{ size.value }}</twig:Button>
+            {% endfor %}
+        </div>
+        <p>Kontrast</p>
+        <div class="hc-button-row">
+            <twig:Button :variant="hc_high_contrast ? 'secondary' : 'primary'" :href="path('app_dev_styleguide', {schrift: hc_font_size, kontrast: 'normal'})">normal</twig:Button>
+            <twig:Button :variant="hc_high_contrast ? 'primary' : 'secondary'" :href="path('app_dev_styleguide', {schrift: hc_font_size, kontrast: 'hoch'})">hoch</twig:Button>
+        </div>
+    </section>
+
+    <section class="hc-section" aria-labelledby="farben">
+        <h2 id="farben">Farben</h2>
+        <ul class="hc-swatches">
+            {% for color in colors %}
+                <li class="hc-swatch">
+                    <span class="hc-swatch__color hc-swatch__color--{{ color.token }}"></span>
+                    <span><strong>--hc-{{ color.token }}</strong><br><span class="hc-tabular">{{ color.hex }}</span></span>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section class="hc-section" aria-labelledby="kontraste">
+        <h2 id="kontraste">Kontraste (Standard-Palette aus tokens.css)</h2>
+        <ul>
+            {% for pair in pairs %}
+                <li class="hc-tabular">
+                    {{ pair.label }}: {{ pair.ratio|number_format(2, ',') }} : 1
+                    {% if pair.ratio >= pair.minimum %}
+                        <span class="hc-status hc-status--ok">{{ ux_icon('tabler:circle-check', {'aria-hidden': 'true'}) }}ausreichend</span>
+                    {% else %}
+                        <span class="hc-status hc-status--late">{{ ux_icon('tabler:alert-triangle', {'aria-hidden': 'true'}) }}zu wenig</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section class="hc-section hc-type-scale" aria-labelledby="schrift">
+        <h2 id="schrift">Schriftstufen</h2>
+        <p class="hc-text-4"><strong>Stufe 4</strong> – großes Datum (Tablet)</p>
+        <p class="hc-text-3"><strong>Stufe 3</strong> – Überschrift 1, Datum (Handy)</p>
+        <p class="hc-text-2"><strong>Stufe 2</strong> – Überschrift 2</p>
+        <p class="hc-text-1"><strong>Stufe 1</strong> – hervorgehobener Text</p>
+        <p class="hc-text-0">Stufe 0 – Fließtext mit Umlauten: Größe, Übergabe, Schlüssel, Häkchen. Ziffern: <span class="hc-tabular">09:00 · 13:30 · 18:45</span></p>
+    </section>
+
+    <section class="hc-section" aria-labelledby="knoepfe">
+        <h2 id="knoepfe">Knöpfe</h2>
+        <div class="hc-button-row">
+            <twig:Button icon="tabler:circle-check">Erledigt</twig:Button>
+            <twig:Button variant="secondary">Nicht möglich</twig:Button>
+            <twig:Button variant="signal" icon="tabler:alert-triangle">Melden</twig:Button>
+            <twig:Button variant="danger">Löschen</twig:Button>
+            <twig:Button variant="secondary" href="#knoepfe" icon="tabler:arrow-left">Als Link</twig:Button>
+        </div>
+    </section>
+
+    <section class="hc-section" aria-labelledby="status">
+        <h2 id="status">Status (Symbol und Wort)</h2>
+        <ul>
+            <li><span class="hc-status hc-status--ok">{{ ux_icon('tabler:circle-check', {'aria-hidden': 'true'}) }}Erledigt</span></li>
+            <li><span class="hc-status hc-status--due">{{ ux_icon('tabler:clock', {'aria-hidden': 'true'}) }}Heute fällig</span></li>
+            <li><span class="hc-status hc-status--late">{{ ux_icon('tabler:alert-triangle', {'aria-hidden': 'true'}) }}Überfällig</span></li>
+        </ul>
+    </section>
+
+    <section class="hc-section" aria-labelledby="fokus">
+        <h2 id="fokus">Fokus</h2>
+        <p>So sieht der Tastatur-Fokus aus:</p>
+        <twig:Button class="hc-focus-demo">Fokussierter Knopf</twig:Button>
+    </section>
+
+    <section class="hc-section" aria-labelledby="leer">
+        <h2 id="leer">Leerer Zustand</h2>
+        <twig:EmptyState icon="tabler:circle-check" message="Für heute ist alles erledigt. Etwas fehlt? Melden.">
+            <twig:Button variant="signal" icon="tabler:alert-triangle">Melden</twig:Button>
+        </twig:EmptyState>
+    </section>
+{% endblock %}

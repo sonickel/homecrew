@@ -1,0 +1,124 @@
+/* Atkinson Hyperlegible Next, delivered locally (see assets/fonts/README.md) */
+@font-face {
+    font-family: "Atkinson Hyperlegible Next";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("../fonts/atkinson-hyperlegible-next-latin-400-normal.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: "Atkinson Hyperlegible Next";
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url("../fonts/atkinson-hyperlegible-next-latin-700-normal.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: "Atkinson Hyperlegible Next";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("../fonts/atkinson-hyperlegible-next-latin-ext-400-normal.woff2") format("woff2");
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+    font-family: "Atkinson Hyperlegible Next";
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url("../fonts/atkinson-hyperlegible-next-latin-ext-700-normal.woff2") format("woff2");
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@layer base {
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    html {
+        font-size: calc(var(--hc-font-base) * var(--hc-font-scale));
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: var(--hc-font-family);
+        font-size: var(--hc-text-0);
+        line-height: var(--hc-leading);
+        color: var(--hc-ink);
+        background: var(--hc-paper);
+        overflow-wrap: break-word;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        margin: 0 0 var(--hc-space-4);
+        font-weight: 700;
+        line-height: var(--hc-leading-tight);
+    }
+
+    h1 {
+        font-size: var(--hc-text-3);
+    }
+
+    h2 {
+        font-size: var(--hc-text-2);
+    }
+
+    h3 {
+        font-size: var(--hc-text-1);
+    }
+
+    h4 {
+        font-size: var(--hc-text-0);
+    }
+
+    p,
+    ul,
+    ol {
+        margin: 0 0 var(--hc-space-4);
+        max-width: var(--hc-measure);
+    }
+
+    a {
+        color: var(--hc-enamel);
+        text-decoration-thickness: 0.08em;
+        text-underline-offset: 0.15em;
+    }
+
+    img,
+    svg {
+        max-width: 100%;
+    }
+
+    :focus-visible {
+        outline: var(--hc-focus-width) solid var(--hc-focus);
+        outline-offset: 2px;
+    }
+
+    main:focus {
+        outline: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+}

@@ -1,3 +1,2 @@
-body {
-    background-color: skyblue;
-}
+/* Layer order for all HomeCrew styles (see skill homecrew-ui). Must be loaded first. */
+@layer tokens, base, components, utilities;

@@ -1,20 +1,46 @@
 nelmio_security:
-    # prevents framing of the entire site
     clickjacking:
         paths:
             '^/.*': DENY
 
-    # disables content type sniffing for script resources
     content_type:
         nosniff: true
 
-    # Send a full URL in the `Referer` header when performing a same-origin request,
-    # only send the origin of the document to secure destination (HTTPS->HTTPS),
-    # and send no header to a less secure destination (HTTPS->HTTP).
-    # If `strict-origin-when-cross-origin` is not supported, use `no-referrer` policy,
-    # no referrer information is sent along with requests.
     referrer_policy:
         enabled: true
         policies:
             - 'no-referrer'
             - 'strict-origin-when-cross-origin'
+
+    # Browser features the app does not use are switched off (no location tracking).
+    # Photo upload uses <input type="file">, which needs no camera permission;
+    # microphone becomes 'self' with voice input (stage 2).
+    permissions_policy:
+        enabled: true
+        policies:
+            geolocation: []
+            camera: []
+            microphone: []
+            payment: []
+            usb: []
+
+    # Strict CSP: only own resources; inline scripts/styles only with the per-request nonce
+    # (Twig: csp_nonce('script') / csp_nonce('style') – Nelmio uses one nonce per request for both).
+    # No 'unsafe-inline' fallback, no legacy X-Content-Security-Policy header.
+    csp:
+        enabled: true
+        compat_headers: false
+        enforce:
+            level1_fallback: false
+            browser_adaptive:
+                enabled: false
+            default-src: ["'self'"]
+            script-src: ["'self'"]
+            style-src: ["'self'"]
+            img-src: ["'self'", 'data:']
+            font-src: ["'self'"]
+            connect-src: ["'self'"]
+            object-src: ["'none'"]
+            base-uri: ["'self'"]
+            form-action: ["'self'"]
+            frame-ancestors: ["'none'"]

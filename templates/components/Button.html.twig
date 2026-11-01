@@ -1,0 +1,5 @@
+{% set tag = href ? 'a' : 'button' %}
+<{{ tag }} {% if href %}href="{{ href }}"{% else %}type="{{ type }}"{% endif %} {{ attributes.defaults({class: 'hc-button hc-button--' ~ variant}) }}>
+    {%- if icon %}{{ ux_icon(icon, {'aria-hidden': 'true'}) }}{% endif -%}
+    <span>{% block content %}{% endblock %}</span>
+</{{ tag }}>

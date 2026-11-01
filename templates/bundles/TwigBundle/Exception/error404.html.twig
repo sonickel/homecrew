@@ -1,0 +1,10 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'Seite nicht gefunden'|trans }} – HomeCrew{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Seite nicht gefunden'|trans" />
+    <twig:EmptyState icon="tabler:alert-triangle" :message="'Diese Seite gibt es nicht (mehr). Prüf die Adresse oder geh zur Startseite.'|trans">
+        <twig:Button :href="path('app_home')" icon="tabler:home">{{ 'Zur Startseite'|trans }}</twig:Button>
+    </twig:EmptyState>
+{% endblock %}

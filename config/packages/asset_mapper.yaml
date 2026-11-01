@@ -4,6 +4,8 @@ framework:
         paths:
             - assets/
         missing_import_mode: strict
+        # No polyfill: it would be loaded from an external CDN; all supported browsers know import maps
+        importmap_polyfill: false
 
 when@prod:
     framework:

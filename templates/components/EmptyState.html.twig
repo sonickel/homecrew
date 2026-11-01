@@ -1,0 +1,7 @@
+{# Empty state that invites to act; optional action goes into the content block #}
+{% props message, icon = null %}
+<div {{ attributes.defaults({class: 'hc-empty-state'}) }}>
+    {% if icon %}{{ ux_icon(icon, {class: 'hc-empty-state__icon', 'aria-hidden': 'true'}) }}{% endif %}
+    <p class="hc-empty-state__message">{{ message }}</p>
+    {% block content %}{% endblock %}
+</div>

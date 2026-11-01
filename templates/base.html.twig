@@ -1,24 +1,34 @@
 <!DOCTYPE html>
-<html>
+<html lang="de" data-font="{{ hc_font_size|default('normal') }}" data-contrast="{{ hc_high_contrast|default(false) ? 'hoch' : 'normal' }}">
     <head>
         <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        {# Turbo reads this nonce for its progress bar. Nelmio uses one nonce per request for script and style.
+           Pages loaded via Turbo keep the CSP of the first page, so: no inline <script>/<style>, only Stimulus and CSS files. #}
+        <meta name="csp-nonce" content="{{ csp_nonce('style') }}">
+        <title>{% block title %}HomeCrew{% endblock %}</title>
+        <link rel="icon" href="data:,">
         {% block stylesheets %}
+            {# app.css declares the layer order and must come first #}
+            <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
+            <link rel="stylesheet" href="{{ asset('styles/tokens.css') }}">
+            <link rel="stylesheet" href="{{ asset('styles/base.css') }}">
+            <link rel="stylesheet" href="{{ asset('styles/components.css') }}">
+            <link rel="stylesheet" href="{{ asset('styles/print.css') }}">
+            <link rel="stylesheet" href="{{ asset('@symfony/ux-live-component/live.min.css') }}">
         {% endblock %}
-
         {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
+            {% block importmap %}{{ importmap('app', {nonce: csp_nonce('script')}) }}{% endblock %}
         {% endblock %}
-
-        {% set frankenphp_hot_reload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
-        {% if frankenphp_hot_reload %}
-        <meta name="frankenphp-hot-reload:url" content="{{ frankenphp_hot_reload }}">
-        <script src="https://cdn.jsdelivr.net/npm/idiomorph"></script>
-        <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
-        {% endif %}
     </head>
     <body>
-        {% block body %}{% endblock %}
+        <a class="hc-skip-link" href="#inhalt">{{ 'Zum Inhalt'|trans }}</a>
+        <header class="hc-topbar">
+            {% set now = today() %}
+            <p class="hc-topbar__date"><time datetime="{{ now|date('Y-m-d') }}">{{ now|format_date(pattern: 'EEEE, d. MMMM', locale: 'de') }}</time></p>
+        </header>
+        <main id="inhalt" class="hc-page" tabindex="-1">
+            {% block body %}{% endblock %}
+        </main>
     </body>
 </html>

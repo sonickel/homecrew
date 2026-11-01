@@ -46,7 +46,7 @@ Nicht in Stufe 1 (27 Tabellen): Personal & Abrechnung, Checklisten, Sätze/Grenz
 
 **Umfang**
 - Symfony 7.4 LTS (Skeleton) ins bestehende Repository; `docs/`, `.claude/`, `CLAUDE.md` bleiben; `.gitignore` inkl. `.env.local`.
-- Pakete: Twig, Security, Doctrine ORM + Migrations, Form, Validator, Translation, Mailer, Messenger, Scheduler, Uid, Clock, RateLimiter, HtmlSanitizer, AssetMapper, StimulusBundle, UX Turbo, TwigComponent, LiveComponent, UX Icons (Icons lokal); dev: Maker, Debug, WebProfiler, PHPUnit, PHP-CS-Fixer, PHPStan (+ symfony, doctrine, phpunit).
+- Pakete: Twig, Security, Doctrine ORM + Migrations, Form, Validator, Translation, Mailer, Messenger, Scheduler, Uid, Clock, RateLimiter, HtmlSanitizer, AssetMapper, StimulusBundle, UX Turbo, TwigComponent, LiveComponent, UX Icons (Icons lokal); dev: Maker, Debug, WebProfiler, PHPUnit, PHP-CS-Fixer, PHPStan (+ symfony, doctrine, phpunit). Zusätzlich: `nelmio/security-bundle` (CSP mit Nonces, Sicherheits-Header, Permissions-Policy), `twig/extra-bundle` + `twig/intl-extra` (deutsches Datum über ext-intl), `symfony/monolog-bundle` (Logs; Symfony-Standard).
 - `composer qa` (CS-Fixer-Prüfung, PHPStan Level 8, `lint:twig`/`lint:yaml`/`lint:container`, PHPUnit) und `composer qa:fix`.
 - Layout nach Skill `homecrew-ui`: `tokens.css` (inkl. hoher Kontrast), `base.css`, `components.css`, `print.css` mit Cascade Layers; Atkinson Hyperlegible Next 400/700 als woff2 lokal (mit Lizenzdatei); `base.html.twig` mit Kopfleiste (Datum groß), `data-font`/`data-contrast`; Komponenten `Button`, `PageHeader`, `EmptyState`.
 - Startseite `/` als Platzhalter („Einrichtung folgt").
@@ -56,11 +56,13 @@ Nicht in Stufe 1 (27 Tabellen): Personal & Abrechnung, Checklisten, Sätze/Grenz
 **Tabellen:** keine.
 
 **Akzeptanzkriterien**
-- [ ] `symfony check:requirements` ohne Fehler; `symfony server:start -d` → https://localhost:8000 zeigt die Startseite in HomeCrew-Schrift und -Farben, ohne Zertifikatswarnung.
-- [ ] `composer qa` grün; `composer qa:fix` behebt Stilfehler.
-- [ ] Funktionaler Test: Startseite 200, CSP-Header gesetzt, HTML ohne externe URLs.
-- [ ] Netzwerkansicht des Browsers: keine Anfrage an fremde Hosts.
-- [ ] 1024 × 768, 390 × 844 und Schriftgröße „sehr groß": nichts wird abgeschnitten; sichtbarer Fokus bei Tastaturbedienung.
+- [x] `symfony check:requirements` ohne Fehler; `symfony server:start -d` → https://localhost:8000 zeigt die Startseite in HomeCrew-Schrift und -Farben, ohne Zertifikatswarnung.
+- [x] `composer qa` grün; `composer qa:fix` behebt Stilfehler.
+- [x] Funktionaler Test: Startseite 200, CSP-Header gesetzt, HTML ohne externe URLs.
+- [x] Netzwerkansicht des Browsers: keine Anfrage an fremde Hosts (in Chrome über das DevTools-Protokoll geprüft: nur `localhost`, keine Konsolen-/CSP-Fehler, Turbo geladen).
+- [x] 1024 × 768, 390 × 844 und Schriftgröße „sehr groß": nichts wird abgeschnitten; sichtbarer Fokus bei Tastaturbedienung (Screenshots per Chrome/DevTools-Protokoll, kein horizontales Scrollen).
+
+**Abweichungen:** Schrift-Grundgröße auf Wunsch 75 % (13,5 px Handy / 15 px Tablet statt 18/20 px), Skill `homecrew-ui` angepasst. Zusätzlich Gestaltungsseite `/_gestaltung` (nur dev) und Enum `App\Enum\FontSize`. Messenger bis M11 `sync://`. Lokale CA der Symfony CLI liegt unter `~/.config/symfony-cli/certs/`.
 
 ---
 
@@ -76,6 +78,8 @@ Nicht in Stufe 1 (27 Tabellen): Personal & Abrechnung, Checklisten, Sätze/Grenz
 - Vergleichsskript unter `bin/` + Composer-Skript (z. B. `composer schema:check`): Datenbank frisch von Null migrieren und mit `homecrew_smoke` vergleichen.
 - Test-Datenbank mit `dama/doctrine-test-bundle`; Datenbanktests bilden die Smoke-Regeln für `app_setting`/`app_user` nach.
 - Strategie in Konzept 6 §6 festschreiben.
+- PHPStan: `phpstan-doctrine` bekommt einen `objectManagerLoader` (erste Entities).
+- Fehlerseiten müssen auch ohne erreichbare Datenbank rendern (das Layout liest ab jetzt bzw. M2 Daten aus der DB) – Test dafür.
 
 **Pakete:** dama/doctrine-test-bundle, doctrine/doctrine-fixtures-bundle.
 **Tabellen:** neu `app_setting`, `app_user`.
@@ -102,6 +106,7 @@ Nicht in Stufe 1 (27 Tabellen): Personal & Abrechnung, Checklisten, Sätze/Grenz
 - „Verwaltung" `/verwaltung` (EasyAdmin) nur für Admins nach vollständiger 2FA, nur mit vorhandenen Masken: Einstellungen „Allgemein" (Haushaltsname, Zeitzone, Feiertagsregion, Auto-Sperre, PIN nur im Heimnetz, Ansichtszeitraum, max. Dienstdauer, Videolänge, Freigabe-Modus), „Löschfristen", „Protokoll".
 - Protokoll für Anmeldung, 2FA einrichten/zurücksetzen, Einstellungen – ohne IP, ohne Geheimnisse; Scheduler mit erstem Löschjob (Protokoll nach `retention_audit_days`).
 - Startseite nach Anmeldung: „Heute"-Platzhalter mit Datum.
+- Layout nutzt die Einstellungen aus `app_setting`: Zeitzone für Datum/Anzeige (statt fest `Europe/Berlin` in `config/packages/twig.yaml`), Haushaltsname im Titel; Schriftgröße/Kontrast aus `app_user`.
 
 **Pakete:** easycorp/easyadmin-bundle, scheb/2fa-bundle (+ totp, backup-code), web-auth/webauthn-symfony-bundle, endroid/qr-code.
 **Tabellen:** neu `webauthn_credential`, `audit_log`; mitgezogen `device` (`audit_log` verweist darauf); genutzt `app_user`, `app_setting`.
@@ -386,7 +391,7 @@ Nicht in Stufe 1 (27 Tabellen): Personal & Abrechnung, Checklisten, Sätze/Grenz
 ---
 
 ## Offene Punkte (vor dem jeweiligen Meilenstein klären)
-1. **M0 – Wert der Schriftgröße:** Skill `homecrew-ui` schreibt `sehr-gross`, das Schema `sehr_gross`. Vorschlag: überall den Schema-Wert, Skill angleichen.
+1. ~~**M0 – Wert der Schriftgröße:** Skill `homecrew-ui` schreibt `sehr-gross`, das Schema `sehr_gross`.~~ Erledigt 01.11.: überall `sehr_gross` (Enum `App\Enum\FontSize`), Skill angeglichen.
 2. **M3 – Datenschutzhinweis** (`privacy_notice_version`, Konzept 5 §4.1): Vorschlag Bestätigung bei der ersten Anmeldung in M3, neue Version mit Einrichtung einer Erweiterung in M13.
 3. **M4 – Schriftgröße am Gerät:** Konzept 11 sieht sie vor, `device` hat keine Spalte. Vorschlag: `device.font_size` (Werte wie `app_user.font_size`) in `schema.sql` + `smoke_test.sql` ergänzen.
 4. **M4 – echtes Tablet lokal:** WSL läuft im NAT-Modus; ein Tablet im WLAN erreicht den Rechner erst mit `networkingMode=mirrored` in `.wslconfig` oder per Portweiterleitung. Bis dahin Tablet im Windows-Browser prüfen (zweites Profil, Gerätesimulation).
@@ -396,3 +401,6 @@ Nicht in Stufe 1 (27 Tabellen): Personal & Abrechnung, Checklisten, Sätze/Grenz
 
 ## Später
 Auffälligkeiten außerhalb eines Meilensteins (siehe Skill `meilenstein`).
+
+- **Ab M3/M4 – Tokens nicht ins Log:** In prod schreibt Monolog bei Fehlern den ganzen Puffer (`fingers_crossed`) inkl. Kanal `request` mit Routen-Parametern. Einladungs- und Kopplungs-Codes daher nicht im URL-Pfad/Query übergeben (oder Kanal `request` in prod ausschließen) – beim Planen von M3/M4 entscheiden. (Review M0)
+- **Dev-Werkzeug Screenshots:** Headless-Chrome unter Windows erzwingt ≥ 500 px Breite; für 390 px die Gerätesimulation über das DevTools-Protokoll nutzen (Hilfsskript liegt nicht im Projekt).

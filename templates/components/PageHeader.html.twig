@@ -1,0 +1,7 @@
+{# Page heading: exactly one h1 per page; title and intro are passed already translated #}
+{% props title, intro = null %}
+<header {{ attributes.defaults({class: 'hc-page-header'}) }}>
+    <h1>{{ title }}</h1>
+    {% if intro %}<p class="hc-page-header__intro">{{ intro }}</p>{% endif %}
+    {% block content %}{% endblock %}
+</header>
