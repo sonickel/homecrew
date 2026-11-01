@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional;
 
+use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 
@@ -19,9 +20,20 @@ final class HomePageTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('html[lang="de"][data-font="normal"][data-contrast="normal"]');
         self::assertCount(1, $crawler->filter('h1'));
-        self::assertSelectorTextContains('h1', 'Willkommen bei HomeCrew');
+        self::assertSelectorTextSame('h1', 'Mein Haushalt');
+        self::assertSelectorTextContains('.hc-page-header__intro', 'Willkommen bei HomeCrew');
         self::assertSelectorExists('a.hc-skip-link[href="#inhalt"]');
         self::assertSelectorExists('main#inhalt');
+    }
+
+    public function testHouseholdNameComesFromTheSettings(): void
+    {
+        $client = static::createClient();
+        static::getContainer()->get(Connection::class)->update('app_setting', ['household_name' => 'Haus am See'], ['id' => 1]);
+
+        $client->request('GET', '/');
+
+        self::assertSelectorTextSame('h1', 'Haus am See');
     }
 
     public function testStrictContentSecurityPolicyIsSent(): void

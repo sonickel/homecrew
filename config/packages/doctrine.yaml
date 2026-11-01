@@ -1,10 +1,17 @@
 doctrine:
     dbal:
+        # serverVersion and charset are part of DATABASE_URL (see .env)
         url: '%env(resolve:DATABASE_URL)%'
-
-        # IMPORTANT: You MUST configure your server version,
-        # either here or in the DATABASE_URL env var (see .env file)
-        #server_version: '16'
+        # Points in time are stored in UTC (docs/konzept/konzept-6-datenbank.md §2)
+        options:
+            !php/const Pdo\Mysql::ATTR_INIT_COMMAND: "SET time_zone = '+00:00'"
+        default_table_options:
+            charset: utf8mb4
+            collation: utf8mb4_unicode_ci
+        # Reads TINYINT columns like docs/datenbank/schema.sql means them (konzept-6 §6)
+        schema_manager_factory: App\Doctrine\Schema\MariaDbSchemaManagerFactory
+        types:
+            tinyint: App\Doctrine\Type\TinyIntType
 
         profiling_collect_backtrace: '%kernel.debug%'
     orm:

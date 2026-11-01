@@ -92,10 +92,14 @@
             "@php bin/console lint:yaml config --parse-tags",
             "@php bin/console lint:container",
             "@php vendor/bin/phpstan analyse --no-progress --memory-limit=1G",
+            "@php bin/console doctrine:migrations:migrate --env=test --no-interaction --allow-no-migration --quiet",
             "@php bin/phpunit"
         ],
         "qa:fix": [
             "@php vendor/bin/php-cs-fixer fix"
+        ],
+        "schema:check": [
+            "@php bin/console app:schema:check"
         ]
     },
     "conflict": {
@@ -109,6 +113,8 @@
         }
     },
     "require-dev": {
+        "dama/doctrine-test-bundle": "^8.7",
+        "doctrine/doctrine-fixtures-bundle": "^4.3",
         "friendsofphp/php-cs-fixer": "^3.95",
         "phpstan/extension-installer": "^1.4",
         "phpstan/phpstan": "^2.3",
@@ -120,10 +126,12 @@
         "symfony/css-selector": "7.4.*",
         "symfony/debug-bundle": "7.4.*",
         "symfony/maker-bundle": "^1.68",
+        "symfony/process": "7.4.*",
         "symfony/web-profiler-bundle": "7.4.*"
     },
     "scripts-descriptions": {
-        "qa": "Prüft Code-Stil, Templates, YAML, Container, PHPStan und PHPUnit (bricht beim ersten Fehler ab)",
-        "qa:fix": "Korrigiert den Code-Stil automatisch"
+        "qa": "Prüft Code-Stil, Templates, YAML, Container, PHPStan, migriert die Test-Datenbank und führt PHPUnit aus (bricht beim ersten Fehler ab)",
+        "qa:fix": "Korrigiert den Code-Stil automatisch",
+        "schema:check": "Migriert homecrew_check von Null und vergleicht jede Tabelle mit dem Referenzschema in homecrew_smoke"
     }
 }
