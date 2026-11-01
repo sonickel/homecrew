@@ -84,6 +84,17 @@
         ],
         "post-update-cmd": [
             "@auto-scripts"
+        ],
+        "qa": [
+            "@php vendor/bin/php-cs-fixer check --diff",
+            "@php bin/console lint:twig templates",
+            "@php bin/console lint:yaml config --parse-tags",
+            "@php bin/console lint:container",
+            "@php vendor/bin/phpstan analyse --no-progress --memory-limit=1G",
+            "@php bin/phpunit"
+        ],
+        "qa:fix": [
+            "@php vendor/bin/php-cs-fixer fix"
         ]
     },
     "conflict": {
@@ -109,5 +120,9 @@
         "symfony/debug-bundle": "7.4.*",
         "symfony/maker-bundle": "^1.68",
         "symfony/web-profiler-bundle": "7.4.*"
+    },
+    "scripts-descriptions": {
+        "qa": "Prüft Code-Stil, Templates, YAML, Container, PHPStan und PHPUnit (bricht beim ersten Fehler ab)",
+        "qa:fix": "Korrigiert den Code-Stil automatisch"
     }
 }
