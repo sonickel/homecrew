@@ -39,6 +39,7 @@ Stand: 01.11.2026 (nachmittags) · **Dieses Dokument ist maßgeblich**; Details 
 | 01.11. nachm. | **Besuche externer Dienste** (Physio, Caritas, Pflegedienst …): Kalendereintrag als reine Info, **für das ganze Team sichtbar**, niemand muss etwas tun; als Serie (z. B. jeden Dienstag) mit Absagen einzelner Termine; Block „Heute kommen"; externe Dienste ohne Klarnamen (Konzept 8 §3) |
 | 01.11. nachm. | **Lokale Entwicklung**: WSL2 Debian (`/var/www/homecrew`), PHP 8.4, **Symfony 7.4 LTS**, Symfony CLI als Webserver, vorhandene MariaDB – **ohne Docker/FrankenPHP/Mercure/whisper**. Pi später per Docker Compose mit derselben MariaDB-Version wie lokal |
 | 01.11. nachm. | **Erweiterungen im Admin-Menü**: KI-Schlüssel, Modell, Verbindungstest, Funktionsschalter, Budget; ebenso **E-Mail (SMTP)** mit Testmail. **Nicht eingerichtet = Funktion unsichtbar**; Geheimnisse verschlüsselt, Ändern nur mit erneuter 2FA (Konzept 7 §2, Konzept 11) |
+| 01.11. abends | **MariaDB 11.8 LTS** statt 11.4 LTS (lokal in WSL vorhanden: 11.8.6); der Pi nutzt im Docker-Image dieselbe Version; Migrationsstrategie in Konzept 6 §6 |
 
 ## 3. Rollen (Kurzfassung)
 - **Manager** – assistierte Person, genau einer, immer Admin.

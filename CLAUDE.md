@@ -23,9 +23,11 @@ Abweichungen vom Konzept nur nach Rückfrage; danach das Konzept-Dokument mit an
 
 ## Befehle
 - Server: `symfony server:start -d` · `symfony server:stop` · Logs: `symfony server:log`
-- Migrationen: `php bin/console doctrine:migrations:diff` (Ergebnis immer von Hand prüfen!) · `php bin/console doctrine:migrations:migrate`
-- Qualität: `composer qa` (CS-Fixer, Twig/YAML/Container-Lint, PHPStan Level 8, PHPUnit – bricht beim ersten Fehler ab) · `composer qa:fix` (Code-Stil automatisch korrigieren)
-- Referenzschema testen: `mariadb homecrew_smoke < docs/datenbank/schema.sql && mariadb homecrew_smoke < docs/datenbank/smoke_test.sql` (leere DB; letzte Zeile muss „ALLE PRÜFUNGEN OK" sein)
+- Migrationen: `php bin/console doctrine:migrations:diff` (nur Hilfe/Gegenprobe – Vorgehen: Konzept 6 §6) · `php bin/console doctrine:migrations:migrate`
+- Qualität: `composer qa` (CS-Fixer, Twig/YAML/Container-Lint, PHPStan Level 8, Test-DB migrieren, PHPUnit – bricht beim ersten Fehler ab) · `composer qa:fix` (Code-Stil automatisch korrigieren)
+- Schema-Abgleich: `composer schema:check` (migriert `homecrew_check` von Null und vergleicht mit der Referenz in `homecrew_smoke`)
+- Referenzschema testen: `mariadb -e "DROP DATABASE IF EXISTS homecrew_smoke; CREATE DATABASE homecrew_smoke CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci" && mariadb homecrew_smoke < docs/datenbank/schema.sql && mariadb homecrew_smoke < docs/datenbank/smoke_test.sql` (letzte Zeile muss „ALLE PRÜFUNGEN OK" sein)
+- Testdaten (nur dev): `php bin/console doctrine:fixtures:load` (leert alle Tabellen, legt Einstellungen + Testpersonen neu an)
 
 ## Arbeitsweise
 - Umsetzung in **Meilensteinen** nach `docs/plan-stufe-1.md`; Ablauf siehe Skill `meilenstein`: Plan-Modus → Plan bestätigen lassen → umsetzen → `composer qa` → Review (Agent `reviewer`) → Commit.
@@ -55,3 +57,4 @@ Abweichungen vom Konzept nur nach Rückfrage; danach das Konzept-Dokument mit an
 <!-- Fehler und Korrekturen hier festhalten, damit sie sich nicht wiederholen. -->
 - CSS nie aus JavaScript importieren: AssetMapper macht daraus `data:`-Module, die die strikte CSP blockiert – dann läuft gar kein JS (Turbo/Stimulus). BrowserKit-Tests merken das nicht; nach Änderungen an Assets im echten Browser prüfen (Konsole ohne CSP-Fehler, `typeof Turbo === "object"`). (M0)
 - Die lokale CA der Symfony CLI liegt unter `~/.config/symfony-cli/certs/` (nicht `~/.symfony5`). (M0)
+- dama/doctrine-test-bundle hält je Verbindungsname eine offene Verbindung und nutzt sie auch bei geänderter `DATABASE_URL` weiter – ein Test, der die DB unerreichbar macht, muss `StaticDriver::setKeepStaticConnections(false)` setzen (und danach zurück). Die Testumgebung liest `.env.local` nicht, Zugangsdaten stehen in `.env.test.local`. (M1)

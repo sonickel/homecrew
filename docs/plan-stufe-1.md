@@ -11,12 +11,12 @@ Stand: 01.11.2026 · Grundlage: `docs/konzept/kontext.md` §4 (Stufe 1) und die 
 - Testzugänge aus Fixtures (nur dev/test): Manager, Angehörige mit und ohne Admin-Recht, Assistenz „Anna" (mit PIN), Assistenz „Ben" (ohne Zugang), ein gekoppeltes Team-Tablet.
 - Abweichungen vom Konzept nur nach Rückfrage; danach Konzept anpassen.
 
-## Migrationsstrategie (Vorschlag – wird in M1 erprobt und in Konzept 6 festgeschrieben)
-1. Tabellen entstehen immer **vollständig** nach `schema.sql` (alle Spalten, Indizes, Fremdschlüssel, CHECKs, generierte Spalten, Tabellenkommentar) – keine halben Tabellen, die später ergänzt werden.
+## Migrationsstrategie (in M1 erprobt, festgeschrieben in Konzept 6 §6)
+1. Tabellen entstehen immer **vollständig** nach `schema.sql` – keine halben Tabellen, die später ergänzt werden.
 2. Eine Tabelle entsteht in dem Meilenstein, der sie braucht, **zusammen mit allen Tabellen, auf die sie per Fremdschlüssel verweist** (transitiv). Solche „mitgezogenen" Tabellen bekommen Entity + Migration, aber noch keine Oberfläche.
-3. Je Meilenstein eine Migration (bei Bedarf wenige thematische): `doctrine:migrations:diff` als Ausgangspunkt, dann von Hand: CHECKs, generierte Spalten, `ON UPDATE CURRENT_TIMESTAMP`, Startdaten (z. B. die eine Zeile in `app_setting`). Nie `DROP` für noch nicht gemappte Tabellen/Spalten; nie `doctrine:schema:update`.
-4. Invariante: Jede Tabelle der migrierten Datenbank ist identisch mit derselben Tabelle in `homecrew_smoke`. Geprüft per Vergleichsskript unter `bin/` (information_schema: Spalten, Typen, NULL, Defaults, generierte Ausdrücke, Indizes, Fremdschlüssel inkl. ON DELETE, CHECKs, Kommentare) gegen eine frisch von Null migrierte Datenbank.
-5. Außerhalb der Referenz erlaubt und in Konzept 6 dokumentiert: technische Tabellen (`doctrine_migration_versions`, ab M11 `messenger_messages`).
+3. Je Meilenstein eine Migration: `CREATE TABLE` **wörtlich aus `schema.sql`**, Startdaten dazu; `doctrine:migrations:diff` nur als Hilfe und als Gegenprobe („No changes detected"). Mapping-Regeln gegen Scheinänderungen: Konzept 6 §6.2.
+4. Invariante: `composer schema:check` – jede migrierte Tabelle ist identisch mit derselben Tabelle der Referenz.
+5. Technische Tabellen außerhalb der Referenz: `doctrine_migration_versions`, ab M11 `messenger_messages`.
 6. Fachliche Schemaänderung → zuerst `schema.sql` + `smoke_test.sql`, Smoke-Test grün, dann Migration.
 
 ## Übersicht
@@ -85,12 +85,14 @@ Nicht in Stufe 1 (27 Tabellen): Personal & Abrechnung, Checklisten, Sätze/Grenz
 **Tabellen:** neu `app_setting`, `app_user`.
 
 **Akzeptanzkriterien**
-- [ ] Smoke-Test endet mit „ALLE PRÜFUNGEN OK" (Ergebnis in Konzept 6 §8 vermerkt).
-- [ ] `doctrine:migrations:migrate` läuft auf leerer DB durch; `doctrine:schema:validate` ohne Mapping-Fehler; ein erneutes `doctrine:migrations:diff` erzeugt nichts (oder nur dokumentierte, begründete Reste).
-- [ ] `composer schema:check` meldet `app_setting` und `app_user` identisch zur Referenz.
-- [ ] PHPUnit: mindestens 5 Smoke-Regeln als Datenbanktests (z. B. zweiter Manager, Assistenz als Admin, KI an ohne Schlüssel).
-- [ ] Browser: Startseite zeigt den Haushaltsnamen aus `app_setting` („Mein Haushalt").
-- [ ] MariaDB-Version überall 11.8 LTS; Strategie in Konzept 6 dokumentiert.
+- [x] Smoke-Test endet mit „ALLE PRÜFUNGEN OK" (Ergebnis in Konzept 6 §8 vermerkt: 7 A, 92 B, 13 C – Referenz unverändert).
+- [x] `doctrine:migrations:migrate` läuft auf leerer DB durch; `doctrine:schema:validate` ohne Mapping-Fehler und „in sync"; ein erneutes `doctrine:migrations:diff` meldet „No changes detected" (auch als Test `MappingTest`).
+- [x] `composer schema:check` meldet `app_setting` und `app_user` identisch zur Referenz (Gegenprobe: eingebaute Abweichungen werden gefunden).
+- [x] PHPUnit: alle Smoke-Regeln der beiden Tabellen (B43–B46, B50–B52, B87–B92) plus die übrigen CHECKs als Datenbanktests; ORM-Durchlauf, UTC-Verbindung.
+- [x] Browser: Startseite zeigt den Haushaltsnamen aus `app_setting` („Mein Haushalt"), 1024 × 768 und 390 × 844 mit „sehr groß" ohne horizontales Scrollen.
+- [x] MariaDB-Version überall 11.8 LTS; Strategie in Konzept 6 §6 dokumentiert.
+
+**Abweichungen:** Vierte Datenbank `homecrew_check` als Ziel des Abgleichs; der Abgleich baut `homecrew_smoke` jedes Mal neu auf (Smoke-Befehl in CLAUDE.md legt die DB deshalb vorher neu an). Abgleich als Dev-Befehl `app:schema:check` statt Skript unter `bin/` (dafür `symfony/process` als dev-Paket); er kann nur `<App-DB>_smoke` und `<App-DB>_check` löschen (`CheckDatabases`, getestet) und gilt ohne migrierte Tabelle als fehlgeschlagen. Die Migration übernimmt `CREATE TABLE` wörtlich aus `schema.sql`, weil DBAL Bool-Spalten als `TINYINT` statt `TINYINT(1)` schreibt und CHECKs/generierte Spalten/`ON UPDATE` nicht kennt; dazu `TinyIntType` und `MariaDbSchemaManager` gegen Scheinänderungen. Startseite: Überschrift = Haushaltsname, „Willkommen bei HomeCrew" als Einleitung. Fixtures: Einstellungen + Max (Manager), Schwester (Angehörige, Admin), Papa (Angehörige), Anna, Ben – noch ohne Zugangsdaten (M2–M4). Test „Fehlerseiten ohne Datenbank": `/` → deutsche 500-Seite, 404 ohne DB.
 
 ---
 
@@ -404,3 +406,6 @@ Auffälligkeiten außerhalb eines Meilensteins (siehe Skill `meilenstein`).
 
 - **Ab M3/M4 – Tokens nicht ins Log:** In prod schreibt Monolog bei Fehlern den ganzen Puffer (`fingers_crossed`) inkl. Kanal `request` mit Routen-Parametern. Einladungs- und Kopplungs-Codes daher nicht im URL-Pfad/Query übergeben (oder Kanal `request` in prod ausschließen) – beim Planen von M3/M4 entscheiden. (Review M0)
 - **Dev-Werkzeug Screenshots:** Headless-Chrome unter Windows erzwingt ≥ 500 px Breite; für 390 px die Gerätesimulation über das DevTools-Protokoll nutzen (Hilfsskript liegt nicht im Projekt).
+- **DBAL 5:** Die TINYINT-Lösung (`MariaDbSchemaManager`) hängt am alten Introspektionsweg von DBAL 4; der neue `MetadataProvider` liest `TINYINT UNSIGNED` weiterhin als bool. Beim Umstieg auf DBAL 5 anpassen (`MappingTest::testMappingMatchesTheMigratedSchema` schlägt an). (M1)
+- **Pi/Docker:** PHP muss in UTC laufen (`date.timezone = UTC`), damit `DATETIME`-Werte aus der Datenbank richtig gelesen werden – lokal ist das so; beim Bau des FrankenPHP-Images setzen. (M1)
+- **M2 – Schema-Abgleich mit Fremdschlüsseln:** M1 hat keine Fremdschlüssel; in M2 einmal bewusst ein `ON DELETE` in der Migration ändern und prüfen, dass `composer schema:check` rot wird (Review M1).

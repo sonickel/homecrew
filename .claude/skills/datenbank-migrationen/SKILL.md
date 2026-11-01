@@ -7,20 +7,18 @@ description: Wie Doctrine-Entities und Migrationen in HomeCrew aus dem Referenzs
 
 ## Referenz
 - `docs/datenbank/schema.sql` ist die **fachliche Referenz** (78 Tabellen, Namen, Typen, Fremdschlüssel, CHECKs). `docs/datenbank/smoke_test.sql` prüft die Regeln (92 Negativtests + Positiv- und Löschfälle).
-- Erster Schritt im Projekt: Referenzschema + Smoke-Test gegen eine **leere** lokale Datenbank laufen lassen (`homecrew_smoke`), Ergebnis melden. Fehler zuerst im Referenzschema beheben (und in `docs/konzept/konzept-6-datenbank.md` vermerken).
+- Smoke-Test (Befehl in Konzept 6 §8) läuft auf MariaDB 11.8.6 grün. Fehler zuerst im Referenzschema beheben (und in `docs/konzept/konzept-6-datenbank.md` vermerken).
+- **Strategie und Mapping-Tabelle: Konzept 6 §6** – vor jeder neuen Tabelle lesen.
 
 ## Vorgehen je Meilenstein
-1. Nur die Tabellen anlegen, die der Meilenstein braucht (plus referenzierte Tabellen).
-2. Entities exakt nach Referenz mappen: Tabellen-/Spaltennamen, Längen, `nullable`, Defaults, Enum-Werte, Indizes (`#[ORM\Index]`, `#[ORM\UniqueConstraint]`), `onDelete` an den Joins.
-3. `php bin/console doctrine:migrations:diff` erzeugen und **von Hand prüfen**:
-   - CHECK-Constraints aus der Referenz ergänzen (Doctrine erzeugt sie nicht).
-   - Generierte Spalten (z. B. `app_user.manager_marker`, `time_entry.open_marker`) aus der Referenz übernehmen; in der Entity nur lesend (`insertable: false, updatable: false`) bzw. gar nicht mappen.
+1. Nur die Tabellen anlegen, die der Meilenstein braucht (plus transitiv referenzierte Tabellen), immer vollständig.
+2. Entities exakt nach Referenz mappen (Konzept 6 §6.2): `name:` an jeder Spalte, Reihenfolge wie im Schema, Längen, `nullable`, Defaults, Enum-Werte, Index-Namen (`#[ORM\Index]`, `#[ORM\UniqueConstraint]`), `onDelete` an den Joins; `TINYINT` ≠ `TINYINT(1)` → Typ `tinyint`; generierte Spalten und DB-Zeitstempel **nur lesend mappen, nie weglassen**.
+3. `php bin/console doctrine:migrations:diff` als Hilfe erzeugen, dann die Migration schreiben: `CREATE TABLE` **wörtlich aus `schema.sql`** (ohne `--`-Kommentare), Startdaten dazu, `isTransactional(): false`.
    - Bei FK-Indizes mit generierter Spalte: erst ein normaler Index auf die FK-Spalte, dann der Unique-Index (MariaDB-Einschränkung).
-   - **Nie** `DROP TABLE`/`DROP COLUMN` für noch nicht gemappte Tabellen/Spalten akzeptieren – entfernen.
-   - Wiederkehrende Scheinänderungen (Diff will dieselbe Spalte immer wieder ändern) beheben statt ignorieren; notfalls `schema_filter` bzw. Spaltendefinition angleichen.
-4. Migration auf der Entwicklungs-DB ausführen und auf einer leeren DB von Null an (`doctrine:migrations:migrate` komplett) testen.
-5. Abgleich mit der Referenz für die betroffenen Tabellen (Spalten, Typen, Constraints) – z. B. mit einem kleinen Vergleichsskript über `information_schema`, das im Projekt unter `bin/` liegt.
-6. Passende Regeln aus `smoke_test.sql` als PHPUnit-Tests nachbilden, sobald die Tabelle per Doctrine existiert (Regel verletzt → Exception).
+   - **Nie** `DROP TABLE`/`DROP COLUMN` für noch nicht gemappte Tabellen/Spalten.
+4. `doctrine:migrations:migrate`, dann Gegenprobe: `doctrine:schema:validate` „in sync" und ein zweites `doctrine:migrations:diff` → „No changes detected". Scheinänderungen beheben (Mapping angleichen), nicht ignorieren. Wird eine schon ausgeführte, noch nicht committete Migration geändert: in dev und test erst `doctrine:migrations:migrate prev -n [--env=test]`, dann neu migrieren – `composer qa` migriert die Test-DB nur vorwärts.
+5. `composer schema:check` → alle migrierten Tabellen identisch zur Referenz (migriert `homecrew_check` von Null, lädt die Referenz neu in `homecrew_smoke`).
+6. Passende Regeln aus `smoke_test.sql` als PHPUnit-Tests nachbilden (`tests/Database/`, Basisklasse `DatabaseTestCase`: Fehlercode 4025 = CHECK, 1062 = doppelt).
 
 ## Regeln
 - Niemals `doctrine:schema:update --force`.
@@ -33,5 +31,5 @@ description: Wie Doctrine-Entities und Migrationen in HomeCrew aus dem Referenzs
 - Änderung am fachlichen Schema → `schema.sql` und `smoke_test.sql` mitziehen (Referenz bleibt aktuell).
 
 ## Lokale Datenbanken
-- `homecrew` (Entwicklung), `homecrew_test` (PHPUnit), `homecrew_smoke` (Referenztest) – ein DB-Benutzer mit Rechten auf `homecrew%`.
-- `DATABASE_URL` in `.env.local` mit korrekter `serverVersion` (z. B. `11.8.3-MariaDB`), `charset=utf8mb4`.
+- `homecrew` (Entwicklung), `homecrew_test` (PHPUnit, `composer qa` migriert sie), `homecrew_smoke` (Referenz/Smoke-Test), `homecrew_check` (von Null migriert für `schema:check`) – App-Benutzer `homecrew` mit Rechten auf `homecrew%`; der WSL-Benutzer kommt per `unix_socket` an dieselben Datenbanken (`mariadb` ohne Passwort).
+- `DATABASE_URL` in `.env.local` **und** `.env.test.local` (die Testumgebung liest `.env.local` nicht) mit `serverVersion=11.8.6-MariaDB`, `charset=utf8mb4`.

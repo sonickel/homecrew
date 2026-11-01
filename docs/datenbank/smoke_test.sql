@@ -1,11 +1,11 @@
 -- =====================================================================
---  Smoke-Test für schema.sql (MariaDB 10.11+)
+--  Smoke-Test für schema.sql (MariaDB 11.8 LTS)
 --
---  Auf einer LEEREN Test-Datenbank ausführen, z. B. auf dem Pi:
---    sudo mariadb -e "CREATE DATABASE homecrew_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
---    sudo mariadb homecrew_test < schema.sql
---    sudo mariadb homecrew_test < smoke_test.sql
---    sudo mariadb -e "DROP DATABASE homecrew_test"
+--  Auf einer LEEREN Datenbank ausführen – nie auf homecrew oder homecrew_test
+--  (Befehl auch in docs/konzept/konzept-6-datenbank.md §8):
+--    mariadb -e "DROP DATABASE IF EXISTS homecrew_smoke; CREATE DATABASE homecrew_smoke CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+--    mariadb homecrew_smoke < docs/datenbank/schema.sql
+--    mariadb homecrew_smoke < docs/datenbank/smoke_test.sql
 --
 --  Erwartung: Die Ergebnisliste enthält nur Zeilen mit „OK", die letzte
 --  Zeile lautet „ALLE PRÜFUNGEN OK". Bricht das Skript vorher mit einem

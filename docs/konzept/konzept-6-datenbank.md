@@ -1,12 +1,12 @@
-# Konzept 6 – Datenbank (MariaDB 11.4 LTS)
+# Konzept 6 – Datenbank (MariaDB 11.8 LTS)
 
-Stand: 01.11.2026 (nachmittags) · Referenzschema: `docs/datenbank/schema.sql` · Test: `docs/datenbank/smoke_test.sql` · App: **HomeCrew**
+Stand: 01.11.2026 (abends) · Referenzschema: `docs/datenbank/schema.sql` · Test: `docs/datenbank/smoke_test.sql` · App: **HomeCrew**
 
 ## 1. Rahmen
-- **MariaDB 11.4 LTS** (geklärt), InnoDB, `utf8mb4_unicode_ci`.
+- **MariaDB 11.8 LTS** (geklärt 01.11. abends, vorher 11.4 LTS), InnoDB, `utf8mb4_unicode_ci`. Lokal 11.8.6; der Pi nutzt dieselbe Version.
 - **Eine Datenbank = ein Haushalt** – keine Mandantenspalten (geklärt).
-- **78 Tabellen**, 154 Fremdschlüssel, 155 CHECK-Constraints (statisch geprüft).
-- Später erzeugen Doctrine-Migrations das Schema; `schema.sql` ist die fachliche Referenz.
+- **78 Tabellen**, 154 Fremdschlüssel, 155 CHECK-Constraints (gegen MariaDB 11.8.6 geprüft). MariaDB legt für die drei JSON-Spalten zusätzlich je einen automatischen `json_valid`-CHECK an – `information_schema` zeigt deshalb 158.
+- Doctrine-Migrations erzeugen das Schema (Strategie in §6); `schema.sql` bleibt die fachliche Referenz.
 
 ## 2. Konventionen
 | Thema | Regel |
@@ -91,9 +91,41 @@ erDiagram
 15. **Notfallkontakte**, **Wer kennt welche Anleitung**, ein offener Dienst je Person, versionierte Anleitungen, bezahlte Ausfälle mit Rechen-CHECKs, Medien mit genau einem Besitzer, ein Team-Chat, ein Direktchat je Paar.
 16. **Datenschutz in der Struktur**: keine Diagnosen, Medikamente, Adressen, SV-/Steuernummern; externe Dienste ohne Klarnamen; Geheimnisse nur verschlüsselt; Löschdaten an allen kurzlebigen Inhalten.
 
-## 6. Hinweise für Doctrine
-- CHECK-Constraints und generierte Spalten in den Migrations von Hand pflegen; nie `doctrine:schema:update`.
-- Generierte Spalten nicht bzw. nur lesend mappen.
+## 6. Doctrine und Migrationsstrategie
+
+### 6.1 Migrationsstrategie (in M1 erprobt, gilt für alle Meilensteine)
+1. Tabellen entstehen immer **vollständig** nach `schema.sql` (alle Spalten, Indizes, Fremdschlüssel, CHECKs, generierten Spalten, Tabellenkommentar) – keine halben Tabellen.
+2. Eine Tabelle entsteht in dem Meilenstein, der sie braucht, **zusammen mit allen Tabellen, auf die sie per Fremdschlüssel verweist** (transitiv); solche Tabellen bekommen Entity + Migration, aber noch keine Oberfläche.
+3. Je Meilenstein eine Migration (bei Bedarf wenige thematische). Die `CREATE TABLE`-Anweisungen werden **wörtlich aus `schema.sql` übernommen** (ohne SQL-Kommentare): Doctrine kennt weder CHECKs noch generierte Spalten noch `ON UPDATE` und schreibt Bool-Spalten als `TINYINT` statt `TINYINT(1)`. `doctrine:migrations:diff` dient vorher als Hilfe und danach als **Gegenprobe – es muss „No changes detected" melden**. Startdaten (z. B. `INSERT INTO app_setting (id) VALUES (1)`) stehen in derselben Migration. `isTransactional()` liefert `false` (MariaDB schreibt DDL sofort fest). Nie `DROP` für noch nicht gemappte Tabellen/Spalten; nie `doctrine:schema:update`.
+4. **Invariante**: Jede migrierte Tabelle ist identisch mit derselben Tabelle der Referenz. `composer schema:check` (Befehl `app:schema:check`, nur dev) legt `homecrew_smoke` neu an und lädt `schema.sql`, legt `homecrew_check` neu an und migriert von Null, und vergleicht über `information_schema`: Spalten (Position, Typ, NULL, Default, Extra inkl. `ON UPDATE`, generierter Ausdruck, Kollation, Kommentar), Indizes, Fremdschlüssel (inkl. ON DELETE/UPDATE), CHECKs, Engine, Kollation und Tabellenkommentar. Muss am Ende jedes Meilensteins grün sein.
+5. **Technische Tabellen** außerhalb der Referenz: `doctrine_migration_versions`, ab M11 `messenger_messages`. Der Abgleich überspringt sie.
+6. Fachliche Schemaänderung → zuerst `schema.sql` + `smoke_test.sql`, Smoke-Test grün, dann Migration.
+
+### 6.2 Mapping ohne Scheinänderungen
+Ziel: `doctrine:schema:validate` meldet „in sync", ein zweites `migrations:diff` erzeugt nichts. Spaltennamen immer mit `name:` angeben, Properties in der Reihenfolge des Schemas.
+
+| Referenz | Mapping | Warum |
+|---|---|---|
+| `TINYINT(1)` | `bool`, Typ `boolean` | – |
+| `TINYINT [UNSIGNED]` | eigener Typ `tinyint` (`App\Doctrine\Type\TinyIntType`), ggf. `unsigned` | DBAL liest jede TINYINT-Spalte als bool. `App\Doctrine\Schema\MariaDbSchemaManager` (über `schema_manager_factory`) liest nur `tinyint(1)` als bool |
+| `SMALLINT UNSIGNED`, `BIGINT UNSIGNED` | `Types::SMALLINT`/`Types::BIGINT`, `unsigned` | – |
+| `CHAR(n)` | `length: n`, `options: ['fixed' => true]` | – |
+| `BINARY(16)` (`public_id`) | `UuidType::NAME` (Symfony Uid, `Uuid::v7()`) | Auf MariaDB als `BINARY(16)`, kein nativer UUID-Typ |
+| `VARBINARY(n)` (`*_enc`) | `Types::BINARY`, `length: n`, `?string` | – |
+| `JSON` | `Types::JSON` | MariaDB: `LONGTEXT` + automatischer `json_valid`-CHECK; DBAL erkennt das |
+| `DECIMAL(p,s)`, `TIME`, `DATE`, `DATETIME` | `Types::DECIMAL` (`?string`), `*_IMMUTABLE` | Geld nie als float |
+| `DEFAULT CURRENT_TIMESTAMP [ON UPDATE …]` | nur lesend: `insertable/updatable: false`, `generated: 'INSERT'` bzw. `'ALWAYS'`, `options: ['default' => new CurrentTimestamp()]`, bei `ON UPDATE` zusätzlich `columnDefinition` | Die Datenbank setzt die Zeit (UTC), Doctrine liest sie nach dem Speichern |
+| Generierte Spalte (`… AS (…) STORED`) | gemappt, nur lesend (`generated: 'ALWAYS'`, `columnDefinition` mit Ausdruck) | **Nicht weglassen** – ungemappt würde `diff` sie löschen wollen |
+| CHECK-Constraints | nicht im Mapping | nur in der Migration; Doctrine ignoriert sie |
+| Indizes | `#[ORM\Index]`/`#[ORM\UniqueConstraint]` mit dem Namen aus der Referenz; nie `unique: true` an der Spalte | – |
+| Tabellenkommentar | `#[ORM\Table(options: ['comment' => …])]` | Spaltenkommentare gibt es nicht (`--` in `schema.sql` sind SQL-Kommentare) |
+
+Verbindung: `SET time_zone = '+00:00'` per `Pdo\Mysql::ATTR_INIT_COMMAND`, Tabellenoptionen `utf8mb4_unicode_ci` (`config/packages/doctrine.yaml`).
+
+**Achtung DBAL 5:** DBAL 4.5 hat zusätzlich einen neuen Introspektionsweg (`MetadataProvider`, z. B. `introspectTableColumns()`), der `TINYINT UNSIGNED` weiterhin als bool liest. Doctrine ORM und Migrations nutzen für den Abgleich noch `introspectSchema()`. Beim Umstieg auf DBAL 5 die TINYINT-Lösung anpassen – der Test `MappingTest::testMappingMatchesTheMigratedSchema` schlägt dann an.
+
+### 6.3 Weitere Hinweise
+- Generierte Spalten nur lesend mappen (siehe 6.2).
 - `app_user` als Symfony-User-Entity (Benutzername als Identifier); PIN-Anmeldung als eigener Authenticator, nur für gekoppelte Geräte im Heimnetz.
 - **Team-Tablet** als eigener Security-Kontext: Geräte-Token (Cookie) → „Geräte-Benutzer" mit Rolle `ROLE_TEAM_DEVICE`, kein `app_user`.
 - **Erweiterungen**: `*_enc`-Felder nie in Formulare zurückschreiben (nur „neu setzen"/„löschen"); Mailer-DSN und KI-Client zur Laufzeit aus `app_setting` bauen, Umgebungsvariablen haben Vorrang.
@@ -103,13 +135,14 @@ erDiagram
 ## 7. Löschjobs
 Übergaben · Erledigungen · Meldungen · Nachrichten (365 Tage) · Benachrichtigungen · KI-Gespräche · Reset-Links/2FA-Codes · Push-Abos · Uploads · Audit-Log · Personaldaten erst nach gesetzter Frist. Vergangene Termine/Besuche: vorerst keine automatische Löschung (Frist offen).
 
-## 8. Smoke-Test auf dem Pi
-Statisch geprüft (Fremdschlüssel, Typen, Reihenfolge, Kommas, Indexnamen, Testspalten, Pflichtfelder, Werteanzahl) – **noch nicht gegen eine echte MariaDB gelaufen**.
+## 8. Smoke-Test
+Auf einer **leeren** Datenbank (lokal in WSL, der Benutzer meldet sich per `unix_socket` an; auf dem Pi beim Aufbau wiederholen):
 
 ```bash
-sudo mariadb -e "CREATE DATABASE homecrew_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
-sudo mariadb homecrew_test < schema.sql
-sudo mariadb homecrew_test < smoke_test.sql
-sudo mariadb -e "DROP DATABASE homecrew_test"
+mariadb -e "DROP DATABASE IF EXISTS homecrew_smoke; CREATE DATABASE homecrew_smoke CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+mariadb homecrew_smoke < docs/datenbank/schema.sql
+mariadb homecrew_smoke < docs/datenbank/smoke_test.sql
 ```
-Erwartet: nur „OK", letzte Zeile **ALLE PRÜFUNGEN OK**. **92 Regeln** (u. a. genau ein Manager, Manager immer Admin, Assistenz nie Admin, Admin-Korrektur nur mit Begründung, Gerätemodi, Zeitquellen, Meldungs-Status, Benachrichtigungsregeln, Besuche ohne Begleitung/Zuständigkeit, Serien-Vorkommen eindeutig, **KI nur mit Schlüssel, E-Mail nur mit vollständigem Zugang**), Positivfälle (Team-Tablet, „Seife leer", Physio-/Caritas-Serien, eingerichtete Erweiterungen) und Löschverhalten.
+Erwartet: nur „OK", letzte Zeile **ALLE PRÜFUNGEN OK**. Geprüft werden Positivfälle (Team-Tablet, „Seife leer", Physio-/Caritas-Serien, eingerichtete Erweiterungen), **92 Regeln** (u. a. genau ein Manager, Manager immer Admin, Assistenz nie Admin, Admin-Korrektur nur mit Begründung, Gerätemodi, Zeitquellen, Meldungs-Status, Benachrichtigungsregeln, Besuche ohne Begleitung/Zuständigkeit, Serien-Vorkommen eindeutig, **KI nur mit Schlüssel, E-Mail nur mit vollständigem Zugang**) und das Löschverhalten.
+
+**Ergebnis 01.11.2026** (MariaDB 11.8.6, WSL2 Debian): **ALLE PRÜFUNGEN OK** – 7 Positivfälle (A), 92 Regeln (B), 13 Lösch- und Verweisfälle (C); die Referenz musste nicht geändert werden. Die Regeln zu `app_setting` und `app_user` laufen zusätzlich als PHPUnit-Tests (`tests/Database/`).

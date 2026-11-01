@@ -23,7 +23,7 @@ description: Ablauf für jeden Umsetzungsschritt in HomeCrew – von Plan über 
 - Läuft etwas grundsätzlich anders als geplant: anhalten, neu planen, Rückfrage – nicht im Code improvisieren.
 
 ## 3. Prüfen
-1. `composer qa` muss grün sein (CS-Fixer, PHPStan, Lint, PHPUnit).
+1. `composer qa` muss grün sein (CS-Fixer, PHPStan, Lint, PHPUnit). Bei neuen oder geänderten Tabellen zusätzlich `composer schema:check` (alle migrierten Tabellen identisch zur Referenz).
 2. Neue Logik hat Tests: Voter und Services als Unit-Tests, Seiten als funktionale Tests (mindestens: erlaubte Rolle sieht die Seite, nicht erlaubte bekommt 403/404, Team-Tablet sieht nur Erlaubtes).
 3. Im Browser prüfen (Tablet-Breite ~1024 px und Handy ~390 px, große Schrift) – bei Oberflächen Screenshot ansehen, wenn möglich.
 4. Agent `reviewer` auf den Diff ansetzen; Befunde beheben oder begründet zurückweisen.

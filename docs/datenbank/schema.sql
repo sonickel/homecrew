@@ -1,9 +1,10 @@
 -- =====================================================================
 --  HomeCrew – Datenbankschema (fachliche Referenz)
---  Ziel:   MariaDB 11.4 LTS, InnoDB, utf8mb4
---  Stand:  01.11.2026 · Konzeptphase
---          Später erzeugen Doctrine-Migrations das Schema; diese Datei ist
---          die Referenz, gegen die Entities und Migrations geprüft werden.
+--  Ziel:   MariaDB 11.8 LTS, InnoDB, utf8mb4
+--  Stand:  01.11.2026 · Umsetzung Stufe 1
+--          Doctrine-Migrations erzeugen das Schema; diese Datei ist die
+--          Referenz, gegen die Entities und Migrations geprüft werden
+--          (composer schema:check, docs/konzept/konzept-6-datenbank.md §6).
 --
 --  Eine Datenbank = ein Haushalt. Weitere Haushalte bekommen eine eigene
 --  Instanz mit eigener Datenbank (keine Mandantenfähigkeit im Schema).
