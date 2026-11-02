@@ -15,6 +15,8 @@ final readonly class AccessCodeGenerator
     /** 31 upper-case characters: 24 of them give about 119 bits for an invitation code. */
     private const string INVITATION_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
     public const int INVITATION_LENGTH = 24;
+    /** 12 of them give about 59 bits – plenty for a code that lives 10 minutes and works only in the home network. */
+    public const int PAIRING_LENGTH = 12;
     public const int PIN_LENGTH = 6;
 
     /**
@@ -34,7 +36,7 @@ final readonly class AccessCodeGenerator
     }
 
     /**
-     * Invitation code without separators; shown in groups of 4 and normalized with normalizeInvitationCode().
+     * Invitation code without separators; shown in groups of 4 and normalized with normalizeCode().
      */
     public function invitationCode(): string
     {
@@ -42,9 +44,17 @@ final readonly class AccessCodeGenerator
     }
 
     /**
-     * Typed codes: case, spaces and dashes do not matter.
+     * Code that pairs a tablet (Verwaltung → Geräte); shown in groups of 4 and normalized with normalizeCode().
      */
-    public static function normalizeInvitationCode(string $code): string
+    public function pairingCode(): string
+    {
+        return self::random(self::INVITATION_ALPHABET, self::PAIRING_LENGTH);
+    }
+
+    /**
+     * Typed invitation and pairing codes: case, spaces and dashes do not matter.
+     */
+    public static function normalizeCode(string $code): string
     {
         return strtoupper((string) preg_replace('/[^a-z0-9]/i', '', $code));
     }

@@ -20,7 +20,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 /**
  * Redeem an invitation (konzept-1 §4): code from the QR code or typed → choose a password → logged in.
- * The QR code carries the code after "#", which never reaches the server; assets/controllers/invitation_code_controller.js
+ * The QR code carries the code after "#", which never reaches the server; assets/controllers/fragment_code_controller.js
  * puts it into the form. The session only keeps the id of a checked invitation, never the code.
  */
 final class InvitationController extends AbstractController
@@ -39,7 +39,7 @@ final class InvitationController extends AbstractController
         RateLimiterFactoryInterface $limiterFactory,
     ): Response {
         $error = null;
-        if (null === $this->getUser() && $request->isMethod('POST')) {
+        if (!$this->getUser() instanceof AppUser && $request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('invitation', $request->getPayload()->getString('_token'))) {
                 throw $this->createAccessDeniedException('Invalid CSRF token.');
             }
@@ -73,7 +73,7 @@ final class InvitationController extends AbstractController
     {
         $session = $request->getSession();
         $id = $session->get(self::SESSION_KEY);
-        $invitation = null === $this->getUser() && \is_int($id) ? $this->invitationManager->find($id) : null;
+        $invitation = !$this->getUser() instanceof AppUser && \is_int($id) ? $this->invitationManager->find($id) : null;
         $status = $this->invitationManager->status($invitation);
         if (null === $invitation || InvitationStatus::Gueltig !== $status) {
             $session->remove(self::SESSION_KEY);

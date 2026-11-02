@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Notfall'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Notfall'|trans" />
+
+    <a class="hc-emergency-button hc-emergency-button--large" href="tel:112">
+        {{ ux_icon('tabler:phone', {'aria-hidden': 'true'}) }}<span>{{ '112 anrufen – Rettungsdienst und Feuerwehr'|trans }}</span>
+    </a>
+
+    {% for category in categories %}
+        {% set contacts = groups[category.value] ?? [] %}
+        {% if contacts is not empty %}
+            <section class="hc-section" aria-labelledby="notfall-{{ category.value }}">
+                <h2 id="notfall-{{ category.value }}">{{ category.label|trans }}</h2>
+                <ul class="hc-contacts">
+                    {% for contact in contacts %}
+                        <li class="hc-contact">
+                            <p class="hc-contact__name">
+                                {{ contact.name }}{% if contact.relation %} <span class="hc-contact__relation">({{ contact.relation }})</span>{% endif %}
+                                {% if contact.adminOnly %}<span class="hc-contact__badge">{{ 'nur für Admins sichtbar'|trans }}</span>{% endif %}
+                            </p>
+                            {% if contact.whenToCall %}<p class="hc-contact__when">{{ contact.whenToCall }}</p>{% endif %}
+                            <div class="hc-button-row">
+                                <a class="hc-button hc-button--primary" href="tel:{{ contact.phoneDial }}">
+                                    {{ ux_icon('tabler:phone', {'aria-hidden': 'true'}) }}<span>{{ contact.phone }}</span>
+                                </a>
+                                {% if contact.phoneAlt %}
+                                    <a class="hc-button hc-button--secondary" href="tel:{{ contact.phoneAltDial }}" aria-label="{{ 'Zweite Nummer: %number%'|trans({'%number%': contact.phoneAlt}) }}">
+                                        {{ ux_icon('tabler:phone', {'aria-hidden': 'true'}) }}<span>{{ contact.phoneAlt }}</span>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+    {% endfor %}
+
+    {% if groups is empty %}
+        <twig:EmptyState icon="tabler:first-aid-kit" :message="admin
+            ? 'Noch keine Notfallkontakte. Trage sie unter Verwaltung → Notfall-Infos ein.'|trans
+            : 'Noch keine Notfallkontakte. Ein Admin trägt sie unter Verwaltung → Notfall-Infos ein.'|trans" />
+    {% endif %}
+{% endblock %}

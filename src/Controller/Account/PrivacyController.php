@@ -7,6 +7,7 @@ namespace App\Controller\Account;
 use App\Entity\AppUser;
 use App\Repository\AppSettingRepository;
 use App\Repository\AppUserRepository;
+use App\Security\Permission;
 use App\Service\Account\AccountSetup;
 use App\Service\Account\PrivacyNotice;
 use Doctrine\ORM\EntityManagerInterface;
@@ -44,7 +45,7 @@ final class PrivacyController extends AbstractController
             $user->acknowledgePrivacyNotice(PrivacyNotice::VERSION, $clock->now());
             $entityManager->flush();
 
-            return $this->redirectToRoute($accountSetup->nextStep($user) ?? 'app_home', status: Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute($accountSetup->nextStep($user, $this->isGranted(Permission::PIN_CHANGE)) ?? 'app_home', status: Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('account/privacy.html.twig', [

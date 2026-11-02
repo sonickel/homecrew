@@ -59,7 +59,7 @@ final readonly class InvitationManager
 
     public function findByCode(string $code): ?Invitation
     {
-        $code = AccessCodeGenerator::normalizeInvitationCode($code);
+        $code = AccessCodeGenerator::normalizeCode($code);
 
         return '' === $code ? null : $this->invitationRepository->findOneByTokenHash(self::hash($code));
     }

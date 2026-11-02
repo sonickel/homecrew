@@ -1,6 +1,6 @@
 # Konzept 1 – Rollen, Rechte, Personen anlegen, Anmeldung, E-Mail
 
-Stand: 02.11.2026 (M3: Personen und Zugänge) · Status: Entwurf · App-Name: **HomeCrew**
+Stand: 02.11.2026 (M4: PIN-Anmeldung am Tablet) · Status: Entwurf · App-Name: **HomeCrew**
 
 ## 1. Grundsätze
 - **Eine Installation = ein Haushalt** (keine Mandanten; weitere Haushalte = eigene Instanz).
@@ -77,10 +77,10 @@ Legende: ✅ ja · ⚙️ per Schalter (Standard aus) · 👁 nur eigene · – 
   - **Passkey = vollständige Anmeldung** (Fingerabdruck, Gesicht oder Geräte-PIN, ohne Benutzername). Wer einen Passkey als zweiten Schritt hat, kommt mit dem Passwort nur zusammen mit einem Wiederherstellungscode weiter.
   - 10 Wiederherstellungscodes, jeder einmal gültig, nur einmal angezeigt; zweiter Schritt und Passwort je 5 Versuche in 15 Minuten, dann Wartezeit.
   - Abmeldung nach **8 Stunden** ohne Aktivität (Tablet kürzer, Konzept 12).
-- **Tablet**: Modus pro Gerät – **Team** (ohne Anmeldung, Standard) · **Persönlich** (Name + PIN) · **Beides** (Konzept 12). Im Team-Modus kein eigener Entsperr-Code (Bildschirmschoner + ggf. Android-Sperre). PIN pro Person aktivierbar (Standard aus), nur gekoppelte Tablets im Heimnetz, nie Admin-Rechte über PIN. Admin-Anmeldung am Tablet nur voll mit 2FA, danach automatisch zurück.
+- **Tablet**: Modus pro Gerät – **Team** (ohne Anmeldung, Standard) · **Persönlich** (Name + PIN) · **Beides** (Konzept 12). Im Team-Modus kein eigener Entsperr-Code (Bildschirmschoner + ggf. Android-Sperre). PIN pro Person aktivierbar (Standard aus), nur gekoppelte Tablets im Heimnetz (mit Schalter „PIN nur im Heimnetz" aus auch unterwegs – die Team-Ansicht nie), nie Admin-Rechte über PIN. PIN: 6 Ziffern, nichts Einfaches; 3 Fehlversuche → 5 Minuten Pause; die Start-PIN wird bei der ersten PIN-Anmeldung ersetzt. Admin-Anmeldung am Tablet nur voll mit 2FA, nach 5 Minuten ohne Bedienung bzw. Abmelden automatisch zurück; PIN-Anmeldung endet nach der „Auto-Sperre" (Entscheidung 02.11., Konzept 12 §5.1).
 - **Zurücksetzen**: Admins setzen Passwort, PIN, 2FA anderer zurück – **nicht beim Manager**: Den Manager bearbeitet nur der Manager selbst, niemand ändert die eigene Rolle oder das eigene Admin-Recht, den eigenen Zugang verwaltet jede Person unter „Mein Konto" (Entscheidung 02.11.); Manager: Wiederherstellungscodes, notfalls Server-Befehl `php bin/console app:manager:reset-2fa [--passwort]` (entfernt App, Codes und Passkeys, optional neues Start-Passwort). Erste Einrichtung: `php bin/console app:setup`.
 - **Austritt**: Zugang entfernt (Passwort, PIN, zweiter Schritt, Passkeys, Einladungen – sofort), Person bleibt als „ausgetreten" Anker für Arbeitszeiten; Datum heute oder früher, „Austritt zurücknehmen" bei Irrtum; Checkliste „Austritt". **Sperren** beendet auch laufende Sitzungen.
-- **„Mein Konto"**: Schriftgröße, hoher Kontrast, Passwort, zweiter Schritt, Passkeys, Wiederherstellungscodes, Datenschutzhinweis. Wer die eigene Anmeldung ändert – auch beim ersten zweiten Schritt oder Passkey –, bestätigt vorher wie beim Anmelden (Passkey oder Passwort + Code; 5 Minuten gültig, eine frische Anmeldung zählt). Admins mit 2FA-Pflicht behalten immer einen zweiten Schritt.
+- **„Mein Konto"**: Schriftgröße, hoher Kontrast, Passwort, zweiter Schritt, Passkeys, Wiederherstellungscodes, Datenschutzhinweis. Nach einer PIN-Anmeldung am Tablet nur PIN ändern (mit der aktuellen PIN), Darstellung und Datenschutzhinweis (Entscheidung 02.11.). Wer die eigene Anmeldung ändert – auch beim ersten zweiten Schritt oder Passkey –, bestätigt vorher wie beim Anmelden (Passkey oder Passwort + Code; 5 Minuten gültig, eine frische Anmeldung zählt). Admins mit 2FA-Pflicht behalten immer einen zweiten Schritt.
 - **Datenschutzhinweis**: bei der ersten Anmeldung (nach dem Passwortwechsel) einmal bestätigen; neue Version → erneut (Konzept 5 §4.1).
 
 ## 6. E-Mail

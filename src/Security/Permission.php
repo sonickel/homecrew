@@ -9,7 +9,7 @@ namespace App\Security;
  */
 final class Permission
 {
-    /** Administration ("Verwaltung"): admin right, second factor set up, full personal login. */
+    /** Administration ("Verwaltung"): admin right, second factor set up, full personal login – never by PIN or team tablet. */
     public const string ADMIN = 'ADMIN';
 
     /** Change a person's master data and rights (subject: AppUser). */
@@ -17,4 +17,19 @@ final class Permission
 
     /** Manage another person's access: start password/PIN, invitation, reset, lock, leaving (subject: AppUser). */
     public const string PERSON_ACCESS = 'PERSON_ACCESS';
+
+    /** Team view of a paired tablet without personal login (mode "Team" or "Beides"). */
+    public const string TEAM_VIEW = 'TEAM_VIEW';
+
+    /** Log in by name and PIN at this tablet (subject: the Request – it may come from outside the home network). */
+    public const string PIN_LOGIN = 'PIN_LOGIN';
+
+    /** Change the own password, second factor, passkeys and recovery codes: only after a full login, never by PIN. */
+    public const string ACCOUNT_LOGIN_SETTINGS = 'ACCOUNT_LOGIN_SETTINGS';
+
+    /** Change the own PIN: only while logged in by PIN at the tablet. */
+    public const string PIN_CHANGE = 'PIN_CHANGE';
+
+    /** Emergency page: every person and the paired tablet (also without PIN). */
+    public const string EMERGENCY_VIEW = 'EMERGENCY_VIEW';
 }

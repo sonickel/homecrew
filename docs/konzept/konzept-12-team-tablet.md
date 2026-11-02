@@ -1,6 +1,6 @@
 # Konzept 12 – Team-Tablet (Gerätemodus ohne Personenanmeldung)
 
-Stand: 01.11.2026 (nachmittags) · Status: Entwurf · **Ausbaustufe 1 – empfohlener Start**
+Stand: 02.11.2026 (M4: Team-Tablet umgesetzt) · Status: Entwurf · **Ausbaustufe 1 – empfohlener Start**
 
 ## 1. Idee
 Das Assistenz-Tablet wird einmal von einem Admin gekoppelt und läuft dann im **Team-Modus**: Es zeigt alles, was für die **Rolle Assistenz** bestimmt ist – Aufgaben, Wartungen, Termine, Besuche, Listen, Anleitungen, Notfall-Infos –, **ohne dass sich jemand anmeldet**. Das Tablet kennt keine Person.
@@ -57,6 +57,16 @@ Ohne persönliche Anmeldung erfasst niemand am Tablet seine Zeit – **der Admin
 - Tablet verloren → im Admin-Menü **entkoppeln**, sofort wirkungslos.
 - **Admin am Tablet**: Knopf „Admin-Anmeldung" → volle Anmeldung mit 2FA/Passkey → nach Abmelden oder 5 Minuten Inaktivität zurück in den Team-Modus.
 - Erledigungen, Meldungen, Übergaben, Listeneinträge und Fotos tragen nur das **Gerät** als Absender, keine Person.
+
+### 5.1 Umsetzung (M4, Entscheidungen 02.11.)
+- **Koppeln**: Admin gibt in Verwaltung → Geräte den Namen ein („Flur") und bekommt einen Kopplungscode (12 Zeichen, 10 Minuten, einmal) als QR-Code oder zum Abtippen unter `/koppeln`. Der Code steht nur nach dem „#" der Adresse (kein Server-Log). Das Tablet erhält ein Geräte-Token als Cookie (in der Datenbank nur als Hash); unbekannte oder entkoppelte Token werden gelöscht.
+- **Heimnetz**: Die direkte Gegenstelle **und** jede weitergeleitete Adresse (`X-Forwarded-For`, `Forwarded`, `X-Real-IP`) müssen in den Heimnetzen liegen (Umgebungsvariable `HOME_NETWORKS`); Anfragen mit Cloudflare-Kennzeichen gelten nie als Heimnetz. Eine laufende Team-Sitzung endet, sobald eine Anfrage von außen kommt.
+- **PIN**: 6 Ziffern, nichts Einfaches (123456, 777777); 3 Fehlversuche → 5 Minuten Pause je Person, zusätzlich Grenze je Tablet. Die Start-PIN wird bei der ersten PIN-Anmeldung ersetzt. **„PIN-Anmeldung nur im Heimnetz" aus** (Verwaltung → Allgemein) erlaubt die PIN am gekoppelten Tablet auch unterwegs – die Team-Ansicht bleibt im Heimnetz.
+- **Nach PIN-Anmeldung** gibt es in „Mein Konto" nur PIN ändern, Darstellung und Datenschutz; Passwort, zweiter Schritt und Passkeys ändert man am Handy oder PC.
+- **Zurück in den Team-Modus**: volle Anmeldung am Tablet nach 5 Minuten, PIN-Anmeldung nach der „Auto-Sperre" (Standard 3 Minuten, wählbar von 1 Minute bis 4 Stunden) ohne Bedienung; Abmelden führt ebenfalls zur Startseite des Tablets (Team-Ansicht oder Namen). Als Bedienung zählt nur, was eine neue Seite lädt – wer länger liest, stellt die Auto-Sperre länger ein (Entscheidung 02.11., statt eines Lebenszeichens beim Scrollen).
+- **Eine PIN-Anmeldung endet außerdem sofort**, wenn ein Admin eine neue Start-PIN erzeugt, die PIN-Anmeldung der Person ausschaltet oder das Tablet auf „Team" stellt.
+- **Bildschirmschoner** verdeckt die Seite vollständig (Uhrzeit, Datum, Notruf 112, Kontakte für alle mit Haken „Sperrbildschirm"); Antippen weckt, Anrufen geht direkt.
+- **Schriftgröße**: Team-Ansicht und Namenskacheln nutzen die Schriftgröße des Geräts, nach einer Anmeldung gilt die der Person. Kachelfarben aus einer festen, kontrastgeprüften Palette.
 
 ## 6. „Zuletzt erledigt" (geklärt)
 - Für alle: **nur das Datum**.

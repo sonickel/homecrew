@@ -38,7 +38,7 @@ Ein eigener, leicht erreichbarer Bereich **„Notfall"** – über den Notfall-B
 | **Infos für den Rettungsdienst** (aus dem Profil, Abschnitt Notfall) | Umfang bestimmt der Manager | Manager/Admins |
 
 - **Sichtbarkeit** je Kontakt: alle oder nur Admins.
-- **Sperrbildschirm ohne PIN** (geklärt: reicht): 112 + Kontakte mit Haken „auf dem Sperrbildschirm zeigen".
+- **Sperrbildschirm ohne PIN** (geklärt: reicht): 112 + Kontakte mit Haken „auf dem Sperrbildschirm zeigen" – nur Kontakte für alle, nie „nur Admins" (M4). Der Notfall-Knopf steht in der Kopfleiste jeder Seite für jede angemeldete Person und das gekoppelte Tablet (auch ohne PIN); ohne Anmeldung gibt es keine Notfalldaten.
 - Telefonnummern als Anruf-Link.
 
 ## 3. Wer kennt welche Anleitung (ersetzt Lernpfade – geklärt)

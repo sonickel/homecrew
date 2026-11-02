@@ -114,6 +114,7 @@ Ziel: `doctrine:schema:validate` meldet „in sync", ein zweites `migrations:dif
 | `VARBINARY(n)` (`*_enc`) | `Types::BINARY`, `length: n`, `?string` | – |
 | `JSON` | `Types::JSON` | MariaDB: `LONGTEXT` + automatischer `json_valid`-CHECK; DBAL erkennt das |
 | `DECIMAL(p,s)`, `TIME`, `DATE`, `DATETIME` | `Types::DECIMAL` (`?string`), `*_IMMUTABLE` | Geld nie als float |
+| `TEXT` | `Types::TEXT`, `length: 65535` | ohne Länge macht DBAL daraus `LONGTEXT` (M4) |
 | `DEFAULT CURRENT_TIMESTAMP [ON UPDATE …]` | nur lesend: `insertable/updatable: false`, `generated: 'INSERT'` bzw. `'ALWAYS'`, `options: ['default' => new CurrentTimestamp()]`, bei `ON UPDATE` zusätzlich `columnDefinition` | Die Datenbank setzt die Zeit (UTC), Doctrine liest sie nach dem Speichern |
 | Generierte Spalte (`… AS (…) STORED`) | gemappt, nur lesend (`generated: 'ALWAYS'`, `columnDefinition` mit Ausdruck) | **Nicht weglassen** – ungemappt würde `diff` sie löschen wollen |
 | CHECK-Constraints | nicht im Mapping | nur in der Migration; Doctrine ignoriert sie |
@@ -145,4 +146,4 @@ mariadb homecrew_smoke < docs/datenbank/smoke_test.sql
 ```
 Erwartet: nur „OK", letzte Zeile **ALLE PRÜFUNGEN OK**. Geprüft werden Positivfälle (Team-Tablet, „Seife leer", Physio-/Caritas-Serien, eingerichtete Erweiterungen), **93 Regeln** (u. a. genau ein Manager, Manager immer Admin, Assistenz nie Admin, Admin-Korrektur nur mit Begründung, Gerätemodi und -schriftgröße, Zeitquellen, Meldungs-Status, Benachrichtigungsregeln, Besuche ohne Begleitung/Zuständigkeit, Serien-Vorkommen eindeutig, **KI nur mit Schlüssel, E-Mail nur mit vollständigem Zugang**) und das Löschverhalten.
 
-**Ergebnis 01.11.2026** (MariaDB 11.8.6, WSL2 Debian): **ALLE PRÜFUNGEN OK** – 7 Positivfälle (A), 92 Regeln (B), 13 Lösch- und Verweisfälle (C); die Referenz musste nicht geändert werden. **Nachtrag M2:** `device.font_size` ergänzt (Regel B93) – wieder ALLE PRÜFUNGEN OK (93 B). Die Regeln zu `app_setting` und `app_user` laufen zusätzlich als PHPUnit-Tests (`tests/Database/`).
+**Ergebnis 01.11.2026** (MariaDB 11.8.6, WSL2 Debian): **ALLE PRÜFUNGEN OK** – 7 Positivfälle (A), 92 Regeln (B), 13 Lösch- und Verweisfälle (C); die Referenz musste nicht geändert werden. **Nachtrag M2:** `device.font_size` ergänzt (Regel B93) – wieder ALLE PRÜFUNGEN OK (93 B). **Nachtrag M4:** `emergency_contact.category` von `VARCHAR(12)` auf `VARCHAR(15)` – der eigene CHECK erlaubt `'dienstleister'` (13 Zeichen), das ließ sich bisher nicht speichern; Positivfall im Smoke-Test ergänzt, wieder ALLE PRÜFUNGEN OK. Eine Prüfung aller Wertelisten gegen ihre Spaltenlänge fand nichts weiter. Die Regeln der migrierten Tabellen laufen zusätzlich als PHPUnit-Tests (`tests/Database/`).

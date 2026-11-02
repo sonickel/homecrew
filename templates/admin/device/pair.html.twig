@@ -1,0 +1,23 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block page_title %}{{ 'Tablet koppeln'|trans }}{% endblock %}
+{% block content_title %}{{ 'Tablet koppeln'|trans }}{% endblock %}
+
+{% block page_actions %}
+    <a class="btn btn-secondary" href="{{ path('admin_device_index') }}">{{ 'Zu den Geräten'|trans }}</a>
+{% endblock %}
+
+{% block main %}
+    <p>{{ 'Gib dem Tablet einen Namen. Danach zeigt HomeCrew einen QR-Code, den du mit dem Tablet scannst – oder du tippst den Code dort ein. Das Tablet muss dafür im WLAN zu Hause sein.'|trans }}</p>
+    {% if error %}
+        <div class="alert alert-danger" role="alert">{{ error|trans }}</div>
+    {% endif %}
+    <form class="hc-admin-action" method="post" action="{{ path('admin_device_pair') }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('device-pair') }}">
+        <label class="form-label" for="geraet-name">{{ 'Name des Tablets'|trans }}</label>
+        <input class="form-control" type="text" id="geraet-name" name="name" value="{{ name }}" maxlength="50" required
+               aria-describedby="geraet-name-hilfe"{% if error %} aria-invalid="true"{% endif %}>
+        <p class="hc-admin-hint" id="geraet-name-hilfe">{{ 'Wo das Tablet steht, z. B. „Flur“ oder „Küche“.'|trans }}</p>
+        <button type="submit" class="btn btn-primary">{{ 'Kopplungscode zeigen'|trans }}</button>
+    </form>
+{% endblock %}

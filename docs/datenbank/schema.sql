@@ -1,7 +1,7 @@
 -- =====================================================================
 --  HomeCrew – Datenbankschema (fachliche Referenz)
 --  Ziel:   MariaDB 11.8 LTS, InnoDB, utf8mb4
---  Stand:  01.11.2026 · Umsetzung Stufe 1
+--  Stand:  02.11.2026 · Umsetzung Stufe 1 (M4: emergency_contact.category VARCHAR(15))
 --          Doctrine-Migrations erzeugen das Schema; diese Datei ist die
 --          Referenz, gegen die Entities und Migrations geprüft werden
 --          (composer schema:check, docs/konzept/konzept-6-datenbank.md §6).
@@ -729,7 +729,7 @@ CREATE TABLE profile_keyword (
 
 CREATE TABLE emergency_contact (
   id                  BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT,
-  category            VARCHAR(12)       NOT NULL DEFAULT 'angehoerige',
+  category            VARCHAR(15)       NOT NULL DEFAULT 'angehoerige',   -- 15: 'dienstleister' hat 13 Zeichen (M4)
   name                VARCHAR(100)      NOT NULL,
   relation            VARCHAR(50)       NULL,          -- „Schwester", „Hausarztpraxis"
   phone               VARCHAR(30)       NOT NULL,

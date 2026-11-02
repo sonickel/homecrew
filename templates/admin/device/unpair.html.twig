@@ -1,0 +1,21 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block page_title %}{{ 'Tablet entkoppeln'|trans }}{% endblock %}
+{% block content_title %}{{ 'Tablet „%name%“ entkoppeln'|trans({'%name%': device.name}) }}{% endblock %}
+
+{% block page_actions %}
+    <a class="btn btn-secondary" href="{{ path('admin_device_index') }}">{{ 'Zu den Geräten'|trans }}</a>
+{% endblock %}
+
+{% block main %}
+    {% if device.revoked %}
+        <p>{{ 'Dieses Tablet ist schon entkoppelt.'|trans }}</p>
+    {% else %}
+        <p>{{ 'Das Tablet zeigt danach sofort nichts mehr an – auch wer dort gerade mit PIN angemeldet ist, wird abgemeldet. Zum Weiterbenutzen koppelst du es neu.'|trans }}</p>
+        <p>{{ 'Das ist richtig bei einem verlorenen oder kaputten Tablet oder wenn es nicht mehr gebraucht wird.'|trans }}</p>
+        <form class="hc-admin-action" method="post" action="{{ path('admin_device_unpair', {entityId: device.id}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('device-unpair-' ~ device.id) }}">
+            <button type="submit" class="btn btn-danger">{{ 'Jetzt entkoppeln'|trans }}</button>
+        </form>
+    {% endif %}
+{% endblock %}

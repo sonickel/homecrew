@@ -47,16 +47,19 @@ final class GeneralSettingsCrudController extends AbstractSettingsCrudController
         yield FormField::addFieldset('Tablet');
         yield Field::new('tabletLockMinutes', 'Persönliche Anmeldung am Tablet endet nach')
             ->setFormType(ChoiceType::class)
-            ->setFormTypeOptions(['choices' => ['1 Minute' => 1, '2 Minuten' => 2, '3 Minuten' => 3, '5 Minuten' => 5, '10 Minuten' => 10, '15 Minuten' => 15]])
-            ->setHelp('Ohne Bedienung meldet das Tablet die Person ab und zeigt wieder die Team-Ansicht.');
+            ->setFormTypeOptions(['choices' => [
+                '1 Minute' => 1, '2 Minuten' => 2, '3 Minuten' => 3, '5 Minuten' => 5, '10 Minuten' => 10, '15 Minuten' => 15,
+                '30 Minuten' => 30, '1 Stunde' => 60, '2 Stunden' => 120, '4 Stunden' => 240,
+            ]])
+            ->setHelp('Gilt für die Anmeldung mit PIN: Ohne Bedienung meldet das Tablet die Person ab und zeigt wieder die Team-Ansicht. Je länger, desto länger bleibt die Person angemeldet, wenn sie das Tablet liegen lässt. Die Admin-Anmeldung am Tablet endet immer nach 5 Minuten.');
         yield BooleanField::new('pinLanOnly', 'PIN-Anmeldung nur im Heimnetz')
             ->renderAsSwitch(false)
-            ->setHelp('Empfohlen: Mit PIN kann man sich nur im eigenen WLAN anmelden.');
+            ->setHelp('Empfohlen: Mit PIN kann man sich nur im eigenen WLAN anmelden. Aus: am gekoppelten Tablet auch unterwegs – die Team-Ansicht gibt es trotzdem nur zu Hause.');
 
         yield FormField::addFieldset('Arbeitszeiten');
         yield IntegerField::new('timeViewMonths', 'Eigene Zeiten zurück (Monate)')
             ->setHelp('So weit sehen Assistenzkräfte ihre eigenen Arbeitszeiten (1 bis 24 Monate).');
-        yield IntegerField::new('maxShiftHours', 'Hinweis „Dienst noch offen?" nach (Stunden)')
+        yield IntegerField::new('maxShiftHours', 'Hinweis „Dienst noch offen?“ nach (Stunden)')
             ->setHelp('Ist ein Dienst länger offen, bekommen die Admins einen Hinweis.');
 
         yield FormField::addFieldset('Wissen');

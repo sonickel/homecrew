@@ -4,12 +4,14 @@
 {% block content_title %}{{ 'Verwaltung'|trans }}{% endblock %}
 
 {% block main %}
-    <p>{{ 'Hier verwaltest du Personen und Zugänge, stellst den Haushalt ein und siehst das Protokoll. Weitere Bereiche wie Geräte und Notfall-Infos kommen mit den nächsten Ausbaustufen dazu.'|trans }}</p>
+    <p>{{ 'Hier verwaltest du Personen und Zugänge, stellst den Haushalt ein und siehst das Protokoll. Weitere Bereiche wie Meldungen und Erweiterungen kommen mit den nächsten Ausbaustufen dazu.'|trans }}</p>
     <ul>
         <li><a href="{{ ea_url().setController('App\\Controller\\Admin\\PersonCrudController').setAction('index') }}">{{ 'Personen'|trans }}</a> – {{ 'anlegen, Rechte, Zugang (Passwort, PIN, Einladung), sperren, Austritt'|trans }}</li>
+        <li><a href="{{ ea_url().setController('App\\Controller\\Admin\\DeviceCrudController').setAction('index') }}">{{ 'Geräte'|trans }}</a> – {{ 'Tablet koppeln, Modus (Team, Persönlich, Beides), Bildschirmschoner, entkoppeln'|trans }}</li>
+        <li><a href="{{ ea_url().setController('App\\Controller\\Admin\\EmergencyContactCrudController').setAction('index') }}">{{ 'Notfall-Infos'|trans }}</a> – {{ 'Notfallkontakte und wichtige Nummern'|trans }}</li>
         <li><a href="{{ ea_url().setController('App\\Controller\\Admin\\GeneralSettingsCrudController').setAction('edit').setEntityId(1) }}">{{ 'Einstellungen: Allgemein'|trans }}</a> – {{ 'Haushaltsname, Zeitzone, Feiertage, Tablet und Videos'|trans }}</li>
         <li><a href="{{ ea_url().setController('App\\Controller\\Admin\\RetentionSettingsCrudController').setAction('edit').setEntityId(1) }}">{{ 'Einstellungen: Löschfristen'|trans }}</a> – {{ 'wann alte Daten automatisch gelöscht werden'|trans }}</li>
         <li><a href="{{ ea_url().setController('App\\Controller\\Admin\\AuditLogCrudController').setAction('index') }}">{{ 'Protokoll'|trans }}</a> – {{ 'Anmeldungen und Änderungen an Personen und Einstellungen'|trans }}</li>
     </ul>
-    <p>{{ 'Zum Abmelden gehst du links im Menü zurück zu „Heute" und tippst dort oben rechts auf „Abmelden".'|trans }}</p>
+    <p>{{ 'Zum Abmelden gehst du links im Menü zurück zu „Heute“ und tippst dort oben rechts auf „Abmelden“.'|trans }}</p>
 {% endblock %}

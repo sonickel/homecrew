@@ -47,6 +47,17 @@ final readonly class PasskeySupport
         return \is_string($host) && !self::isIpAddress($host) ? $this->defaultUri : null;
     }
 
+    /**
+     * Base address for QR codes and access cards (invitation, pairing): on 127.0.0.1 "localhost",
+     * otherwise the address of this request.
+     */
+    public function linkBase(Request $request): string
+    {
+        $base = $this->isPossible() ? null : $this->address();
+
+        return rtrim($base ?? $request->getSchemeAndHttpHost(), '/');
+    }
+
     private static function isIpAddress(?string $host): bool
     {
         return null === $host || '' === $host || false !== filter_var(trim($host, '[]'), \FILTER_VALIDATE_IP);

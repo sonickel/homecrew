@@ -259,7 +259,7 @@ class AppSetting
     /**
      * Admin form: auto lock of a personal PIN login at the tablet, in minutes.
      */
-    #[Assert\Range(min: 1, max: 60, notInRangeMessage: 'Bitte wähle zwischen {{ min }} und {{ max }} Minuten.')]
+    #[Assert\Range(min: 1, max: 240, notInRangeMessage: 'Bitte wähle zwischen {{ min }} und {{ max }} Minuten.')]
     public function getTabletLockMinutes(): int
     {
         return intdiv($this->tabletLockSeconds, 60);

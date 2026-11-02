@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional;
 
+use App\Service\Tablet\DeviceCookie;
 use DAMA\DoctrineTestBundle\Doctrine\DBAL\StaticDriver;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\BrowserKit\Cookie;
 
 /**
  * If the database is down (e.g. MariaDB restarting on the Pi), visitors still get German pages
@@ -51,6 +53,21 @@ final class DatabaseUnavailableTest extends WebTestCase
         self::assertResponseStatusCodeSame(500);
         self::assertSelectorTextContains('h1', 'Etwas ist schiefgelaufen');
         self::assertSelectorExists('a.hc-button[href="/"]');
+    }
+
+    public function testTabletWithoutDatabaseGetsGermanPages(): void
+    {
+        $client = static::createClient(['debug' => false]);
+        $client->getCookieJar()->set(new Cookie(DeviceCookie::NAME, 'token-eines-tablets', null, '/', 'localhost'));
+
+        $client->request('GET', '/anmelden');
+        self::assertResponseIsSuccessful();
+        // A restart of the database (e.g. an update on the Pi) must not unpair the tablet
+        self::assertSelectorTextNotContains('main', 'nicht mehr gekoppelt');
+        self::assertNotNull($client->getCookieJar()->get(DeviceCookie::NAME));
+        $client->request('GET', '/gibt-es-nicht');
+        self::assertResponseStatusCodeSame(404);
+        self::assertSelectorTextContains('h1', 'Seite nicht gefunden');
     }
 
     public function testNotFoundPageRendersWithoutDatabase(): void

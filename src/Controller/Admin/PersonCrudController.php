@@ -6,6 +6,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\AppUser;
 use App\Enum\AuditAction;
+use App\Enum\PersonColor;
 use App\Enum\UserRole;
 use App\Repository\WebauthnCredentialRepository;
 use App\Security\Permission;
@@ -21,7 +22,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\ColorField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
@@ -29,6 +29,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\NullFilter;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -124,7 +125,7 @@ final class PersonCrudController extends AbstractCrudController
         yield TextField::new('displayName', 'Name')
             ->setHelp('Vorname oder Spitzname – so sieht ihn das ganze Team. Kein Nachname nötig.');
         yield TextField::new('username', 'Benutzername')
-            ->setHelp('Zum Anmelden am Handy oder PC, z. B. „anna". Kleinbuchstaben, Ziffern, Punkt oder Bindestrich.');
+            ->setHelp('Zum Anmelden am Handy oder PC, z. B. „anna“. Kleinbuchstaben, Ziffern, Punkt oder Bindestrich.');
         yield $this->textColumn('roleLabel', 'Rolle', static fn (AppUser $person): string => $person->getRole()->label());
         yield Field::new('role', 'Rolle')
             ->onlyOnForms()
@@ -141,8 +142,15 @@ final class PersonCrudController extends AbstractCrudController
             ->renderAsSwitch(false)
             ->setDisabled($rightsFixed)
             ->setHelp('Darf die Verwaltung öffnen: Personen, Einstellungen, Protokoll. Assistenzkräfte nie.');
-        yield ColorField::new('color', 'Farbe')
+        // A fixed palette with enough contrast for white text (App\Enum\PersonColor) instead of a free colour picker
+        $colors = [];
+        foreach (PersonColor::cases() as $color) {
+            $colors[$color->label()] = $color->value;
+        }
+        yield Field::new('color', 'Farbe')
             ->onlyOnForms()
+            ->setFormType(ChoiceType::class)
+            ->setFormTypeOptions(['choices' => $colors, 'required' => false, 'placeholder' => 'Grau'])
             ->setHelp('Farbe der Namenskachel am Tablet.');
         yield DateField::new('activeFrom', 'Eintritt')
             ->onlyOnForms()

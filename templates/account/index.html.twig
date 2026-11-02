@@ -23,6 +23,16 @@
         {{ form_end(display_form) }}
     </section>
 
+    {% if is_granted('PIN_CHANGE') %}
+        {# Logged in by PIN at the tablet: password, second factor and passkeys only after a full login #}
+        <section class="hc-section" aria-labelledby="anmeldung">
+            <h2 id="anmeldung">{{ 'Anmeldung am Tablet'|trans }}</h2>
+            <p>{{ 'Du bist mit deiner PIN angemeldet. Passwort, zweiten Schritt und Passkeys änderst du am Handy oder PC.'|trans }}</p>
+            <div class="hc-button-row">
+                <twig:Button variant="secondary" icon="tabler:key" :href="path('app_account_pin')">{{ 'PIN ändern'|trans }}</twig:Button>
+            </div>
+        </section>
+    {% else %}
     {% set fresh = confirmed_until is not null %}
     {% set has_password = person.hasPassword %}
     <section class="hc-section" aria-labelledby="anmeldung">
@@ -130,6 +140,7 @@
             <p>{{ 'Als Admin brauchst du immer einen zweiten Schritt. Den letzten kannst du deshalb erst entfernen, wenn ein anderer eingerichtet ist.'|trans }}</p>
         {% endif %}
     </section>
+    {% endif %}
 
     <section class="hc-section" aria-labelledby="datenschutz">
         <h2 id="datenschutz">{{ 'Datenschutz'|trans }}</h2>

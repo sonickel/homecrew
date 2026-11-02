@@ -10,6 +10,8 @@ use App\Security\TwoFactor\TwoFactorPolicy;
 /**
  * Mandatory steps after a login, in this order: change the start password, read the privacy notice,
  * set up a second factor (admins, when the policy demands it), keep recovery codes.
+ * After a PIN login at the tablet: replace the start PIN, read the privacy notice – password and second factor
+ * play no role there (a PIN login never has admin rights).
  * Until they are done nothing else is reachable.
  */
 final readonly class AccountSetup
@@ -18,6 +20,7 @@ final readonly class AccountSetup
     public const string STEP_PRIVACY = 'app_account_privacy';
     public const string STEP_TWO_FACTOR = 'app_account_two_factor';
     public const string STEP_RECOVERY_CODES = 'app_account_recovery_codes';
+    public const string STEP_PIN = 'app_account_pin';
 
     /** Routes that belong to a step besides its own page. */
     private const array STEP_ROUTES = [
@@ -26,6 +29,7 @@ final readonly class AccountSetup
         // Setting up a second factor may ask for a confirmation (App\Service\Account\RecentConfirmation)
         self::STEP_TWO_FACTOR => [self::STEP_TWO_FACTOR, 'app_account_two_factor_app', 'app_account_two_factor_passkey', 'webauthn.controller.creation.request.add_passkey', 'webauthn.controller.creation.response.add_passkey', 'app_account_confirm', 'webauthn.controller.request.request.confirm', 'webauthn.controller.request.response.confirm'],
         self::STEP_RECOVERY_CODES => [self::STEP_RECOVERY_CODES],
+        self::STEP_PIN => [self::STEP_PIN],
     ];
 
     public function __construct(
@@ -36,9 +40,18 @@ final readonly class AccountSetup
 
     /**
      * Route of the next mandatory step, or null when the account is ready.
+     *
+     * @param bool $pinLogin true when the person logged in by PIN at the tablet (App\Security\Pin\PinLoginToken)
      */
-    public function nextStep(AppUser $user): ?string
+    public function nextStep(AppUser $user, bool $pinLogin = false): ?string
     {
+        if ($pinLogin) {
+            return match (true) {
+                $user->isPinMustChange() => self::STEP_PIN,
+                $this->privacyNotice->needsAcknowledgement($user) => self::STEP_PRIVACY,
+                default => null,
+            };
+        }
         if ($user->isPasswordMustChange()) {
             return self::STEP_PASSWORD;
         }

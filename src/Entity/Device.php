@@ -10,23 +10,31 @@ use App\Repository\DeviceRepository;
 use Doctrine\DBAL\Schema\DefaultExpression\CurrentTimestamp;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * Paired tablet: team tablet (sees what the role assistant sees, no person) and/or personal PIN login.
- * Created in M2 because audit_log refers to it; pairing and the device login follow in M4.
+ * Paired tablet: team tablet (sees what the role assistant sees, no person) and/or personal PIN login (konzept-12).
+ *
+ * Also the security user of the team tablet (App\Security\Device\DeviceAuthenticator): it only grants
+ * ROLE_TEAM_DEVICE and is no AppUser – no admin rights, no "Mein Konto", entries carry the device instead of a person.
  */
 #[ORM\Entity(repositoryClass: DeviceRepository::class)]
 #[ORM\Table(name: 'device', options: ['comment' => 'Gekoppeltes Tablet: Team-Tablet (sieht alles für die Rolle Assistenz, keine Person) und/oder persönliche PIN-Anmeldung'])]
 #[ORM\UniqueConstraint(name: 'uq_device_token', columns: ['token_hash'])]
 #[ORM\Index(name: 'fk_device_paired', columns: ['paired_by_user_id'])]
-class Device
+class Device implements UserInterface
 {
+    public const string ROLE = 'ROLE_TEAM_DEVICE';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(name: 'id', type: Types::BIGINT, options: ['unsigned' => true])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'name', length: 50)]
+    #[Assert\NotBlank(message: 'Bitte gib dem Tablet einen Namen, z. B. „Flur“ oder „Küche“.')]
+    #[Assert\Length(max: 50, maxMessage: 'Der Name darf höchstens {{ limit }} Zeichen haben.')]
     private string $name;
 
     /** SHA-256 of the device token; the token itself only lives in the tablet's cookie. */
@@ -80,9 +88,47 @@ class Device
         return $this->name;
     }
 
+    public function setName(?string $name): void
+    {
+        $this->name = trim((string) $name);
+    }
+
+    public function hasTokenHash(string $tokenHash): bool
+    {
+        return hash_equals($this->tokenHash, $tokenHash);
+    }
+
+    public function getPairedBy(): ?AppUser
+    {
+        return $this->pairedBy;
+    }
+
     public function getMode(): DeviceMode
     {
         return $this->mode;
+    }
+
+    public function setMode(DeviceMode $mode): void
+    {
+        $this->mode = $mode;
+    }
+
+    public function getDimAfterSeconds(): int
+    {
+        return $this->dimAfterSeconds;
+    }
+
+    /**
+     * Admin form: screensaver after this many minutes without touch.
+     */
+    public function getDimAfterMinutes(): int
+    {
+        return intdiv($this->dimAfterSeconds, 60);
+    }
+
+    public function setDimAfterMinutes(int $minutes): void
+    {
+        $this->dimAfterSeconds = $minutes * 60;
     }
 
     public function getFontSize(): FontSize
@@ -90,13 +136,79 @@ class Device
         return $this->fontSize;
     }
 
+    public function setFontSize(FontSize $fontSize): void
+    {
+        $this->fontSize = $fontSize;
+    }
+
     public function getPairedAt(): \DateTimeImmutable
     {
         return $this->pairedAt;
     }
 
+    public function getLastSeenAt(): ?\DateTimeImmutable
+    {
+        return $this->lastSeenAt;
+    }
+
+    public function touch(\DateTimeImmutable $at): void
+    {
+        $this->lastSeenAt = $at;
+    }
+
+    public function getRevokedAt(): ?\DateTimeImmutable
+    {
+        return $this->revokedAt;
+    }
+
     public function isRevoked(): bool
     {
         return null !== $this->revokedAt;
+    }
+
+    /**
+     * Unpairing makes the token worthless at once; the row stays as anchor for the log and completions.
+     */
+    public function revoke(\DateTimeImmutable $at): void
+    {
+        $this->revokedAt ??= $at;
+    }
+
+    // Security user
+
+    public function getUserIdentifier(): string
+    {
+        \assert(null !== $this->id);
+
+        return 'geraet-'.$this->id;
+    }
+
+    public function getRoles(): array
+    {
+        return [self::ROLE];
+    }
+
+    #[\Deprecated]
+    public function eraseCredentials(): void
+    {
+        // Nothing to erase: the entity holds only the hash of the token
+    }
+
+    /**
+     * Only what App\Security\Device\DeviceUserProvider needs to reload the device from the database.
+     *
+     * @return array{id: ?int}
+     */
+    public function __serialize(): array
+    {
+        return ['id' => $this->id];
+    }
+
+    /**
+     * @param array{id: ?int} $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $this->id = $data['id'];
     }
 }

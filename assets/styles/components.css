@@ -133,6 +133,7 @@
         padding: var(--hc-space-5);
         background: var(--hc-surface);
         border-left: var(--hc-space-1) solid var(--hc-enamel);
+        margin-bottom: var(--hc-space-5);
     }
 
     .hc-empty-state__icon {
@@ -574,6 +575,210 @@
     .hc-type-scale p {
         margin-bottom: var(--hc-space-2);
         line-height: var(--hc-leading-tight);
+    }
+
+    /* Top bar, right side: account links and the emergency button */
+    .hc-topbar__end {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--hc-space-2) var(--hc-space-3);
+    }
+
+    /* Emergency button (konzept-3 §2): the only red element, always with a word */
+    .hc-emergency-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--hc-space-2);
+        min-height: var(--hc-target-large);
+        padding: var(--hc-space-2) var(--hc-space-4);
+        border: var(--hc-border-width) solid var(--hc-emergency-fg);
+        border-radius: var(--hc-radius-control);
+        background: var(--hc-emergency-bg);
+        color: var(--hc-emergency-fg);
+        font-weight: 700;
+        line-height: var(--hc-leading-tight);
+        text-align: center;
+        text-decoration: none;
+    }
+
+    .hc-emergency-button svg {
+        flex: none;
+        width: 1.5em;
+        height: 1.5em;
+    }
+
+    .hc-emergency-button--large {
+        display: flex;
+        width: 100%;
+        max-width: 32rem;
+        min-height: calc(var(--hc-target-large) * 1.5);
+        margin-bottom: var(--hc-space-5);
+        font-size: var(--hc-text-2);
+    }
+
+    /* Emergency page: one row per contact, call buttons below the name */
+    .hc-contacts {
+        max-width: 48rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .hc-contact {
+        padding-block: var(--hc-space-4);
+        border-bottom: var(--hc-line-width) solid var(--hc-line);
+    }
+
+    .hc-contact__name {
+        margin: 0;
+        font-size: var(--hc-text-1);
+        font-weight: 700;
+    }
+
+    .hc-contact__relation {
+        font-weight: 400;
+    }
+
+    .hc-contact__badge {
+        display: inline-block;
+        margin-left: var(--hc-space-2);
+        padding: 0 var(--hc-space-2);
+        border: var(--hc-line-width) solid var(--hc-border);
+        border-radius: var(--hc-radius-control);
+        font-size: var(--hc-text-0);
+        font-weight: 400;
+    }
+
+    .hc-contact__when {
+        margin: var(--hc-space-1) 0 var(--hc-space-3);
+    }
+
+    /* Name tiles at the tablet: tap the own name, then type the PIN */
+    .hc-name-tiles {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+        gap: var(--hc-space-4);
+        margin: 0 0 var(--hc-space-5);
+        padding: 0;
+        list-style: none;
+    }
+
+    .hc-name-tile {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(var(--hc-target-large) * 1.75);
+        padding: var(--hc-space-4);
+        border: var(--hc-border-width) solid transparent;
+        border-radius: var(--hc-radius-control);
+        color: #ffffff;
+        font-size: var(--hc-text-2);
+        font-weight: 700;
+        text-align: center;
+        text-decoration: none;
+        overflow-wrap: anywhere;
+    }
+
+    /* Palette of App\Enum\PersonColor – white bold text has at least 4.5:1 on each */
+    .hc-color-blau { background: #1e4d8c; }
+    .hc-color-gruen { background: #2e7d4f; }
+    .hc-color-ocker { background: #8a5300; }
+    .hc-color-lila { background: #6b3fa0; }
+    .hc-color-petrol { background: #0f6e73; }
+    .hc-color-beere { background: #a1306b; }
+    .hc-color-schiefer { background: #4a5560; }
+    .hc-color-rost { background: #a5420e; }
+    .hc-color-neutral { background: #3d4852; }
+
+    /* High contrast: no coloured areas behind text */
+    :root[data-contrast="hoch"] .hc-name-tile {
+        background: #ffffff;
+        color: #000000;
+        border-color: #000000;
+    }
+
+    /* PIN fields: large, spaced digits */
+    .hc-input--pin {
+        max-width: 12rem;
+        font-size: var(--hc-text-2);
+        letter-spacing: 0.3em;
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* Screensaver of the team tablet: covers everything, dark; time, 112 and lock screen contacts */
+    .hc-screensaver {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: var(--hc-space-4);
+        overflow-y: auto;
+        padding: var(--hc-space-6) var(--hc-space-5);
+        background: #0b1117;
+        color: #ffffff;
+        text-align: center;
+    }
+
+    .hc-screensaver[hidden] {
+        display: none;
+    }
+
+    .hc-screensaver :focus-visible {
+        outline-color: #ffffff;
+    }
+
+    .hc-screensaver__time {
+        margin: 0;
+        font-size: calc(var(--hc-text-4) * 2);
+        font-weight: 700;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .hc-screensaver__date {
+        margin: 0;
+        font-size: var(--hc-text-2);
+    }
+
+    .hc-screensaver .hc-emergency-button {
+        margin: 0;
+    }
+
+    .hc-screensaver__contacts {
+        display: grid;
+        gap: var(--hc-space-3);
+        width: 100%;
+        max-width: 32rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        text-align: left;
+    }
+
+    .hc-screensaver__contact {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--hc-space-1) var(--hc-space-4);
+        min-height: var(--hc-target-large);
+        padding: var(--hc-space-2) var(--hc-space-4);
+        border: var(--hc-border-width) solid #ffffff;
+        border-radius: var(--hc-radius-control);
+        color: #ffffff;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .hc-screensaver__when,
+    .hc-screensaver__hint {
+        margin: var(--hc-space-1) 0 0;
+        color: #d3d9de;
     }
 
     .hc-focus-demo {

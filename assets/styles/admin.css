@@ -93,3 +93,23 @@ body.ea .form-help {
     border-left: 4px solid var(--hc-late);
     background: var(--hc-surface);
 }
+
+/* Verwaltung → Geräte → Tablet koppeln: QR code next to the steps, wraps on narrow screens */
+.hc-admin-pairing {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 1.5rem;
+}
+
+.hc-admin-qr {
+    max-width: 100%;
+    height: auto;
+    background: #fff;
+}
+
+.hc-admin-code {
+    font-size: 1.5rem;
+    letter-spacing: 0.1em;
+    font-variant-numeric: tabular-nums;
+}

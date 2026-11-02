@@ -7,9 +7,13 @@ namespace App\Tests\Database;
 use App\Entity\AppUser;
 use App\Entity\AuditLog;
 use App\Entity\Device;
+use App\Entity\EmergencyContact;
+use App\Entity\Poi;
 use App\Entity\WebauthnCredential;
 use App\Enum\AuditVia;
 use App\Enum\DeviceMode;
+use App\Enum\EmergencyCategory;
+use App\Enum\EmergencyVisibility;
 use App\Enum\FontSize;
 use App\Enum\TwoFactorMethod;
 use App\Enum\UserRole;
@@ -104,6 +108,40 @@ final class MappingTest extends DatabaseTestCase
         self::assertSame(AuditVia::App, $loadedEntry->getVia());
         self::assertSame(['methode' => 'passkey'], $loadedEntry->getDetails());
         self::assertEqualsWithDelta(time(), $loadedEntry->getCreatedAt()->getTimestamp(), 60);
+    }
+
+    public function testEmergencyContactAndPlaceSurviveTheRoundTrip(): void
+    {
+        $entityManager = $this->entityManager();
+        $contact = new EmergencyContact();
+        $contact->setCategory(EmergencyCategory::Arzt);
+        $contact->setName('Hausarztpraxis');
+        $contact->setPhone(' 0931 / 1111111 ');
+        $contact->setWhenToCall('werktags 8–18 Uhr');
+        $contact->setRelation('  ');
+        $contact->setVisibility(EmergencyVisibility::Admins);
+        $contact->setShowOnLockscreen(false);
+        $contact->setSort(3);
+        $place = new Poi('Hausarztpraxis', 'arzt');
+        $entityManager->persist($contact);
+        $entityManager->persist($place);
+        $entityManager->flush();
+        $entityManager->clear();
+
+        $loaded = $entityManager->find(EmergencyContact::class, $contact->getId());
+        self::assertNotNull($loaded);
+        self::assertSame(EmergencyCategory::Arzt, $loaded->getCategory());
+        self::assertSame('0931 / 1111111', $loaded->getPhone());
+        self::assertSame('09311111111', EmergencyContact::dialable($loaded->getPhone()));
+        self::assertNull($loaded->getRelation());
+        self::assertTrue($loaded->isAdminOnly());
+        self::assertFalse($loaded->isShowOnLockscreen());
+        self::assertSame(3, $loaded->getSort());
+
+        $loadedPlace = $entityManager->find(Poi::class, $place->getId());
+        self::assertNotNull($loadedPlace);
+        self::assertTrue($place->getPublicId()->equals($loadedPlace->getPublicId()));
+        self::assertSame('arzt', $loadedPlace->getCategory());
     }
 
     public function testSettingsRowIsAvailable(): void

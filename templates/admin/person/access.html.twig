@@ -69,7 +69,7 @@
                     {{ person.pinLoginEnabled ? 'PIN-Anmeldung: eingeschaltet.'|trans : 'PIN-Anmeldung: ausgeschaltet.'|trans }}
                 {% endif %}
             </p>
-            <p class="hc-admin-hint">{{ 'Mit der PIN meldet sich die Person am gekoppelten Tablet an – nur im Heimnetz und nie mit Admin-Rechten.'|trans }}</p>
+            <p class="hc-admin-hint">{{ 'Mit der PIN meldet sich die Person am gekoppelten Tablet an (Modus „Persönlich“ oder „Beides“) – nie mit Admin-Rechten.'|trans }}</p>
             <div class="hc-admin-actions">
                 {{ include('admin/person/_action.html.twig', {route: 'app_admin_person_start_pin', label: 'Start-PIN erzeugen'|trans}) }}
                 {% if person.hasPin %}
@@ -121,7 +121,7 @@
             {% endif %}
             <details class="hc-admin-confirm">
                 <summary>{{ 'Austritt eintragen …'|trans }}</summary>
-                <p>{{ 'Passwort, PIN, zweiter Schritt, Passkeys und Einladungen von %name% werden sofort entfernt. %name% bleibt als „ausgetreten" in der Liste.'|trans({'%name%': name}) }}</p>
+                <p>{{ 'Passwort, PIN, zweiter Schritt, Passkeys und Einladungen von %name% werden sofort entfernt. %name% bleibt als „ausgetreten“ in der Liste.'|trans({'%name%': name}) }}</p>
                 <form class="hc-admin-action" method="post" action="{{ path('app_admin_person_leave', {id: person.id}) }}">
                     <input type="hidden" name="_token" value="{{ csrf_token('person-access-' ~ person.id) }}">
                     <label class="form-label" for="letzter-tag">{{ 'Letzter Arbeitstag'|trans }}</label>

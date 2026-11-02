@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Tablet koppeln'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Tablet koppeln'|trans" :intro="'Danach zeigt dieses Tablet im WLAN zu Hause, was für das Team wichtig ist – ohne Anmeldung.'|trans" />
+
+    {% if paired %}
+        <twig:Alert :message="'Dieses Tablet ist schon gekoppelt: „%name%“. Zum Neu-Koppeln entkoppelt es ein Admin zuerst unter Verwaltung → Geräte.'|trans({'%name%': paired.name})" />
+        <div class="hc-button-row">
+            <twig:Button :href="path('app_home')" icon="tabler:home">{{ 'Zur Startseite'|trans }}</twig:Button>
+        </div>
+    {% else %}
+        {% if error %}
+            <twig:Alert type="error" :message="error|trans" />
+        {% endif %}
+        <form class="hc-form" method="post" action="{{ path('app_pairing') }}" data-controller="fragment-code">
+            <input type="hidden" name="_token" value="{{ csrf_token('pairing') }}">
+            <div class="hc-field">
+                <label class="hc-field__label" for="kopplungscode">{{ 'Kopplungscode'|trans }}</label>
+                <p class="hc-field__help" id="kopplungscode_help">{{ 'Zeigt ein Admin unter Verwaltung → Geräte → „Tablet koppeln“. Leerzeichen und Groß- oder Kleinschreibung sind egal.'|trans }}</p>
+                <input class="hc-input" type="text" id="kopplungscode" name="code" required
+                       autocomplete="off" autocapitalize="characters" spellcheck="false"
+                       aria-describedby="kopplungscode_help" data-fragment-code-target="code">
+            </div>
+            <div class="hc-button-row">
+                <twig:Button type="submit">{{ 'Koppeln'|trans }}</twig:Button>
+            </div>
+        </form>
+    {% endif %}
+{% endblock %}

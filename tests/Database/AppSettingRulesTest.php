@@ -46,7 +46,7 @@ final class AppSettingRulesTest extends DatabaseTestCase
     public static function rejectedChanges(): iterable
     {
         yield 'B87 KI einschalten ohne Schlüssel' => ['UPDATE app_setting SET ai_api_key_enc = NULL, ai_api_key_hint = NULL, ai_key_status = \'fehlt\'', 'ck_setting_ai_on'];
-        yield 'B88 Schlüssel-Status „ok" ohne Schlüssel' => ['UPDATE app_setting SET ai_enabled = 0, ai_api_key_enc = NULL, ai_api_key_hint = NULL', 'ck_setting_ai_key'];
+        yield 'B88 Schlüssel-Status „ok“ ohne Schlüssel' => ['UPDATE app_setting SET ai_enabled = 0, ai_api_key_enc = NULL, ai_api_key_hint = NULL', 'ck_setting_ai_key'];
         yield 'B89 Unbekannter Schlüssel-Status' => ['UPDATE app_setting SET ai_key_status = \'super\'', 'ck_setting_ai_stat'];
         yield 'B90 Unbekannter KI-Anbieter' => ['UPDATE app_setting SET ai_provider = \'xyz\'', 'ck_setting_ai_prov'];
         yield 'B91 E-Mail eingeschaltet ohne Absenderadresse' => ['UPDATE app_setting SET mail_from_address = NULL', 'ck_setting_mail_on'];

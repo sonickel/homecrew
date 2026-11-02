@@ -102,7 +102,7 @@ final class InvitationTest extends WebTestCase
         $client->request('GET', '/einladung');
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorExists('form[data-controller="invitation-code"] input[name="code"][data-invitation-code-target="code"]');
+        self::assertSelectorExists('form[data-controller="fragment-code"] input[name="code"][data-fragment-code-target="code"]');
     }
 
     public function testLoggedInPersonsAreAskedToLogOutFirst(): void

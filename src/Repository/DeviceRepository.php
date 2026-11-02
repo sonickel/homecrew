@@ -17,4 +17,12 @@ final class DeviceRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Device::class);
     }
+
+    /**
+     * The device of a token cookie – also an unpaired one, so the tablet can say so.
+     */
+    public function findOneByTokenHash(string $tokenHash): ?Device
+    {
+        return $this->findOneBy(['tokenHash' => $tokenHash]);
+    }
 }

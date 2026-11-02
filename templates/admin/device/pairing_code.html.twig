@@ -1,0 +1,24 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block page_title %}{{ 'Tablet koppeln'|trans }}{% endblock %}
+{% block content_title %}{{ 'Tablet „%name%“ koppeln'|trans({'%name%': name}) }}{% endblock %}
+
+{% block page_actions %}
+    <a class="btn btn-secondary" href="{{ path('admin_device_index') }}">{{ 'Fertig – zu den Geräten'|trans }}</a>
+{% endblock %}
+
+{% block main %}
+    <section class="hc-admin-section hc-admin-pairing">
+        <img class="hc-admin-qr" src="{{ qr }}" width="280" height="280" alt="{{ 'QR-Code zum Koppeln des Tablets'|trans }}">
+        <div>
+            <h2>{{ 'So geht es'|trans }}</h2>
+            <ol>
+                <li>{{ 'Tablet ins WLAN zu Hause bringen.'|trans }}</li>
+                <li>{{ 'Mit der Kamera des Tablets den QR-Code scannen und die Adresse öffnen.'|trans }}</li>
+                <li>{{ 'Ohne Kamera: im Browser des Tablets %address% öffnen und den Code eintippen.'|trans({'%address%': address}) }}</li>
+            </ol>
+            <p>{{ 'Code'|trans }}: <strong class="hc-admin-code">{{ code }}</strong></p>
+            <p class="hc-admin-hint">{{ 'Gilt bis %time% Uhr und nur für ein Tablet. Danach erzeugst du einfach einen neuen.'|trans({'%time%': expires_at|format_datetime(pattern: 'HH:mm', locale: 'de')}) }}</p>
+        </div>
+    </section>
+{% endblock %}

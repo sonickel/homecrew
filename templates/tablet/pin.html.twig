@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'PIN'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Hallo %name%'|trans({'%name%': person.displayName})" :intro="'Gib deine PIN ein.'|trans" />
+
+    <form class="hc-form" method="post" action="{{ path('app_tablet_pin', {publicId: person.publicId}) }}">
+        <input type="hidden" name="_token" value="{{ csrf_token(csrf_id) }}">
+        <div class="hc-field">
+            <label class="hc-field__label" for="pin">{{ 'PIN'|trans }}</label>
+            <input class="hc-input hc-input--pin" type="password" id="pin" name="pin" required autofocus
+                   inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off">
+        </div>
+        <div class="hc-button-row">
+            <twig:Button type="submit" icon="tabler:login">{{ 'Anmelden'|trans }}</twig:Button>
+            <twig:Button variant="secondary" icon="tabler:arrow-left" :href="path('app_tablet_people')">{{ 'Zurück zu den Namen'|trans }}</twig:Button>
+        </div>
+    </form>
+{% endblock %}

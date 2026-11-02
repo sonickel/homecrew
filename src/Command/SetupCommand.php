@@ -83,7 +83,7 @@ final readonly class SetupCommand
         $this->entityManager->flush();
         $this->auditLogger->log(AuditAction::EinrichtungManager, null, $manager, via: AuditVia::System);
 
-        $io->success(\sprintf('Manager „%s" ist angelegt. Melde dich jetzt unter /anmelden an.', $displayName));
+        $io->success(\sprintf('Manager „%s“ ist angelegt. Melde dich jetzt unter /anmelden an.', $displayName));
 
         return Command::SUCCESS;
     }

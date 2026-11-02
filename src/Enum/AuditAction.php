@@ -34,6 +34,11 @@ enum AuditAction: string
     case PinAnmeldung = 'zugang.pin_anmeldung';
     case EinladungErstellen = 'einladung.erstellen';
     case EinladungEinloesen = 'einladung.einloesen';
+    case PinAendern = 'zugang.pin_aendern';
+    case GeraetKopplungscode = 'geraet.kopplungscode';
+    case GeraetKoppeln = 'geraet.koppeln';
+    case GeraetAendern = 'geraet.aendern';
+    case GeraetEntkoppeln = 'geraet.entkoppeln';
 
     public function label(): string
     {
@@ -62,6 +67,11 @@ enum AuditAction: string
             self::PinAnmeldung => 'PIN-Anmeldung ein- oder ausgeschaltet',
             self::EinladungErstellen => 'Einladung erstellt',
             self::EinladungEinloesen => 'Einladung eingelöst',
+            self::PinAendern => 'PIN geändert',
+            self::GeraetKopplungscode => 'Kopplungscode für ein Tablet erzeugt',
+            self::GeraetKoppeln => 'Tablet gekoppelt',
+            self::GeraetAendern => 'Tablet geändert',
+            self::GeraetEntkoppeln => 'Tablet entkoppelt',
         };
     }
 }

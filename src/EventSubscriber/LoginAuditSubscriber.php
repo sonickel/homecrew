@@ -6,6 +6,9 @@ namespace App\EventSubscriber;
 
 use App\Entity\AppUser;
 use App\Enum\AuditAction;
+use App\Enum\AuditVia;
+use App\Repository\DeviceRepository;
+use App\Security\Pin\PinLoginToken;
 use App\Service\Audit\AuditLogger;
 use Scheb\TwoFactorBundle\Security\Authentication\Token\TwoFactorTokenInterface;
 use Scheb\TwoFactorBundle\Security\Http\Authenticator\TwoFactorAuthenticator;
@@ -23,11 +26,13 @@ use Webauthn\Bundle\Security\Http\Authenticator\WebauthnAuthenticator;
 /**
  * Logins in the audit log: success with method, failures and lockouts only for existing persons
  * (never the entered text – a mistyped password in the username field must not end up in the log).
+ * PIN logins carry the tablet; wrong PINs are logged by App\Service\Tablet\PinLogin.
  */
 final readonly class LoginAuditSubscriber
 {
     public function __construct(
         private AuditLogger $auditLogger,
+        private DeviceRepository $deviceRepository,
         private ClockInterface $clock,
     ) {
     }
@@ -42,6 +47,12 @@ final readonly class LoginAuditSubscriber
         }
 
         $user->recordLogin($this->clock->now());
+        $token = $event->getAuthenticatedToken();
+        if ($token instanceof PinLoginToken) {
+            $this->auditLogger->log(AuditAction::AnmeldungErfolg, $user, null, ['methode' => 'pin'], AuditVia::Tablet, $this->deviceRepository->find($token->getDeviceId()));
+
+            return;
+        }
         $this->auditLogger->log(AuditAction::AnmeldungErfolg, $user, null, [
             'methode' => $event->getAuthenticator() instanceof WebauthnAuthenticator ? 'passkey' : 'passwort',
             'zweiter_schritt' => $event->getAuthenticator() instanceof TwoFactorAuthenticator,

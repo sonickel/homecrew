@@ -48,7 +48,7 @@ final readonly class ResetManagerTwoFactorCommand
             return Command::FAILURE;
         }
 
-        $io->warning(\sprintf('Der zweite Schritt von „%s" wird entfernt: Authenticator-App, Wiederherstellungscodes und alle Passkeys.', $manager->getDisplayName()));
+        $io->warning(\sprintf('Der zweite Schritt von „%s“ wird entfernt: Authenticator-App, Wiederherstellungscodes und alle Passkeys.', $manager->getDisplayName()));
         if (!$io->askQuestion(new ConfirmationQuestion('Wirklich zurücksetzen? (ja/nein)', false, '/^(j|y)/i'))) {
             $io->text('Nichts geändert.');
 

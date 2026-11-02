@@ -9,12 +9,15 @@ use App\Enum\AuditVia;
 use App\Enum\CalendarView;
 use App\Enum\DeviceMode;
 use App\Enum\EmailNotification;
+use App\Enum\EmergencyCategory;
+use App\Enum\EmergencyVisibility;
 use App\Enum\ExtensionStatus;
 use App\Enum\FontSize;
 use App\Enum\GuidePublishMode;
 use App\Enum\MinijobProcedure;
 use App\Enum\SmtpEncryption;
 use App\Enum\SpeechRecognition;
+use App\Enum\StepFreeAccess;
 use App\Enum\TwoFactorMethod;
 use App\Enum\UserRole;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -44,6 +47,9 @@ final class EnumCheckConstraintTest extends DatabaseTestCase
         yield 'device.mode' => ['device', 'ck_device_mode', DeviceMode::class];
         yield 'device.font_size' => ['device', 'ck_device_font', FontSize::class];
         yield 'audit_log.via' => ['audit_log', 'ck_audit_via', AuditVia::class];
+        yield 'emergency_contact.category' => ['emergency_contact', 'ck_emergency_category', EmergencyCategory::class];
+        yield 'emergency_contact.visibility' => ['emergency_contact', 'ck_emergency_visible', EmergencyVisibility::class];
+        yield 'poi.a11y_step_free' => ['poi', 'ck_poi_stepfree', StepFreeAccess::class];
     }
 
     /**

@@ -8,6 +8,7 @@ use App\Entity\AuditLog;
 use App\Enum\AuditAction;
 use App\Enum\AuditVia;
 use App\Repository\AppUserRepository;
+use App\Repository\DeviceRepository;
 
 /**
  * Turns audit log entries into plain German for the log page – no table or column names.
@@ -35,6 +36,7 @@ final readonly class AuditLogPresenter
         'an' => 'Eingeschaltet',
         'gueltig_bis' => 'Gültig bis',
         'letzter_tag' => 'Letzter Arbeitstag',
+        'name' => 'Name',
     ];
 
     private const array DETAIL_VALUES = [
@@ -45,6 +47,14 @@ final readonly class AuditLogPresenter
         'manager' => 'Manager',
         'assistenz' => 'Assistenz',
         'angehoerige' => 'Angehörige',
+        'pin' => 'PIN',
+        'tablet' => 'Tablet',
+        'team' => 'Team',
+        'persoenlich' => 'Persönlich',
+        'beides' => 'Beides',
+        'normal' => 'normal',
+        'gross' => 'groß',
+        'sehr_gross' => 'sehr groß',
     ];
 
     /** Columns of app_setting as the settings pages name them. */
@@ -55,7 +65,7 @@ final readonly class AuditLogPresenter
         'guide_publish_mode' => 'Neue Anleitungen',
         'tablet_lock_seconds' => 'Auto-Sperre Tablet (Sekunden)',
         'pin_lan_only' => 'PIN nur im Heimnetz',
-        'max_shift_minutes' => 'Hinweis „Dienst noch offen?" (Minuten)',
+        'max_shift_minutes' => 'Hinweis „Dienst noch offen?“ (Minuten)',
         'time_view_months' => 'Eigene Zeiten zurück (Monate)',
         'video_max_seconds' => 'Längste Videos (Sekunden)',
         'retention_handover_days' => 'Löschfrist Übergaben (Tage)',
@@ -77,8 +87,17 @@ final readonly class AuditLogPresenter
         'active_from' => 'Eintritt',
     ];
 
+    /** Columns of device as the device form names them (App\EventListener\DeviceAuditListener). */
+    private const array DEVICE = [
+        'name' => 'Name',
+        'mode' => 'Modus',
+        'dim_after_seconds' => 'Bildschirmschoner nach (Sekunden)',
+        'font_size' => 'Schriftgröße',
+    ];
+
     public function __construct(
         private AppUserRepository $userRepository,
+        private DeviceRepository $deviceRepository,
     ) {
     }
 
@@ -87,10 +106,18 @@ final readonly class AuditLogPresenter
         return AuditAction::tryFrom($entry->getAction())?->label() ?? $entry->getAction();
     }
 
+    /**
+     * Person, device or both: a PIN login at the tablet shows "Anna am Tablet „Flur“", the team tablet "Tablet „Flur“".
+     */
     public function who(AuditLog $entry): string
     {
-        return $entry->getActor()?->getDisplayName()
-            ?? $entry->getDevice()?->getName()
+        $person = $entry->getActor()?->getDisplayName();
+        $device = $entry->getDevice()?->getName();
+        if (null !== $device) {
+            return null === $person ? \sprintf('Tablet „%s“', $device) : \sprintf('%s am Tablet „%s“', $person, $device);
+        }
+
+        return $person
             ?? match ($entry->getVia()) {
                 AuditVia::System => 'System (Server-Befehl)',
                 AuditVia::Tablet => 'Team-Tablet',
@@ -111,6 +138,9 @@ final readonly class AuditLogPresenter
 
             return 'Person: '.($person?->getDisplayName() ?? 'gelöscht');
         }
+        if ('device' === $type && null !== $id) {
+            return 'Tablet: '.($this->deviceRepository->find($id)?->getName() ?? 'gelöscht');
+        }
 
         return self::SUBJECTS[$type] ?? $type;
     }
@@ -121,7 +151,11 @@ final readonly class AuditLogPresenter
         foreach ($entry->getDetails() ?? [] as $key => $value) {
             if ('felder' === $key && \is_array($value)) {
                 foreach ($value as $column => $change) {
-                    $label = ('app_user' === $entry->getEntityType() ? self::PERSON : self::SETTINGS)[$column] ?? (string) $column;
+                    $label = (match ($entry->getEntityType()) {
+                        'app_user' => self::PERSON,
+                        'device' => self::DEVICE,
+                        default => self::SETTINGS,
+                    })[$column] ?? (string) $column;
                     $lines[] = \is_array($change)
                         ? \sprintf('%s: %s → %s', $label, self::value($change['alt'] ?? null), self::value($change['neu'] ?? null))
                         : \sprintf('%s: %s', $label, self::value($change));

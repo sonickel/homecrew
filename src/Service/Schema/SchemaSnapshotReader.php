@@ -26,7 +26,7 @@ final readonly class SchemaSnapshotReader
 
         foreach ($this->fetch('SELECT TABLE_NAME, ENGINE, TABLE_COLLATION, TABLE_COMMENT FROM information_schema.TABLES
                 WHERE TABLE_SCHEMA = ? AND TABLE_TYPE = \'BASE TABLE\'', $schema) as $row) {
-            $snapshot[$row['TABLE_NAME']]['Tabelle'] = \sprintf('%s, %s, Kommentar „%s"', $row['ENGINE'], $row['TABLE_COLLATION'], $row['TABLE_COMMENT']);
+            $snapshot[$row['TABLE_NAME']]['Tabelle'] = \sprintf('%s, %s, Kommentar „%s“', $row['ENGINE'], $row['TABLE_COLLATION'], $row['TABLE_COMMENT']);
         }
 
         foreach ($this->fetch('SELECT TABLE_NAME, COLUMN_NAME, ORDINAL_POSITION, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT, EXTRA,
@@ -40,7 +40,7 @@ final readonly class SchemaSnapshotReader
                 '' === $row['EXTRA'] ? null : $row['EXTRA'],
                 null === $row['GENERATION_EXPRESSION'] ? null : 'AS ('.$row['GENERATION_EXPRESSION'].')',
                 $row['COLLATION_NAME'],
-                '' === $row['COLUMN_COMMENT'] ? null : 'Kommentar „'.$row['COLUMN_COMMENT'].'"',
+                '' === $row['COLUMN_COMMENT'] ? null : 'Kommentar „'.$row['COLUMN_COMMENT'].'“',
             ], static fn (?string $part): bool => null !== $part));
         }
 

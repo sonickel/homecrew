@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Persönlich anmelden'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Wer bist du?'|trans" :intro="'Tippe auf deinen Namen und gib deine PIN ein.'|trans" />
+
+    {% if people is empty %}
+        <twig:EmptyState icon="tabler:users" :message="'Noch niemand meldet sich hier mit PIN an. Ein Admin richtet die PIN unter Verwaltung → Personen → Zugang ein.'|trans" />
+    {% else %}
+        <ul class="hc-name-tiles">
+            {% for person in people %}
+                <li>
+                    <a class="hc-name-tile {{ person_color_class(person) }}" href="{{ path('app_tablet_pin', {publicId: person.publicId}) }}">{{ person.displayName }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <div class="hc-button-row">
+        {% if team_view %}
+            <twig:Button variant="secondary" icon="tabler:arrow-left" :href="path('app_home')">{{ 'Zur Team-Ansicht'|trans }}</twig:Button>
+        {% endif %}
+        <twig:Button variant="secondary" icon="tabler:login" :href="path('app_login')">{{ 'Admin-Anmeldung'|trans }}</twig:Button>
+    </div>
+{% endblock %}

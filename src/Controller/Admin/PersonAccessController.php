@@ -62,7 +62,7 @@ final class PersonAccessController extends AbstractController
         }
 
         // The code travels after "#": browsers never send that part to the server, so it ends up in no log
-        $url = $this->baseAddress($request).$this->generateUrl('app_invitation').'#'.$code;
+        $url = $this->passkeySupport->linkBase($request).$this->generateUrl('app_invitation').'#'.$code;
         $qrCode = (new Builder(
             writer: new SvgWriter(),
             data: $url,
@@ -178,22 +178,12 @@ final class PersonAccessController extends AbstractController
     {
         $response = $this->render('admin/person/card.html.twig', [
             'person' => $person,
-            'address' => $this->baseAddress($request),
+            'address' => $this->passkeySupport->linkBase($request),
             ...$secret,
         ]);
         $response->headers->set('Cache-Control', 'no-store');
 
         return $response;
-    }
-
-    /**
-     * The address the person can open: on 127.0.0.1 "localhost", otherwise the address of this request.
-     */
-    private function baseAddress(Request $request): string
-    {
-        $base = $this->passkeySupport->isPossible() ? null : $this->passkeySupport->address();
-
-        return rtrim($base ?? $request->getSchemeAndHttpHost(), '/');
     }
 
     private function back(AppUser $person, string $message): Response

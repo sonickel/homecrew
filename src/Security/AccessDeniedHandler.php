@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Security;
 
 use App\Entity\AppUser;
+use App\Security\Pin\PinLoginToken;
 use App\Service\Account\AccountSetup;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -35,7 +36,7 @@ final readonly class AccessDeniedHandler implements AccessDeniedHandlerInterface
             return null;
         }
 
-        $step = $this->accountSetup->nextStep($user);
+        $step = $this->accountSetup->nextStep($user, $this->security->getToken() instanceof PinLoginToken);
 
         return null === $step ? null : new RedirectResponse($this->urlGenerator->generate($step), Response::HTTP_SEE_OTHER);
     }

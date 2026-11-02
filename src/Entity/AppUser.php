@@ -537,7 +537,7 @@ class AppUser implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->lastLoginAt;
     }
 
-    // Tablet PIN (the PIN login follows in M4)
+    // Tablet PIN (App\Service\Tablet\PinLogin)
 
     /**
      * @param string $pinHash    hashed like a password
@@ -564,6 +564,45 @@ class AppUser implements UserInterface, PasswordAuthenticatedUserInterface
     public function isPinLoginEnabled(): bool
     {
         return $this->pinLoginEnabled;
+    }
+
+    public function getPinHash(): ?string
+    {
+        return $this->pinHash;
+    }
+
+    public function getPinLockedUntil(): ?\DateTimeImmutable
+    {
+        return $this->pinLockedUntil;
+    }
+
+    public function isPinLockedAt(\DateTimeImmutable $now): bool
+    {
+        return null !== $this->pinLockedUntil && $this->pinLockedUntil > $now;
+    }
+
+    /**
+     * Counts a wrong PIN; the last allowed attempt starts a pause and a new round.
+     *
+     * @return int attempts left before the pause, 0 when the pause has just started
+     */
+    public function registerFailedPin(\DateTimeImmutable $now, int $maxAttempts, int $pauseMinutes): int
+    {
+        ++$this->pinFailedCount;
+        if ($this->pinFailedCount < $maxAttempts) {
+            return $maxAttempts - $this->pinFailedCount;
+        }
+
+        $this->pinFailedCount = 0;
+        $this->pinLockedUntil = $now->modify(\sprintf('+%d minutes', $pauseMinutes));
+
+        return 0;
+    }
+
+    public function resetPinFailures(): void
+    {
+        $this->pinFailedCount = 0;
+        $this->pinLockedUntil = null;
     }
 
     /**

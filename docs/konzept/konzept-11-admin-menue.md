@@ -1,6 +1,6 @@
 # Konzept 11 – Admin-Menü und Pflegemasken
 
-Stand: 01.11.2026 (nachmittags) · Status: Entwurf · App: **HomeCrew**
+Stand: 02.11.2026 (M4: Geräte, Notfall-Infos) · Status: Entwurf · App: **HomeCrew**
 Antwort auf die Frage „Sind für alles Pflegemasken vorgesehen?": **Ja.** Alles, was in der Datenbank steht, kann ein Admin in der App pflegen – ohne Datenbank-Werkzeug.
 
 ## 1. Aufbau
@@ -13,7 +13,7 @@ Antwort auf die Frage „Sind für alles Pflegemasken vorgesehen?": **Ja.** Alle
 | Bereich | Maske | Inhalt / Aktionen | Stufe |
 |---|---|---|---|
 | **Personen** | Personen | anlegen (Rolle, Admin-Recht, Benutzername, Anzeigename, Farbe, Eintritt), Zugang: **keiner (nur Team-Tablet)**, Start-PIN setzen, **PIN-Anmeldung an/aus**, Start-Passwort, Einladung (QR, per E-Mail nur wenn E-Mail eingerichtet), Zugangs-Kärtchen drucken; 2FA/PIN/Passwort zurücksetzen; Schalter (wiederkehrende Aufgaben, Anleitungen veröffentlichen, Termine anlegen, KI); sperren/Austritt; **den Manager bearbeitet nur der Manager selbst**, den eigenen Zugang jede Person unter „Mein Konto"; Schalter erscheinen mit ihrer Funktion; Personen werden nicht gelöscht | 1 |
-| | Geräte | Tablet koppeln (QR), umbenennen, **Modus (Team · Persönlich · Beides)**, **Bildschirmschoner** (Minuten), Schriftgröße am Gerät, zuletzt aktiv, entkoppeln | 1 |
+| | Geräte | Tablet koppeln (Name → Kopplungscode als QR oder zum Abtippen, 10 Minuten, einmal), umbenennen, **Modus (Team · Persönlich · Beides)**, **Bildschirmschoner** (Minuten), Schriftgröße am Gerät, zuletzt aktiv, entkoppeln (sofort wirkungslos, Geräte werden nicht gelöscht) | 1 |
 | **Einstellungen** | Allgemein | Haushaltsname, Zeitzone, Feiertagsregion, Auto-Sperre Tablet, PIN nur im Heimnetz, Ansichtszeitraum eigener Zeiten (3 Monate), max. Dienstdauer, Videolänge, Freigabe-Modus für Anleitungen | 1 |
 | | Benachrichtigungen | Uhrzeit der Tageszusammenfassung (18:00), Push erlauben (Stufe 4); Standards je Rolle ansehen | 1 |
 | | Nachrichten | **Sprachnachrichten an/aus**, Assistenz untereinander an/aus | 2 |
@@ -32,7 +32,7 @@ Antwort auf die Frage „Sind für alles Pflegemasken vorgesehen?": **Ja.** Alle
 | | Abwesenheit des Managers | Zeitraum, Aufgaben pausieren, Dienste, Besuche absagen | 1 |
 | **Wissen** | Anleitungen | Freigaben (auch Vorschläge vom Team-Tablet), Archiv, „nicht übersetzen" | 1 |
 | | Wer kennt was | Übersicht, Einweisung bestätigen | 1 |
-| | Notfall-Infos | Kontakte & Nummern (Kategorie, wann anrufen, Sichtbarkeit, Sperrbildschirm) | 1 |
+| | Notfall-Infos | Kontakte & Nummern (Kategorie, Name, Beziehung, Telefon + zweite Nummer, wann anrufen, Sichtbarkeit alle/nur Admins, Sperrbildschirm – wirkt nur bei „alle", Reihenfolge); Ort-Verknüpfung mit den Orten (M12) | 1 |
 | | Orte | inkl. Barrierefreiheit | 1 |
 | | Profil des Managers | Einträge und Sichtbarkeit (Team · privat) – am Team-Tablet erscheint nur „Team" | 1 |
 | | Hilfsmittel | Bauteile, Sollwerte, Dokumente | 2 |

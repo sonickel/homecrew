@@ -10,6 +10,7 @@ use App\Enum\AuditAction;
 use App\Enum\TwoFactorMethod;
 use App\Form\Account\AuthenticatorCodeType;
 use App\Repository\WebauthnCredentialRepository;
+use App\Security\Permission;
 use App\Security\TwoFactor\AuthenticatorApp;
 use App\Security\TwoFactor\RecoveryCodeGenerator;
 use App\Security\TwoFactor\RecoveryCodeManager;
@@ -37,6 +38,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  * First recovery codes need none: they only exist together with a second factor that was confirmed.
  */
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
+// Never after a PIN login at the shared tablet (App\Security\Voter\AccountVoter)
+#[IsGranted(Permission::ACCOUNT_LOGIN_SETTINGS)]
 final class TwoFactorController extends AbstractController
 {
     /** Encrypted secret of an app setup that is not confirmed yet. */

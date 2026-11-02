@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Heute'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Heute'|trans" :intro="'Team-Tablet „%name%“'|trans({'%name%': device.name})" />
+
+    <twig:EmptyState icon="tabler:home" :message="'Bald siehst du hier, was heute zu tun ist.'|trans" />
+
+    <div class="hc-button-row">
+        {% if device.mode.offersPinLogin %}
+            <twig:Button icon="tabler:user-circle" :href="path('app_tablet_people')">{{ 'Persönlich anmelden'|trans }}</twig:Button>
+        {% endif %}
+        <twig:Button variant="secondary" icon="tabler:login" :href="path('app_login')">{{ 'Admin-Anmeldung'|trans }}</twig:Button>
+    </div>
+{% endblock %}

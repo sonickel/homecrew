@@ -1,6 +1,6 @@
 # Projektkontext: HomeCrew – App für Persönliche Assistenz (Übersicht)
 
-Stand: 01.11.2026 (nachmittags) · **Dieses Dokument ist maßgeblich**; Details in den Konzepten (siehe Index). Das Review-Dokument (`docs/archiv/`) zeigt den Diskussionsstand vom Vormittag.
+Stand: 02.11.2026 (M4) · **Dieses Dokument ist maßgeblich**; Details in den Konzepten (siehe Index). Das Review-Dokument (`docs/archiv/`) zeigt den Diskussionsstand vom Vormittag.
 **Phase: Umsetzung Stufe 1 startet** – lokal in WSL (VS Code + Claude Code), Plan in `docs/plan-stufe-1.md`. Konzept bleibt die fachliche Vorgabe.
 
 ## 1. Kurzbeschreibung
@@ -42,6 +42,7 @@ Stand: 01.11.2026 (nachmittags) · **Dieses Dokument ist maßgeblich**; Details 
 | 01.11. abends | **MariaDB 11.8 LTS** statt 11.4 LTS (lokal in WSL vorhanden: 11.8.6); der Pi nutzt im Docker-Image dieselbe Version; Migrationsstrategie in Konzept 6 §6 |
 | 01.11. abends (M2) | **Anmeldung**: Passkey ist eine vollständige Anmeldung (Fingerabdruck/Gesicht/Geräte-PIN, ohne Benutzername); wer Passkey als zweiten Schritt hat, kommt mit Passwort nur plus Wiederherstellungscode weiter. **2FA-Pflicht für Admins per Schalter** (`ADMIN_2FA_REQUIRED`) – auf Wunsch vorerst aus, **vor dem Echtbetrieb einschalten**. Persönliche Anmeldungen (Handy/PC) enden nach **8 Stunden** ohne Aktivität. Löschfristen-Maske zeigt nur Fristen vorhandener Funktionen. **Schriftgröße am Gerät** (`device.font_size`) im Schema |
 | 02.11. (M3) | **Personen und Zugänge**: Schalter je Person kommen mit ihrer Funktion (M6/M8/M12, KI Stufe 2). **Datenschutzhinweis** als Schritt bei der ersten Anmeldung (Text als Entwurf). **Manager-Schutz**: den Manager bearbeitet nur der Manager selbst; niemand ändert eigene Rolle/Admin-Recht oder sperrt sich selbst. Start-Passwort/-PIN **erzeugt die App**. **Austritt** nur heute oder früher, Zugang sofort weg, zurücknehmbar. Einladungscode nur im URL-Fragment. Änderungen an der eigenen Anmeldung nur nach **frischer Bestätigung** (5 Minuten) |
+| 02.11. (M4) | **Team-Tablet**: Koppeln per Kopplungscode (QR oder abtippen, 10 Minuten, einmal), Geräte-Token im Cookie (DB nur Hash). **Heimnetz** = direkte Gegenstelle und jede weitergeleitete Adresse in `HOME_NETWORKS`, Cloudflare-Anfragen nie. **PIN**: 6 Ziffern, nichts Einfaches, 3 Fehlversuche → 5 Minuten Pause; Schalter „PIN nur im Heimnetz" aus = PIN am gekoppelten Tablet auch unterwegs (Team-Ansicht nie). **Nach PIN-Anmeldung** in „Mein Konto" nur PIN, Darstellung, Datenschutz. Volle Anmeldung am Tablet endet nach 5 Minuten, PIN nach der **Auto-Sperre (1 Minute bis 4 Stunden wählbar)** – zurück zur Startseite des Tablets; eine neue Start-PIN, „PIN-Anmeldung aus" oder Modus „Team" beenden laufende PIN-Anmeldungen sofort. Kachelfarben aus fester Palette. Notfall-Knopf für alle Angemeldeten und das Tablet; Sperrbildschirm nur Kontakte für alle. Referenz korrigiert: `emergency_contact.category` `VARCHAR(15)` |
 
 ## 3. Rollen (Kurzfassung)
 - **Manager** – assistierte Person, genau einer, immer Admin.

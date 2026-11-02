@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Security;
 
 use App\Entity\AppUser;
+use App\Entity\Device;
 use App\Enum\UserRole;
+use App\Security\Device\DeviceToken;
 use App\Security\Permission;
+use App\Security\Pin\PinLoginToken;
 use App\Security\TwoFactor\TwoFactorPolicy;
 use App\Security\Voter\AdminVoter;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -44,6 +47,21 @@ final class AdminVoterTest extends TestCase
     {
         $person = self::person(UserRole::Manager, twoFactor: true);
         $token = new TwoFactorToken(new UsernamePasswordToken($person, 'main'), null, 'main', ['app']);
+
+        self::assertSame(VoterInterface::ACCESS_DENIED, (new AdminVoter(new TwoFactorPolicy(false)))->vote($token, null, [Permission::ADMIN]));
+    }
+
+    public function testPinLoginNeverGivesAdminRights(): void
+    {
+        $token = new PinLoginToken(self::person(UserRole::Manager, twoFactor: true), 'main', ['ROLE_USER'], 1);
+
+        self::assertSame(VoterInterface::ACCESS_DENIED, (new AdminVoter(new TwoFactorPolicy(false)))->vote($token, null, [Permission::ADMIN]));
+    }
+
+    public function testTeamTabletNeverHasAdminRights(): void
+    {
+        $device = new Device('Flur', hash('sha256', 'token'));
+        $token = new DeviceToken($device, 'main', $device->getRoles());
 
         self::assertSame(VoterInterface::ACCESS_DENIED, (new AdminVoter(new TwoFactorPolicy(false)))->vote($token, null, [Permission::ADMIN]));
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\EventSubscriber;
 
 use App\Entity\AppUser;
+use App\Security\Pin\PinLoginToken;
 use App\Service\Account\AccountSetup;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
@@ -19,7 +20,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  */
 final readonly class AccountSetupSubscriber
 {
-    private const array ALWAYS_ALLOWED = ['app_logout', '_wdt', '_profiler'];
+    // The emergency button stays usable during the steps (konzept-12 §5: always visible)
+    private const array ALWAYS_ALLOWED = ['app_logout', 'app_emergency', '_wdt', '_profiler'];
 
     public function __construct(
         private Security $security,
@@ -40,7 +42,7 @@ final readonly class AccountSetupSubscriber
             return;
         }
 
-        $step = $this->accountSetup->nextStep($user);
+        $step = $this->accountSetup->nextStep($user, $this->security->getToken() instanceof PinLoginToken);
         $route = (string) $event->getRequest()->attributes->get('_route', '');
         if (null === $step || $this->accountSetup->belongsToStep($step, $route) || \in_array($route, self::ALWAYS_ALLOWED, true)) {
             return;

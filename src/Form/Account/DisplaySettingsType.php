@@ -24,11 +24,7 @@ final class DisplaySettingsType extends AbstractType
                 'class' => FontSize::class,
                 'label' => 'Schriftgröße',
                 'expanded' => true,
-                'choice_label' => static fn (FontSize $size): string => match ($size) {
-                    FontSize::Normal => 'Normal',
-                    FontSize::Gross => 'Groß',
-                    FontSize::SehrGross => 'Sehr groß',
-                },
+                'choice_label' => static fn (FontSize $size): string => $size->label(),
             ])
             ->add('highContrast', CheckboxType::class, [
                 'label' => 'Hoher Kontrast (schwarz auf weiß)',

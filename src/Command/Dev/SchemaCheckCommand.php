@@ -54,11 +54,11 @@ final readonly class SchemaCheckCommand
 
         $io->title('Abgleich mit dem Referenzschema');
 
-        $io->text(\sprintf('1. Referenzschema in „%s" laden', $databases->reference));
+        $io->text(\sprintf('1. Referenzschema in „%s“ laden', $databases->reference));
         $this->recreateDatabase($databases->reference);
         $this->loadReferenceSchema($databases->urlFor($databases->reference));
 
-        $io->text(\sprintf('2. „%s" von Null migrieren', $databases->check));
+        $io->text(\sprintf('2. „%s“ von Null migrieren', $databases->check));
         $this->recreateDatabase($databases->check);
         $migration = new Process(
             [\PHP_BINARY, 'bin/console', 'doctrine:migrations:migrate', '--no-interaction', '--env=dev'],
@@ -103,7 +103,7 @@ final readonly class SchemaCheckCommand
         }
         if ([] === $result->identical) {
             // Nothing to compare means the migration went elsewhere or did nothing – never green
-            $io->error(\sprintf('In „%s" ist keine migrierte Tabelle angekommen.', $databases->check));
+            $io->error(\sprintf('In „%s“ ist keine migrierte Tabelle angekommen.', $databases->check));
 
             return Command::FAILURE;
         }

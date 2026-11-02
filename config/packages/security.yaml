@@ -8,6 +8,9 @@ security:
             entity:
                 class: App\Entity\AppUser
                 property: username
+        # The team tablet (konzept-12): a paired device, no person – reloaded on every request, unpaired = logged out
+        device_provider:
+            id: App\Security\Device\DeviceUserProvider
 
     firewalls:
         dev:
@@ -19,6 +22,12 @@ security:
             provider: app_user_provider
             user_checker: App\Security\UserChecker
             access_denied_handler: App\Security\AccessDeniedHandler
+
+            # Team tablet by its device cookie (only without a login in the session, only in the home network)
+            # and the PIN login at the tablet (never admin rights, no second factor) – both with tokens of their own
+            custom_authenticators:
+                - App\Security\Device\DeviceAuthenticator
+                - App\Security\Pin\PinAuthenticator
 
             # Username + password (konzept-1 §5); a person with a second factor continues with two_factor
             form_login:
@@ -62,8 +71,13 @@ security:
         - { path: ^/abmelden$, roles: PUBLIC_ACCESS }
         # Redeeming an invitation (konzept-1 §4): before the person has a password
         - { path: ^/einladung, roles: PUBLIC_ACCESS }
+        # Pairing a tablet and the name tiles with PIN: before any login; the controllers and App\Security\Voter\TabletVoter decide
+        - { path: ^/koppeln, roles: PUBLIC_ACCESS }
+        - { path: ^/tablet, roles: PUBLIC_ACCESS }
         # Admin rights are decided by App\Security\Voter\AdminVoter, the controllers check again
         - { path: ^/verwaltung, roles: ADMIN }
+        # "Mein Konto" belongs to persons (ROLE_USER) – never to the team tablet (ROLE_TEAM_DEVICE)
+        - { path: ^/konto, roles: ROLE_USER }
         - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:

@@ -7,6 +7,7 @@ namespace App\Controller\Account;
 use App\Entity\AppUser;
 use App\Enum\AuditAction;
 use App\Form\Account\ChangePasswordType;
+use App\Security\Permission;
 use App\Service\Account\AccountSetup;
 use App\Service\Account\RecentConfirmation;
 use App\Service\Audit\AuditLogger;
@@ -24,6 +25,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  * a fresh confirmation – otherwise anyone at an open session could take over the account.
  */
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
+// Never after a PIN login at the shared tablet (App\Security\Voter\AccountVoter)
+#[IsGranted(Permission::ACCOUNT_LOGIN_SETTINGS)]
 final class PasswordController extends AbstractController
 {
     #[Route('/konto/passwort', name: AccountSetup::STEP_PASSWORD, methods: ['GET', 'POST'])]

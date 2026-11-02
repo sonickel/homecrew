@@ -6,6 +6,7 @@ namespace App\Security\Voter;
 
 use App\Entity\AppUser;
 use App\Security\Permission;
+use App\Security\Pin\PinLoginToken;
 use App\Security\TwoFactor\TwoFactorPolicy;
 use Scheb\TwoFactorBundle\Security\Authentication\Token\TwoFactorTokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -14,8 +15,8 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 /**
  * Admin rights (konzept-1 §2, konzept-11 §1): only for a person with the admin flag who is fully logged in –
- * never while the second step is still open, never via tablet PIN or team tablet (M4) – and, when the
- * policy demands it, has a second factor.
+ * never while the second step is still open, never via tablet PIN (App\Security\Pin\PinLoginToken) or as team
+ * tablet (no AppUser) – and, when the policy demands it, has a second factor.
  *
  * @extends Voter<string, mixed>
  */
@@ -35,6 +36,11 @@ final class AdminVoter extends Voter
     {
         if ($token instanceof TwoFactorTokenInterface) {
             $vote?->addReason('The second login step is not finished.');
+
+            return false;
+        }
+        if ($token instanceof PinLoginToken) {
+            $vote?->addReason('A PIN login never grants admin rights.');
 
             return false;
         }

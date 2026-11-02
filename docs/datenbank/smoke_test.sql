@@ -153,6 +153,8 @@ INSERT INTO profile_keyword (profile_item_id, keyword) VALUES (@prof, 'Milch');
 INSERT INTO profile_item (section, title, visibility) VALUES ('essen', 'Kaffee schwarz', 'team');
 INSERT INTO emergency_contact (name, relation, phone, when_to_call) VALUES ('Schwester', 'Familie', '+49 931 0000000', 'immer zuerst');
 INSERT INTO emergency_contact (category, name, phone, poi_id, show_on_lockscreen) VALUES ('arzt', 'Hausarztpraxis', '+49 931 1111111', @poi, 0);
+-- Längster Wert der Kategorien (M4: Spalte war zu kurz für 'dienstleister')
+INSERT INTO emergency_contact (category, name, phone, visibility) VALUES ('dienstleister', 'Hausverwaltung', '+49 931 2222222', 'admins');
 
 -- Dienstplan & Arbeitszeit
 INSERT INTO shift_pattern (user_id, weekday, start_time, end_time, valid_from)

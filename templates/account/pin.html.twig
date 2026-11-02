@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Neue PIN'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Neue PIN'|trans"
+        :intro="start_pin
+            ? 'Du hast dich mit einer Start-PIN angemeldet. Wähle jetzt deine eigene PIN – nur du kennst sie.'|trans
+            : 'Mit dieser PIN meldest du dich am Tablet an.'|trans" />
+
+    {{ form_start(form, {attr: {class: 'hc-form', novalidate: 'novalidate'}}) }}
+        {{ form_widget(form) }}
+        <div class="hc-button-row">
+            <twig:Button type="submit">{{ 'PIN speichern'|trans }}</twig:Button>
+            {% if not start_pin %}
+                <twig:Button variant="secondary" :href="path('app_account')">{{ 'Abbrechen'|trans }}</twig:Button>
+            {% endif %}
+        </div>
+    {{ form_end(form) }}
+{% endblock %}

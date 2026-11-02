@@ -17,6 +17,20 @@
     {% if error %}
         <twig:Alert type="error" :message="error.messageKey|trans(error.messageData, 'security')" />
     {% endif %}
+    {% if team_device %}
+        <p>{{ 'Admin-Anmeldung am Tablet: Nach dem Abmelden oder 5 Minuten ohne Bedienung kehrt das Tablet zu seiner Startseite zurück.'|trans }}</p>
+    {% elseif tablet_outside %}
+        <twig:Alert :message="'Dieses Tablet ist gekoppelt. Die Team-Ansicht gibt es aber nur im WLAN zu Hause.'|trans" />
+    {% endif %}
+    {% if team_device or tablet_outside %}
+        {# A password saved in the tablet's browser would give everybody at the tablet this login #}
+        <p>{{ 'Dieses Tablet benutzen alle: Bitte das Passwort nicht im Browser speichern. Fragt er danach, tippe auf „Nie“.'|trans }}</p>
+    {% endif %}
+    {% if pin_login %}
+        <div class="hc-button-row">
+            <twig:Button variant="secondary" icon="tabler:user-circle" :href="path('app_tablet_people')">{{ 'Persönlich anmelden'|trans }}</twig:Button>
+        </div>
+    {% endif %}
 
     <form class="hc-form" method="post" action="{{ path('app_login') }}">
         <div class="hc-field">
@@ -31,6 +45,9 @@
         <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}" data-controller="csrf-protection">
         <div class="hc-button-row">
             <twig:Button type="submit" icon="tabler:login">{{ 'Anmelden'|trans }}</twig:Button>
+            {% if team_device %}
+                <twig:Button variant="secondary" icon="tabler:arrow-left" :href="path('app_home')">{{ 'Zurück'|trans }}</twig:Button>
+            {% endif %}
         </div>
     </form>
 

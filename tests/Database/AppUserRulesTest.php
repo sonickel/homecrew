@@ -41,7 +41,7 @@ final class AppUserRulesTest extends DatabaseTestCase
 
         yield 'B43 PIN-Anmeldung aktiviert, aber keine PIN gesetzt' => [sprintf($insert, ', pin_login_enabled', "'assistenz', 0, 'neu', 'Neu', '2026-11-01', 1"), self::CHECK_VIOLATED, 'ck_user_pin'];
         yield 'B44 2FA per E-Mail ohne E-Mail-Adresse' => ['UPDATE app_user SET twofa_method = \'email\' WHERE id = :relative', self::CHECK_VIOLATED, 'ck_user_2fa_mail'];
-        yield 'B45 Zweite Person mit Rolle „Manager"' => [sprintf($insert, '', "'manager', 1, 'mgr2', 'Mgr2', '2026-11-01'"), self::DUPLICATE, 'uq_user_manager'];
+        yield 'B45 Zweite Person mit Rolle „Manager“' => [sprintf($insert, '', "'manager', 1, 'mgr2', 'Mgr2', '2026-11-01'"), self::DUPLICATE, 'uq_user_manager'];
         yield 'B46 Manager ohne Admin-Recht' => ['UPDATE app_user SET is_admin = 0 WHERE id = :manager', self::CHECK_VIOLATED, 'ck_user_manager'];
         yield 'B50 Unbekannte E-Mail-Einstellung' => ['UPDATE app_user SET notify_email = \'stuendlich\' WHERE id = :assistant', self::CHECK_VIOLATED, 'ck_user_mail'];
         yield 'B51 Assistenz mit Admin-Recht' => ['UPDATE app_user SET is_admin = 1 WHERE id = :assistant', self::CHECK_VIOLATED, 'ck_user_assist_admin'];

@@ -29,6 +29,8 @@
         --hc-danger-fg: #ffffff;
         --hc-signal-bg: var(--hc-signal);
         --hc-signal-fg: var(--hc-on-signal);
+        --hc-emergency-bg: var(--hc-emergency);
+        --hc-emergency-fg: var(--hc-on-emergency);
 
         /* Spacing scale 4 · 8 · 12 · 16 · 24 · 32 px */
         --hc-space-1: 4px;
@@ -44,8 +46,9 @@
         --hc-border-width: 2px;
         --hc-focus-width: 3px;
 
-        /* Touch targets (team tablet uses 56px later) */
+        /* Touch targets; 56px for the large actions at the team tablet (name tiles, emergency) */
         --hc-target: 48px;
+        --hc-target-large: 56px;
 
         /* Typography: base 13.5px phone / 15px tablet at browser default (75 % of the first draft, decided 01.11.),
            steps x1.25, scaled per person/device */
@@ -101,5 +104,7 @@
         --hc-danger-fg: #8f1b12;
         --hc-signal-bg: #ffffff;
         --hc-signal-fg: #000000;
+        --hc-emergency-bg: #ffffff;
+        --hc-emergency-fg: #8f1b12;
     }
 }

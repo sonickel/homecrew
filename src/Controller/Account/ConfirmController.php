@@ -8,6 +8,7 @@ use App\Entity\AppUser;
 use App\Enum\AuditAction;
 use App\Enum\TwoFactorMethod;
 use App\Repository\WebauthnCredentialRepository;
+use App\Security\Permission;
 use App\Security\TwoFactor\AuthenticatorApp;
 use App\Security\TwoFactor\RecoveryCodeManager;
 use App\Service\Account\RecentConfirmation;
@@ -28,6 +29,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  * At most 5 attempts in 15 minutes.
  */
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
+// Never after a PIN login at the shared tablet (App\Security\Voter\AccountVoter)
+#[IsGranted(Permission::ACCOUNT_LOGIN_SETTINGS)]
 final class ConfirmController extends AbstractController
 {
     #[Route('/konto/bestaetigen', name: 'app_account_confirm', methods: ['GET', 'POST'])]

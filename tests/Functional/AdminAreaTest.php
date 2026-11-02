@@ -84,10 +84,10 @@ final class AdminAreaTest extends WebTestCase
 
         self::assertResponseIsSuccessful();
         $menu = $crawler->filter('#main-menu')->text();
-        foreach (['Personen', 'Allgemein', 'Löschfristen', 'Protokoll'] as $entry) {
+        foreach (['Personen', 'Geräte', 'Allgemein', 'Löschfristen', 'Notfall-Infos', 'Protokoll'] as $entry) {
             self::assertStringContainsString($entry, $menu);
         }
-        foreach (['Geräte', 'Erweiterungen'] as $notYet) {
+        foreach (['Erweiterungen', 'Meldungen'] as $notYet) {
             self::assertStringNotContainsString($notYet, $menu);
         }
         // Strict CSP also in the administration: EasyAdmin's scripts carry the nonce
@@ -107,7 +107,8 @@ final class AdminAreaTest extends WebTestCase
         self::assertSelectorTextContains('h1', 'Einstellungen: Allgemein');
         $form = $crawler->selectButton('Speichern')->form();
         $form['AppSetting[householdName]'] = 'Haus am See';
-        $form['AppSetting[tabletLockMinutes]'] = '5';
+        // Up to 4 hours: 14,400 seconds still fit the SMALLINT column
+        $form['AppSetting[tabletLockMinutes]'] = '240';
         $client->submit($form);
 
         self::assertResponseRedirects();
@@ -115,12 +116,12 @@ final class AdminAreaTest extends WebTestCase
         self::assertSelectorTextContains('.alert', 'Die Einstellungen sind gespeichert.');
 
         $settings = $this->entityManager()->getConnection()->fetchAssociative('SELECT household_name, tablet_lock_seconds FROM app_setting');
-        self::assertSame(['household_name' => 'Haus am See', 'tablet_lock_seconds' => 300], array_map(static fn (mixed $v): mixed => is_numeric($v) ? (int) $v : $v, (array) $settings));
+        self::assertSame(['household_name' => 'Haus am See', 'tablet_lock_seconds' => 14400], array_map(static fn (mixed $v): mixed => is_numeric($v) ? (int) $v : $v, (array) $settings));
 
         $details = json_decode((string) $this->entityManager()->getConnection()->fetchOne('SELECT details FROM audit_log WHERE action = ?', ['einstellungen.aendern']), true);
         self::assertSame([
             'household_name' => ['alt' => 'Mein Haushalt', 'neu' => 'Haus am See'],
-            'tablet_lock_seconds' => ['alt' => 180, 'neu' => 300],
+            'tablet_lock_seconds' => ['alt' => 180, 'neu' => 14400],
         ], $details['felder']);
 
         // The new name is used at once

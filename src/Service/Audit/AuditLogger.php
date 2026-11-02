@@ -6,6 +6,7 @@ namespace App\Service\Audit;
 
 use App\Entity\AppUser;
 use App\Entity\AuditLog;
+use App\Entity\Device;
 use App\Enum\AuditAction;
 use App\Enum\AuditVia;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,6 +27,7 @@ final readonly class AuditLogger
 
     /**
      * @param array<string, mixed> $details
+     * @param Device|null          $device  the tablet the action happened at (team tablet or PIN login there)
      */
     public function log(
         AuditAction $action,
@@ -33,12 +35,13 @@ final readonly class AuditLogger
         ?object $subject = null,
         array $details = [],
         AuditVia $via = AuditVia::App,
+        ?Device $device = null,
     ): void {
         $this->entityManager->persist(new AuditLog(
             $action->value,
             $via,
             $actor,
-            null,
+            $device,
             null === $subject ? null : self::entityType($subject),
             null === $subject ? null : self::entityId($subject),
             [] === $details ? null : $details,

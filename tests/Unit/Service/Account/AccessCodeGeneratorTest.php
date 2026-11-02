@@ -40,9 +40,18 @@ final class AccessCodeGeneratorTest extends TestCase
         self::assertCount(50, array_unique($codes));
     }
 
+    public function testPairingCodeIsShortButUnambiguous(): void
+    {
+        $generator = new AccessCodeGenerator();
+
+        for ($i = 0; $i < 50; ++$i) {
+            self::assertMatchesRegularExpression('/^[A-HJKMNP-Z2-9]{12}$/', $generator->pairingCode());
+        }
+    }
+
     public function testTypedCodesAreNormalized(): void
     {
-        self::assertSame('ABCD2345EFGH', AccessCodeGenerator::normalizeInvitationCode(' abcd-2345 efgh '));
-        self::assertSame('', AccessCodeGenerator::normalizeInvitationCode(' - '));
+        self::assertSame('ABCD2345EFGH', AccessCodeGenerator::normalizeCode(' abcd-2345 efgh '));
+        self::assertSame('', AccessCodeGenerator::normalizeCode(' - '));
     }
 }
