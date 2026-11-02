@@ -43,7 +43,10 @@
 {%- endblock form_errors -%}
 
 {%- block widget_attributes -%}
-    {%- set attr = attr|merge({class: (attr.class|default('') ~ ' hc-input')|trim}) -%}
+    {#- Text fields get the field look; checkboxes and radio buttons are styled by their option row (.hc-option) -#}
+    {%- if 'checkbox' not in block_prefixes and 'radio' not in block_prefixes -%}
+        {%- set attr = attr|merge({class: (attr.class|default('') ~ ' hc-input')|trim}) -%}
+    {%- endif -%}
     {%- if errors|length > 0 -%}
         {%- set attr = attr|merge({'aria-invalid': 'true'}) -%}
     {%- endif -%}

@@ -12,4 +12,13 @@ enum UserRole: string
     case Manager = 'manager';
     case Assistenz = 'assistenz';
     case Angehoerige = 'angehoerige';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::Manager => 'Manager',
+            self::Assistenz => 'Assistenz',
+            self::Angehoerige => 'Angehörige',
+        };
+    }
 }

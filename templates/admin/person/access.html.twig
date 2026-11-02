@@ -1,0 +1,135 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% set name = person.displayName %}
+
+{% block page_title %}{{ 'Zugang von %name%'|trans({'%name%': name}) }}{% endblock %}
+{% block content_title %}{{ 'Zugang von %name%'|trans({'%name%': name}) }}{% endblock %}
+
+{% block page_actions %}
+    {% if is_granted('PERSON_EDIT', person) %}
+        <a class="btn btn-secondary" href="{{ path('admin_person_edit', {entityId: person.id}) }}">{{ 'Daten bearbeiten'|trans }}</a>
+    {% endif %}
+    <a class="btn btn-secondary" href="{{ path('admin_person_index') }}">{{ 'Zur Personenliste'|trans }}</a>
+{% endblock %}
+
+{% block main %}
+    <dl class="hc-admin-facts">
+        <dt>{{ 'Rolle'|trans }}</dt><dd>{{ person.role.label|trans }}{% if person.admin %}, {{ 'mit Admin-Recht'|trans }}{% endif %}</dd>
+        <dt>{{ 'Eintritt'|trans }}</dt><dd>{{ person.activeFrom|format_date(pattern: 'd. MMMM yyyy', locale: 'de') }}</dd>
+        <dt>{{ 'Status'|trans }}</dt><dd>{{ status }}</dd>
+    </dl>
+
+    {% if person.hasLeft %}
+        <section class="hc-admin-section">
+            <h2>{{ 'Ausgetreten'|trans }}</h2>
+            <p>{{ '%name% hat keinen Zugang mehr und bleibt für Arbeitszeiten und Protokoll erhalten.'|trans({'%name%': name}) }}</p>
+            <details class="hc-admin-confirm">
+                <summary>{{ 'Austritt zurücknehmen …'|trans }}</summary>
+                <p>{{ 'Nur bei einem Irrtum. %name% ist dann wieder aktiv, aber ohne Zugang – den richtest du danach neu ein.'|trans({'%name%': name}) }}</p>
+                {{ include('admin/person/_action.html.twig', {route: 'app_admin_person_undo_leave', label: 'Austritt zurücknehmen'|trans}) }}
+            </details>
+        </section>
+    {% else %}
+        {% if not person.hasPassword and not person.hasPin and invitation is null %}
+            <div class="alert alert-info">{{ '%name% hat keinen eigenen Zugang und arbeitet nur am Team-Tablet. Das ist für den Start die einfachste Lösung.'|trans({'%name%': name}) }}</div>
+        {% endif %}
+
+        <section class="hc-admin-section">
+            <h2>{{ 'Handy oder PC'|trans }}</h2>
+            <p>
+                {% if not person.hasPassword %}
+                    {{ 'Kein Passwort.'|trans }}
+                {% elseif person.passwordMustChange %}
+                    {{ 'Start-Passwort – wird bei der ersten Anmeldung durch ein eigenes ersetzt.'|trans }}
+                {% else %}
+                    {{ 'Eigenes Passwort gesetzt.'|trans }}
+                {% endif %}
+                {% if invitation %}
+                    {{ 'Einladung offen bis %date%.'|trans({'%date%': invitation.expiresAt|format_datetime(pattern: 'EEEE, d. MMMM, HH:mm', locale: 'de')}) }}
+                {% endif %}
+            </p>
+            <p class="hc-admin-hint">{{ 'Beides zeigt einmal ein Zugangs-Kärtchen zum Ausdrucken. Ein neues Start-Passwort ersetzt das bisherige Passwort und zieht eine offene Einladung zurück; eine neue Einladung ersetzt die offene.'|trans }}</p>
+            <div class="hc-admin-actions">
+                {{ include('admin/person/_action.html.twig', {route: 'app_admin_person_invitation', label: 'Einladung (QR-Code) erstellen'|trans, variant: 'primary'}) }}
+                {{ include('admin/person/_action.html.twig', {route: 'app_admin_person_start_password', label: 'Start-Passwort erzeugen'|trans}) }}
+            </div>
+        </section>
+
+        <section class="hc-admin-section">
+            <h2>{{ 'Tablet-PIN'|trans }}</h2>
+            <p>
+                {% if not person.hasPin %}
+                    {{ 'Keine PIN.'|trans }}
+                {% elseif person.pinMustChange %}
+                    {{ 'Start-PIN – wird bei der ersten Anmeldung am Tablet durch eine eigene ersetzt.'|trans }}
+                {% else %}
+                    {{ 'Eigene PIN gesetzt.'|trans }}
+                {% endif %}
+                {% if person.hasPin %}
+                    {{ person.pinLoginEnabled ? 'PIN-Anmeldung: eingeschaltet.'|trans : 'PIN-Anmeldung: ausgeschaltet.'|trans }}
+                {% endif %}
+            </p>
+            <p class="hc-admin-hint">{{ 'Mit der PIN meldet sich die Person am gekoppelten Tablet an – nur im Heimnetz und nie mit Admin-Rechten.'|trans }}</p>
+            <div class="hc-admin-actions">
+                {{ include('admin/person/_action.html.twig', {route: 'app_admin_person_start_pin', label: 'Start-PIN erzeugen'|trans}) }}
+                {% if person.hasPin %}
+                    {% if person.pinLoginEnabled %}
+                        {{ include('admin/person/_action.html.twig', {route: 'app_admin_person_pin_login', label: 'PIN-Anmeldung ausschalten'|trans, fields: {an: '0'}}) }}
+                    {% else %}
+                        {{ include('admin/person/_action.html.twig', {route: 'app_admin_person_pin_login', label: 'PIN-Anmeldung einschalten'|trans, fields: {an: '1'}}) }}
+                    {% endif %}
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="hc-admin-section">
+            <h2>{{ 'Zweiter Schritt'|trans }}</h2>
+            <p>
+                {% if person.twofaMethod.value == 'totp' %}
+                    {{ 'Authenticator-App.'|trans }}
+                {% elseif person.twofaMethod.value == 'passkey' %}
+                    {{ 'Passkey.'|trans }}
+                {% else %}
+                    {{ 'Keiner.'|trans }}
+                {% endif %}
+                {% if passkeys > 0 %}{{ 'Passkeys: %count%.'|trans({'%count%': passkeys}) }}{% endif %}
+                {% if person.hasTwoFactor %}{{ 'Wiederherstellungscodes übrig: %count%.'|trans({'%count%': person.countRecoveryCodes}) }}{% endif %}
+            </p>
+            {% if person.hasTwoFactor or passkeys > 0 %}
+                <details class="hc-admin-confirm">
+                    <summary>{{ 'Zweiten Schritt zurücksetzen …'|trans }}</summary>
+                    <p>{{ 'Für ein verlorenes Handy: Authenticator-App, Wiederherstellungscodes und alle Passkeys von %name% werden entfernt. Bei der nächsten Anmeldung richtet %name% den zweiten Schritt neu ein.'|trans({'%name%': name}) }}</p>
+                    <p>{{ 'Ist auf dem verlorenen Gerät noch jemand angemeldet, erzeuge zusätzlich ein neues Start-Passwort – damit endet diese Anmeldung.'|trans }}</p>
+                    {{ include('admin/person/_action.html.twig', {route: 'app_admin_person_reset_two_factor', label: 'Jetzt zurücksetzen'|trans, variant: 'danger'}) }}
+                </details>
+            {% endif %}
+        </section>
+
+        <section class="hc-admin-section">
+            <h2>{{ 'Sperren und Austritt'|trans }}</h2>
+            {% if person.locked %}
+                <p>{{ 'Gesperrt seit %date%. %name% kann sich nicht anmelden.'|trans({'%date%': person.disabledAt|format_datetime(pattern: 'd. MMMM yyyy, HH:mm', locale: 'de'), '%name%': name}) }}</p>
+                <div class="hc-admin-actions">
+                    {{ include('admin/person/_action.html.twig', {route: 'app_admin_person_unlock', label: 'Sperre aufheben'|trans}) }}
+                </div>
+            {% else %}
+                <details class="hc-admin-confirm">
+                    <summary>{{ 'Sperren …'|trans }}</summary>
+                    <p>{{ '%name% kann sich nicht mehr anmelden und wird sofort abgemeldet. Der Zugang bleibt erhalten, du kannst die Sperre wieder aufheben.'|trans({'%name%': name}) }}</p>
+                    {{ include('admin/person/_action.html.twig', {route: 'app_admin_person_lock', label: 'Jetzt sperren'|trans, variant: 'danger'}) }}
+                </details>
+            {% endif %}
+            <details class="hc-admin-confirm">
+                <summary>{{ 'Austritt eintragen …'|trans }}</summary>
+                <p>{{ 'Passwort, PIN, zweiter Schritt, Passkeys und Einladungen von %name% werden sofort entfernt. %name% bleibt als „ausgetreten" in der Liste.'|trans({'%name%': name}) }}</p>
+                <form class="hc-admin-action" method="post" action="{{ path('app_admin_person_leave', {id: person.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('person-access-' ~ person.id) }}">
+                    <label class="form-label" for="letzter-tag">{{ 'Letzter Arbeitstag'|trans }}</label>
+                    <input class="form-control" type="date" id="letzter-tag" name="letzter_tag" required
+                           value="{{ today|date('Y-m-d') }}" max="{{ today|date('Y-m-d') }}" min="{{ person.activeFrom|date('Y-m-d') }}">
+                    <button type="submit" class="btn btn-danger">{{ 'Austritt eintragen'|trans }}</button>
+                </form>
+            </details>
+        </section>
+    {% endif %}
+{% endblock %}

@@ -68,6 +68,9 @@ final class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToRoute('Zurück zu „Heute"', 'fa fa-arrow-left', 'app_home');
         yield MenuItem::linkToDashboard('Übersicht', 'fa fa-home');
 
+        yield MenuItem::section('Personen');
+        yield MenuItem::linkTo(PersonCrudController::class, 'Personen', 'fa fa-users');
+
         yield MenuItem::section('Einstellungen');
         yield MenuItem::linkTo(GeneralSettingsCrudController::class, 'Allgemein', 'fa fa-sliders')
             ->setAction(Action::EDIT)->setEntityId(AppSetting::ID);

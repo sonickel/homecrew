@@ -154,7 +154,7 @@ Nicht in Stufe 1 (27 Tabellen): Personal & Abrechnung, Checklisten, Sätze/Grenz
 **Umfang**
 - Verwaltung → Personen: anlegen/bearbeiten (Rolle, Admin-Recht, Benutzername, Anzeigename, Farbe, Eintritt); Regeln genau ein Manager, Manager immer Admin, Assistenz nie Admin (Formular + Datenbank).
 - Zugang: keiner (nur Team-Tablet) · Tablet-PIN (Start-PIN, PIN-Anmeldung an/aus) · Handy/PC (Start-Passwort mit Änderungspflicht oder Einladung per QR-Code, einmalig, 72 h).
-- Schalter je Person: wiederkehrende Aufgaben, Anleitungen veröffentlichen, Termine anlegen, KI.
+- ~~Schalter je Person: wiederkehrende Aufgaben, Anleitungen veröffentlichen, Termine anlegen, KI.~~ → mit der jeweiligen Funktion (M6, M8, M12, Stufe 2), siehe Abweichungen.
 - Admins setzen Passwort, PIN und 2FA zurück; sperren; Austritt (Zugang entfernt, Person bleibt als Anker).
 - Druckansicht Zugangs-Kärtchen; Start-Passwort/-PIN nur direkt nach dem Setzen sichtbar.
 - „Mein Konto": Passwort ändern, 2FA und Passkeys verwalten, neue Wiederherstellungscodes, Schriftgröße (normal/groß/sehr groß), hoher Kontrast.
@@ -163,14 +163,29 @@ Nicht in Stufe 1 (27 Tabellen): Personal & Abrechnung, Checklisten, Sätze/Grenz
 **Tabellen:** neu `invitation`; genutzt `app_user`, `webauthn_credential`, `audit_log`.
 
 **Akzeptanzkriterien**
-- [ ] Assistenz „Ben" ohne Zugang anlegen: steht in der Liste, kann sich nirgends anmelden.
-- [ ] Angehörige mit Admin-Recht + Start-Passwort: erste Anmeldung erzwingt Passwortwechsel und 2FA.
-- [ ] Einladungs-QR einlösen → Passwort setzen → angemeldet; zweites Einlösen und abgelaufene Einladung werden verständlich abgelehnt.
-- [ ] Assistenz nicht zum Admin machbar, kein zweiter Manager (Formular und Datenbank).
-- [ ] Austritt: Anmeldung gesperrt, Person bleibt als „ausgetreten" sichtbar.
-- [ ] Schriftgröße „sehr groß" und hoher Kontrast wirken sofort und bleiben gespeichert.
-- [ ] Zugangs-Kärtchen druckt schwarz-weiß auf A4.
-- [ ] Änderungen an Personen/Rechten im Protokoll (ohne Passwörter/PINs); Tests für Voter, Formularregeln, Einladungen.
+- [x] Assistenz „Ben" ohne Zugang anlegen: steht in der Liste, kann sich nirgends anmelden (`PersonAdminTest`).
+- [x] Angehörige mit Admin-Recht + Start-Passwort: erste Anmeldung erzwingt Passwortwechsel, Datenschutzhinweis und 2FA (`PersonAccessPageTest`).
+- [x] Einladungs-QR einlösen → Passwort setzen → angemeldet; zweites Einlösen und abgelaufene Einladung werden verständlich abgelehnt (`InvitationTest`; QR-Weg mit JavaScript im echten Chrome unter Windows geprüft: `/einladung#CODE` → „Hallo Ben").
+- [x] Assistenz nicht zum Admin machbar, kein zweiter Manager (Formular: `PersonAdminTest`, `PersonValidationTest`; Datenbank: `AppUserRulesTest` aus M1).
+- [x] Austritt: Anmeldung gesperrt, Person bleibt als „ausgetreten" sichtbar.
+- [x] Schriftgröße „sehr groß" und hoher Kontrast wirken sofort und bleiben gespeichert (`AccountTest`).
+- [x] Zugangs-Kärtchen druckt schwarz-weiß auf A4 (Druck-PDF über Chrome headless geprüft).
+- [x] Änderungen an Personen/Rechten im Protokoll (ohne Passwörter/PINs); Tests für Voter, Formularregeln, Einladungen.
+- [ ] Browser: „Mein Konto", Datenschutzhinweis, Personenliste, Zugang und Kärtchen bei 1024 px und 500 px (sehr groß) als Screenshot geprüft (angemeldete Seiten per `curl` gerendert, Chrome headless). **Offen (Andreas):** 390 × 844, nur Tastatur, Passkey bestätigen/hinzufügen/entfernen im echten Browser, QR-Code mit dem Handy scannen (geht erst mit erreichbarem Rechner, siehe offener Punkt 4).
+
+**Abweichungen** (mit Andreas abgestimmt, 02.11.):
+- **Schalter je Person** (wiederkehrende Aufgaben, Termine anlegen, Anleitungen veröffentlichen, KI) kommen mit ihrer Funktion: M6, M8, M12, KI in Stufe 2 (nur sichtbar, wenn eingerichtet) – Regel „keine toten Knöpfe". Farbe und PIN-Anmeldung an/aus sind da (wirken ab M4).
+- **Datenschutzhinweis** (offener Punkt 2) als Pflichtschritt nach dem Passwortwechsel, vor der 2FA; Text in einfacher Sprache aus Konzept 5 §4, **Entwurf – vor dem Echtbetrieb prüfen**; Version als Konstante (`PrivacyNotice::VERSION`); jederzeit unter „Mein Konto" lesbar und druckbar (für Personen ohne Zugang).
+- **Manager-Schutz:** Den Manager bearbeitet nur der Manager selbst (andere Admins: kein Bearbeiten, Zurücksetzen, Sperren, Austritt – Rückweg über Wiederherstellungscodes bzw. `app:manager:reset-2fa`). Niemand ändert die eigene Rolle oder das eigene Admin-Recht; den eigenen Zugang verwaltet man unter „Mein Konto". Rolle „Manager" ist im Formular nie wählbar (`PersonVoter`).
+- **Start-Passwort und Start-PIN erzeugt die App** (12 Zeichen in drei Gruppen ohne verwechselbare Zeichen; 6 Ziffern) und zeigt sie einmal auf dem Kärtchen (Antwort auf den POST, `no-store`).
+- **Austritt** nur mit Datum heute oder früher; entfernt sofort Passwort, PIN, zweiten Schritt, Passkeys und Einladungen; „Austritt zurücknehmen" für Irrtümer (Zugang danach neu einrichten).
+- **Einladungscode nur im URL-Fragment** (`/einladung#CODE`, erreicht den Server nicht und damit kein Log); `invitation_code_controller.js` übernimmt ihn ins Formular, ohne JavaScript tippt man ihn ab. 24 Zeichen (≈ 119 Bit), in der Datenbank nur SHA-256; eine neue Einladung ersetzt die offene; 10 Versuche / 15 min je IP. Hat die Person schon einen zweiten Schritt, folgt nach dem Einlösen die normale Anmeldung (sonst würde die Einladung die 2FA umgehen). Löschjob `PurgeInvitations` täglich.
+- **Frische Bestätigung** (`RecentConfirmation`, 5 Minuten): Passkey oder Passwort + Code (App oder Wiederherstellungscode), ohne zweiten Schritt nur Passwort; 5 Versuche / 15 min. Eine vollständige Anmeldung zählt als Bestätigung. Nötig für Passwort ändern, neue Wiederherstellungscodes, Wechsel Passkey → App, weiteren Passkey (bei vorhandener 2FA), App oder Passkey entfernen. Bestätigung per Passkey über einen eigenen Endpunkt des WebAuthn-Bundles (`PasskeyConfirmationHandler` prüft, dass der Passkey der angemeldeten Person gehört). Admins mit 2FA-Pflicht können ihren letzten zweiten Schritt nicht entfernen.
+- **Laufende Sitzungen** gesperrter/ausgetretener Personen enden beim nächsten Klick (`AccountStatusSubscriber`, gleiche Regel wie `UserChecker` über `AppUser::isBlockedOn()`).
+- Verwaltung: Personen (Liste, Anlegen, Bearbeiten) mit EasyAdmin; Seite „Zugang" im Verwaltungs-Layout, ihre Aktionen als einzelne POST-Formulare mit CSRF (`PersonAccessController`), Bestätigung riskanter Aktionen durch Aufklappen (`<details>`, ohne Skript). Personen werden nicht gelöscht. Das Kärtchen ist eine Druckansicht im HomeCrew-Layout.
+- E-Mail-Adresse der Person und Einladung per E-Mail erst mit M13 (nur mit eingerichteter E-Mail).
+- Team-Tablet-Tests für Personen und „Mein Konto" (Tablet bekommt keinen Zugriff) kommen mit dem Geräte-Kontext in M4.
+- **Nach dem Review:** Auch der **erste** zweite Schritt und der erste Passkey brauchen eine frische Bestätigung (sonst könnte jemand an einer offenen Sitzung sein Handy zum Schlüssel machen und die Wiederherstellungscodes sehen – Lücke aus M2); die Bestätigungsseite ist im Pflichtschritt erreichbar, direkt nach der Anmeldung wird nichts erneut gefragt. Als Bestätigung zählen nur Formular-, 2FA- und Passkey-Anmeldungen (keine PIN). Meldungen der Verwaltung mit Anzeigenamen werden maskiert (EasyAdmin gibt Flash-Meldungen als HTML aus). Ein neues Start-Passwort zieht eine offene Einladung zurück; Einlösen ist atomar (`InvitationRepository::claim`); Austritt beendet laufende Sitzungen sofort; ungültige Datumsangaben werden abgelehnt; Hinweis beim Zurücksetzen der 2FA: laufende Anmeldung auf dem verlorenen Gerät endet erst mit einem neuen Start-Passwort; Text für unbekannte Codes nennt auch „abgelaufen/ersetzt".
 
 ---
 
@@ -227,6 +242,7 @@ Nicht in Stufe 1 (27 Tabellen): Personal & Abrechnung, Checklisten, Sätze/Grenz
 **Ziel:** Wiederkehrende Aufgaben entstehen zuverlässig aus Plänen; die Übersicht zeigt, was fällig ist und wann es zuletzt erledigt wurde.
 
 **Umfang**
+- Schalter „wiederkehrende Aufgaben" je Person in Verwaltung → Personen (aus M3 hierher verschoben; Angehörige und Assistenz).
 - Verwaltung → Wartungspläne / wiederkehrende Aufgaben (Admins; Personen mit Schalter): Rhythmus nach Kalender (täglich, wöchentlich, Wochentage, monatlich …) oder Intervall nach letzter Erledigung, Zeitfenster, Checkliste, Zuständigkeit, Sichtbarkeit, Pausieren.
 - Gemeinsamer Serien-Generator (`Series/OccurrenceGenerator`, php-rrule): Vorkommen mit Ursprungstag, eindeutig je Vorlage und Tag, einzeln geänderte Vorkommen bleiben unberührt; läuft täglich per Scheduler und beim Speichern. Wird in M8 und M9 wiederverwendet.
 - Checkliste beim Erledigen abhaken (Sollwerte und Messwerte erst Stufe 2).
@@ -278,6 +294,7 @@ Nicht in Stufe 1 (27 Tabellen): Personal & Abrechnung, Checklisten, Sätze/Grenz
 
 **Umfang**
 - Verwaltung → Externe Dienste: Name ohne Klarnamen, Art, dienstliche Telefonnummer, Hinweis fürs Team, Farbe, aktiv.
+- Schalter „Termine anlegen" je Person in Verwaltung → Personen (aus M3 hierher verschoben; nur Assistenz).
 - Termine (Admins, Angehörige, Assistenz mit Schalter): Zeit oder ganztägig, Ort, Mitbringliste, Notiz, Zuständigkeit/Begleitung, Weitergeben, Sichtbarkeit.
 - Besuche: externer Dienst, Zeit, Hinweis; Sichtbarkeit alle (Standard) oder nur Admins; **keine** Zuständigkeit und Begleitung.
 - Serien für Termine und Besuche (Wochentage/Rhythmus, Uhrzeit, Dauer, Beginn, Ende, Pause) über den Generator aus M6; einzelne Vorkommen absagen („fällt aus" + Notiz) oder verschieben – bleibt bei Serienänderung erhalten; Serie beenden.
@@ -368,6 +385,7 @@ Nicht in Stufe 1 (27 Tabellen): Personal & Abrechnung, Checklisten, Sätze/Grenz
 **Umfang**
 - Wissen `/wissen`: Übersicht nach Typ/Kategorie, Volltextsuche; Typen Anleitung · Steckbrief · Notfallplan · Rezept (Zutaten mit Portionen); Schritte mit Tipp/Achtung und Medien; Vorlesen über die Sprachausgabe des Geräts.
 - Editor: Schritt-Karten mit kleiner Werkzeugleiste (fett, hervorheben, Listen, Link), Hinweis-Kasten, Fotos/Videos je Schritt, Verschieben per Pfeil-Knöpfen, automatisch speichern, Vorschau „So sieht es die Assistenz"; Speichern als bereinigtes HTML (HtmlSanitizer); Editor-Bibliothek lokal über AssetMapper.
+- Schalter „Anleitungen veröffentlichen" je Person in Verwaltung → Personen (aus M3 hierher verschoben; nur Assistenz).
 - Versionen: eine veröffentlichte + höchstens ein Entwurf; Freigabe nach `guide_publish_mode` und Schalter „Anleitungen veröffentlichen"; Team-Tablet schlägt nur Entwürfe vor; „Stimmt nicht mehr"; Prüf-Hinweis nach 12 Monaten; Benachrichtigung „Anleitung vorgeschlagen / stimmt nicht mehr".
 - Wer kennt was: „Gelesen" (mit Version), „Eingewiesen" (Admin), Matrix für Admins, „geändert seit deinem Lesen".
 - Notfallpläne erscheinen auf der Notfall-Seite; Druckansichten Anleitung und Rezept.
@@ -417,7 +435,7 @@ Nicht in Stufe 1 (27 Tabellen): Personal & Abrechnung, Checklisten, Sätze/Grenz
 
 ## Offene Punkte (vor dem jeweiligen Meilenstein klären)
 1. ~~**M0 – Wert der Schriftgröße:** Skill `homecrew-ui` schreibt `sehr-gross`, das Schema `sehr_gross`.~~ Erledigt 01.11.: überall `sehr_gross` (Enum `App\Enum\FontSize`), Skill angeglichen.
-2. **M3 – Datenschutzhinweis** (`privacy_notice_version`, Konzept 5 §4.1): Vorschlag Bestätigung bei der ersten Anmeldung in M3, neue Version mit Einrichtung einer Erweiterung in M13.
+2. ~~**M3 – Datenschutzhinweis** (`privacy_notice_version`, Konzept 5 §4.1): Vorschlag Bestätigung bei der ersten Anmeldung in M3, neue Version mit Einrichtung einer Erweiterung in M13.~~ Erledigt 02.11. (M3): Pflichtschritt nach dem Passwortwechsel, Text als Entwurf (vor dem Echtbetrieb prüfen); neue Version mit M13.
 3. ~~**M4 – Schriftgröße am Gerät:** Konzept 11 sieht sie vor, `device` hat keine Spalte.~~ Erledigt 01.11. (M2): `device.font_size` in `schema.sql` + `smoke_test.sql` (B93) und in der Migration; Oberfläche in M4.
 4. **M4 – echtes Tablet lokal:** WSL läuft im NAT-Modus; ein Tablet im WLAN erreicht den Rechner erst mit `networkingMode=mirrored` in `.wslconfig` oder per Portweiterleitung. Bis dahin Tablet im Windows-Browser prüfen (zweites Profil, Gerätesimulation).
 5. **M12 – Rezepte:** kontext.md §4 nennt Rezepte in Stufe 2, Konzept 6 und das Entscheidungs-Log (Druckansicht Rezepte) in Stufe 1. Vorschlag: Typ Rezept mit Zutaten und Druck in M12, „aus Rezepten auf die Liste" in Stufe 2.
@@ -427,7 +445,7 @@ Nicht in Stufe 1 (27 Tabellen): Personal & Abrechnung, Checklisten, Sätze/Grenz
 ## Später
 Auffälligkeiten außerhalb eines Meilensteins (siehe Skill `meilenstein`).
 
-- **Ab M3/M4 – Tokens nicht ins Log:** In prod schreibt Monolog bei Fehlern den ganzen Puffer (`fingers_crossed`) inkl. Kanal `request` mit Routen-Parametern. Einladungs- und Kopplungs-Codes daher nicht im URL-Pfad/Query übergeben (oder Kanal `request` in prod ausschließen) – beim Planen von M3/M4 entscheiden. (Review M0)
+- **Ab M3/M4 – Tokens nicht ins Log:** In prod schreibt Monolog bei Fehlern den ganzen Puffer (`fingers_crossed`) inkl. Kanal `request` mit Routen-Parametern. Einladungs- und Kopplungs-Codes daher nicht im URL-Pfad/Query übergeben (oder Kanal `request` in prod ausschließen) – beim Planen von M3/M4 entscheiden. (Review M0) **M3:** Einladungen erledigt (Code nur im URL-Fragment, Formular per POST). Offen für die Kopplung in M4.
 - **Dev-Werkzeug Screenshots:** Headless-Chrome unter Windows erzwingt ≥ 500 px Breite; für 390 px die Gerätesimulation über das DevTools-Protokoll nutzen (Hilfsskript liegt nicht im Projekt).
 - **DBAL 5:** Die TINYINT-Lösung (`MariaDbSchemaManager`) hängt am alten Introspektionsweg von DBAL 4; der neue `MetadataProvider` liest `TINYINT UNSIGNED` weiterhin als bool. Beim Umstieg auf DBAL 5 anpassen (`MappingTest::testMappingMatchesTheMigratedSchema` schlägt an). (M1)
 - **Pi/Docker:** PHP muss in UTC laufen (`date.timezone = UTC`), damit `DATETIME`-Werte aus der Datenbank richtig gelesen werden – lokal ist das so; beim Bau des FrankenPHP-Images setzen. (M1)
@@ -437,7 +455,14 @@ Auffälligkeiten außerhalb eines Meilensteins (siehe Skill `meilenstein`).
 - **Pi – Passkeys und Hostnamen:** Ein Passkey gilt nur für den Hostnamen, unter dem er angelegt wurde. Ist HomeCrew im WLAN und über den Tunnel unter verschiedenen Namen erreichbar, `WEBAUTHN_RP_ID` auf die gemeinsame Domain setzen (UniFi-DNS und Tunnel mit demselben Namen). (M2)
 - **Browser-Prüfung automatisieren:** Das DevTools-Protokoll von Chrome unter Windows ist aus WSL nur über einen nach außen offenen Port erreichbar (gesperrt). Für Screenshots angemeldeter Seiten und Passkey-Tests mit virtuellem Authenticator ein lokales Werkzeug klären (z. B. Chromium in WSL). (M2)
 - **Verwaltung (EasyAdmin):** Dunkelmodus ist abgeschaltet; Schriftgröße/Kontrast der Person wirken dort noch nicht (nur Schrift, Farben, Fokus, 48-px-Ziele). Bei Bedarf in M3 nachziehen. (M2)
-- **M3 – Laufende Sitzungen sofort beenden:** Sperre und Austritt prüft bisher nur der `UserChecker` bei der Anmeldung. Mit der Personenverwaltung (M3) gesperrte/ausgetretene Personen auch in laufenden Sitzungen abmelden (z. B. `EquatableInterface` oder Request-Listener). (Review M2)
-- **M3 – Frische Bestätigung:** Passwort ändern, neue Wiederherstellungscodes und weitere Passkeys nur nach erneuter Bestätigung (Passwort + zweiter Schritt, wenige Minuten gültig) – bis dahin gesperrt. (Review M2)
+- ~~**M3 – Laufende Sitzungen sofort beenden:** Sperre und Austritt prüft bisher nur der `UserChecker` bei der Anmeldung. Mit der Personenverwaltung (M3) gesperrte/ausgetretene Personen auch in laufenden Sitzungen abmelden (z. B. `EquatableInterface` oder Request-Listener). (Review M2)~~ Erledigt (M3): `AccountStatusSubscriber`.
+- ~~**M3 – Frische Bestätigung:** Passwort ändern, neue Wiederherstellungscodes und weitere Passkeys nur nach erneuter Bestätigung (Passwort + zweiter Schritt, wenige Minuten gültig) – bis dahin gesperrt. (Review M2)~~ Erledigt (M3): `RecentConfirmation`, 5 Minuten.
 - **M13 – Protokoll der Einstellungen:** Reine Statusspalten (`*_status`, `*_checked_at`, `ai_key_error`) nicht protokollieren, sonst füllt der Gesundheitscheck das Protokoll. (Review M2)
 - **Löschjob-Zeit:** Der Scheduler startet nachts um 03:30 deutscher Zeit (fest, nicht aus `app_setting.timezone` – der Worker soll ohne Datenbank starten). Für die Fristen spielt die Uhrzeit keine Rolle. (Review M2)
+- **Vor dem Echtbetrieb – Datenschutzhinweis prüfen:** Der Text unter `/konto/datenschutz` (`templates/account/privacy.html.twig`) ist ein Entwurf aus Konzept 5 §4 (u. a. Tunnel-Dienst, Aufsichtsbehörde BayLDA). In die „Prüfliste vor dem Start" (M13) aufnehmen; bei Textänderung `PrivacyNotice::VERSION` erhöhen. (M3)
+- **Austritt mit Datum in der Zukunft** („zum 30.11."): bisher nur heute oder früher. Falls gebraucht: Zugang bleibt bis zum letzten Tag, ein täglicher Job entfernt ihn danach (`UserChecker` sperrt schon ab dem Folgetag). (M3)
+- **Verwaltung – Bedienung nur per Tastatur/Screenreader:** Die Bestätigung riskanter Aktionen auf der Seite „Zugang" geht über `<details>`; bei der Abnahme mit Tastatur und Screenreader prüfen. (M3)
+- **TOTP-Code bei der frischen Bestätigung:** Ein Code aus der App wird dort nicht gegen Wiederverwendung gesperrt (anders als beim Anmelden, `code_reuse_cache`). Risiko gering (Person ist schon angemeldet); bei Bedarf denselben Cache nutzen. (M3)
+- **Passkey-Bestätigung nur mit eigenen Passkeys:** Die Optionen für `/konto/bestaetigen/passkey` werden ohne Benutzer angefordert; auf geteilten Geräten bietet der Browser auch fremde Passkeys an (der Handler lehnt sie ab). Schöner: `allowCredentials` mit den eigenen Passkeys. (Review M3)
+- **Personenliste:** „offene Einladung" wird je Zeile einzeln abgefragt (wenige Personen, unkritisch); bei Bedarf gesammelt laden. (Review M3)
+- **M4 – Farbe der Namenskachel:** Das Farbfeld schickt ohne Auswahl `#000000`. Mit den Namenskacheln in M4 eine kleine, kontrastgeprüfte Farbauswahl statt freiem Farbwähler. (Review M3)

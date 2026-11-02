@@ -15,9 +15,12 @@ use Doctrine\DBAL\Schema\DefaultExpression\CurrentTimestamp;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 /**
  * Person in the household: role, admin right, login data (password/passkey/2FA and/or tablet PIN), personal settings.
@@ -26,6 +29,9 @@ use Symfony\Component\Uid\Uuid;
  *
  * Also the security user of a personal login. It only grants ROLE_USER – the admin right is decided by
  * App\Security\Voter\AdminVoter (admin flag + 2FA + full login), never by a role.
+ *
+ * The validation constraints serve the person form ("Verwaltung → Personen"); the database enforces the
+ * rights rules once more (ck_user_manager, ck_user_assist_admin, uq_user_manager).
  */
 #[ORM\Entity(repositoryClass: AppUserRepository::class)]
 #[ORM\Table(name: 'app_user', options: ['comment' => 'Person im Haushalt: Rolle, Admin-Recht, Anmeldung (Passwort/Passkey/2FA und/oder Tablet-PIN), Einstellungen'])]
@@ -34,6 +40,8 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\UniqueConstraint(name: 'uq_user_display', columns: ['display_name'])]
 #[ORM\UniqueConstraint(name: 'uq_user_email', columns: ['email'])]
 #[ORM\UniqueConstraint(name: 'uq_user_manager', columns: ['manager_marker'])]
+#[UniqueEntity(fields: ['username'], message: 'Diesen Benutzernamen gibt es schon.')]
+#[UniqueEntity(fields: ['displayName'], message: 'Diesen Namen gibt es schon. Nimm z. B. einen Spitznamen oder hänge einen Buchstaben an.')]
 class AppUser implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -52,12 +60,18 @@ class AppUser implements UserInterface, PasswordAuthenticatedUserInterface
     private bool $isAdmin;
 
     #[ORM\Column(name: 'username', length: 50)]
+    #[Assert\NotBlank(message: 'Bitte gib einen Benutzernamen ein.')]
+    #[Assert\Length(min: 3, max: 50, minMessage: 'Der Benutzername braucht mindestens {{ limit }} Zeichen.', maxMessage: 'Der Benutzername darf höchstens {{ limit }} Zeichen haben.')]
+    #[Assert\Regex(pattern: '/^[a-z0-9][a-z0-9._-]*$/', message: 'Erlaubt sind Kleinbuchstaben ohne Umlaute, Ziffern, Punkt, Bindestrich und Unterstrich; am Anfang ein Buchstabe oder eine Ziffer.')]
     private string $username;
 
     #[ORM\Column(name: 'display_name', length: 50)]
+    #[Assert\NotBlank(message: 'Bitte gib einen Namen ein.')]
+    #[Assert\Length(max: 50, maxMessage: 'Der Name darf höchstens {{ limit }} Zeichen haben.')]
     private string $displayName;
 
     #[ORM\Column(name: 'color', length: 7, nullable: true, options: ['fixed' => true])]
+    #[Assert\Regex(pattern: '/^#[0-9a-f]{6}$/', message: 'Bitte wähle eine Farbe.')]
     private ?string $color = null;
 
     #[ORM\Column(name: 'active_from', type: Types::DATE_IMMUTABLE)]
@@ -244,9 +258,24 @@ class AppUser implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->role;
     }
 
+    public function setRole(UserRole $role): void
+    {
+        $this->role = $role;
+    }
+
+    public function isManager(): bool
+    {
+        return UserRole::Manager === $this->role;
+    }
+
     public function isAdmin(): bool
     {
         return $this->isAdmin;
+    }
+
+    public function setAdmin(bool $isAdmin): void
+    {
+        $this->isAdmin = $isAdmin;
     }
 
     public function getUsername(): string
@@ -254,14 +283,42 @@ class AppUser implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->username;
     }
 
+    /**
+     * Stored in lower case: the login ignores case (collation), so the uniqueness check must as well.
+     */
+    public function setUsername(?string $username): void
+    {
+        $this->username = mb_strtolower(trim((string) $username));
+    }
+
     public function getDisplayName(): string
     {
         return $this->displayName;
     }
 
+    public function setDisplayName(?string $displayName): void
+    {
+        $this->displayName = trim((string) $displayName);
+    }
+
+    public function getColor(): ?string
+    {
+        return $this->color;
+    }
+
+    public function setColor(?string $color): void
+    {
+        $this->color = null === $color || '' === $color ? null : strtolower($color);
+    }
+
     public function getActiveFrom(): \DateTimeImmutable
     {
         return $this->activeFrom;
+    }
+
+    public function setActiveFrom(\DateTimeImmutable $activeFrom): void
+    {
+        $this->activeFrom = $activeFrom;
     }
 
     public function getActiveUntil(): ?\DateTimeImmutable
@@ -272,6 +329,90 @@ class AppUser implements UserInterface, PasswordAuthenticatedUserInterface
     public function getDisabledAt(): ?\DateTimeImmutable
     {
         return $this->disabledAt;
+    }
+
+    /**
+     * Rights rules of konzept-1 §2 for the person form: the manager is always admin, assistants never.
+     */
+    #[Assert\Callback]
+    public function validateRights(ExecutionContextInterface $context): void
+    {
+        if (UserRole::Assistenz === $this->role && $this->isAdmin) {
+            $context->buildViolation('Assistenzkräfte können keine Admins sein.')->atPath('admin')->addViolation();
+        }
+        if (UserRole::Manager === $this->role && !$this->isAdmin) {
+            $context->buildViolation('Der Manager ist immer Admin.')->atPath('admin')->addViolation();
+        }
+        if (null !== $this->activeUntil && $this->activeUntil < $this->activeFrom) {
+            $context->buildViolation('Der Eintritt muss vor dem letzten Arbeitstag liegen.')->atPath('activeFrom')->addViolation();
+        }
+    }
+
+    // Lock and leaving (konzept-1 §5)
+
+    public function lock(\DateTimeImmutable $at): void
+    {
+        $this->disabledAt = $at;
+    }
+
+    public function unlock(): void
+    {
+        $this->disabledAt = null;
+    }
+
+    public function isLocked(): bool
+    {
+        return null !== $this->disabledAt;
+    }
+
+    /**
+     * @param \DateTimeImmutable $lastDay last working day; the person stays as anchor for working times
+     */
+    public function leave(\DateTimeImmutable $lastDay): void
+    {
+        $this->activeUntil = $lastDay;
+    }
+
+    public function undoLeave(): void
+    {
+        $this->activeUntil = null;
+    }
+
+    public function hasLeft(): bool
+    {
+        return null !== $this->activeUntil;
+    }
+
+    /**
+     * Locked, or the last working day is over – then nobody may log in or stay logged in as this person.
+     *
+     * @param \DateTimeImmutable $today the household's date
+     */
+    public function isBlockedOn(\DateTimeImmutable $today): bool
+    {
+        return null !== $this->disabledAt
+            || (null !== $this->activeUntil && $this->activeUntil->format('Y-m-d') < $today->format('Y-m-d'));
+    }
+
+    /**
+     * Leaving removes every way to log in: password, PIN and second factor. Passkeys and invitations are
+     * separate rows, App\Service\Account\PersonAccess removes them.
+     */
+    public function removeAccess(): void
+    {
+        $this->passwordHash = null;
+        $this->passwordMustChange = false;
+        $this->pinHash = null;
+        $this->pinLoginEnabled = false;
+        $this->pinMustChange = true;
+        $this->pinFailedCount = 0;
+        $this->pinLockedUntil = null;
+        $this->resetTwoFactor();
+    }
+
+    public function hasPassword(): bool
+    {
+        return null !== $this->passwordHash;
     }
 
     public function getTwofaMethod(): TwoFactorMethod
@@ -292,6 +433,28 @@ class AppUser implements UserInterface, PasswordAuthenticatedUserInterface
     public function isHighContrast(): bool
     {
         return $this->highContrast;
+    }
+
+    public function changeDisplay(FontSize $fontSize, bool $highContrast): void
+    {
+        $this->fontSize = $fontSize;
+        $this->highContrast = $highContrast;
+    }
+
+    public function getPrivacyNoticeVersion(): ?string
+    {
+        return $this->privacyNoticeVersion;
+    }
+
+    public function getPrivacyNoticeAckAt(): ?\DateTimeImmutable
+    {
+        return $this->privacyNoticeAckAt;
+    }
+
+    public function acknowledgePrivacyNotice(string $version, \DateTimeImmutable $at): void
+    {
+        $this->privacyNoticeVersion = $version;
+        $this->privacyNoticeAckAt = $at;
     }
 
     public function getCreatedAt(): \DateTimeImmutable
@@ -374,6 +537,46 @@ class AppUser implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->lastLoginAt;
     }
 
+    // Tablet PIN (the PIN login follows in M4)
+
+    /**
+     * @param string $pinHash    hashed like a password
+     * @param bool   $mustChange true for a start PIN set by an admin
+     */
+    public function changePin(string $pinHash, bool $mustChange): void
+    {
+        $this->pinHash = $pinHash;
+        $this->pinMustChange = $mustChange;
+        $this->pinFailedCount = 0;
+        $this->pinLockedUntil = null;
+    }
+
+    public function hasPin(): bool
+    {
+        return null !== $this->pinHash;
+    }
+
+    public function isPinMustChange(): bool
+    {
+        return $this->pinMustChange;
+    }
+
+    public function isPinLoginEnabled(): bool
+    {
+        return $this->pinLoginEnabled;
+    }
+
+    /**
+     * The PIN login needs a PIN (ck_user_pin).
+     */
+    public function enablePinLogin(bool $enabled): void
+    {
+        if ($enabled && null === $this->pinHash) {
+            throw new \LogicException('The PIN login needs a PIN.');
+        }
+        $this->pinLoginEnabled = $enabled;
+    }
+
     // Second factor
 
     /**
@@ -397,6 +600,32 @@ class AppUser implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if (TwoFactorMethod::Keine === $this->twofaMethod) {
             $this->twofaMethod = TwoFactorMethod::Passkey;
+        }
+    }
+
+    /**
+     * Remaining passkeys take over as second factor (the recovery codes stay with them); without passkeys
+     * there is no second factor any more.
+     */
+    public function removeAuthenticatorApp(bool $passkeysRemain): void
+    {
+        if (!$passkeysRemain) {
+            $this->resetTwoFactor();
+
+            return;
+        }
+
+        $this->totpSecretEnc = null;
+        $this->twofaMethod = TwoFactorMethod::Passkey;
+    }
+
+    /**
+     * Called after the last passkey was deleted: if it was the second factor, there is none any more.
+     */
+    public function removeLastPasskey(): void
+    {
+        if (TwoFactorMethod::Passkey === $this->twofaMethod) {
+            $this->resetTwoFactor();
         }
     }
 

@@ -8,6 +8,7 @@ use App\Entity\AppUser;
 use App\Enum\AuditAction;
 use App\Form\Account\ChangePasswordType;
 use App\Service\Account\AccountSetup;
+use App\Service\Account\RecentConfirmation;
 use App\Service\Audit\AuditLogger;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -19,8 +20,8 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
- * Replace the start password (first login). Only while a start password is set: a voluntary change
- * needs the current password and follows with "Mein Konto" in M3 – otherwise anyone at an open session could take over the account.
+ * Replace the start password (first login) or change the password ("Mein Konto"). A voluntary change needs
+ * a fresh confirmation – otherwise anyone at an open session could take over the account.
  */
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 final class PasswordController extends AbstractController
@@ -32,9 +33,11 @@ final class PasswordController extends AbstractController
         UserPasswordHasherInterface $passwordHasher,
         AuditLogger $auditLogger,
         AccountSetup $accountSetup,
+        RecentConfirmation $recentConfirmation,
     ): Response {
-        if (!$user->isPasswordMustChange()) {
-            return $this->redirectToRoute('app_home');
+        $startPassword = $user->isPasswordMustChange();
+        if (!$startPassword && !$recentConfirmation->isFresh()) {
+            return $this->redirectToRoute('app_account_confirm', ['weiter' => AccountSetup::STEP_PASSWORD]);
         }
 
         $form = $this->createForm(ChangePasswordType::class);
@@ -52,12 +55,13 @@ final class PasswordController extends AbstractController
 
                 $this->addFlash('ok', 'Dein neues Passwort ist gespeichert.');
 
-                return $this->redirectToRoute($accountSetup->nextStep($user) ?? 'app_home', status: Response::HTTP_SEE_OTHER);
+                return $this->redirectToRoute($accountSetup->nextStep($user) ?? ($startPassword ? 'app_home' : 'app_account'), status: Response::HTTP_SEE_OTHER);
             }
         }
 
         return $this->render('account/password.html.twig', [
             'form' => $form,
+            'start_password' => $startPassword,
         ], new Response(status: $form->isSubmitted() ? Response::HTTP_UNPROCESSABLE_ENTITY : Response::HTTP_OK));
     }
 }

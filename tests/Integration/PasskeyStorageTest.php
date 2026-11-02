@@ -11,6 +11,7 @@ use App\Enum\UserRole;
 use App\Security\Passkey\PasskeyCredentialRepository;
 use App\Security\Passkey\PasskeyRegisteredHandler;
 use App\Security\Passkey\PasskeyUserRepository;
+use App\Service\Account\PrivacyNotice;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
@@ -33,6 +34,7 @@ final class PasskeyStorageTest extends KernelTestCase
     protected function setUp(): void
     {
         $this->max = new AppUser(UserRole::Manager, 'max', 'Max', new \DateTimeImmutable('2026-01-01'), isAdmin: true);
+        $this->max->acknowledgePrivacyNotice(PrivacyNotice::VERSION, new \DateTimeImmutable('2026-01-01'));
         $this->entityManager()->persist($this->max);
         $this->entityManager()->flush();
     }

@@ -40,5 +40,13 @@
         .hc-print-section {
             break-before: page;
         }
+
+        /* Access card: black frame, no background */
+        .hc-access-card {
+            max-width: 16cm;
+            background: none;
+            border: 1pt solid #000000;
+            break-inside: avoid;
+        }
     }
 }

@@ -20,7 +20,7 @@
                 {{ form_widget(form) }}
                 <div class="hc-button-row">
                     <twig:Button type="submit">{{ 'Code prüfen'|trans }}</twig:Button>
-                    <twig:Button variant="secondary" :href="path('app_account_two_factor')">{{ 'Andere Methode wählen'|trans }}</twig:Button>
+                    <twig:Button variant="secondary" :href="path(back)">{{ back == 'app_account' ? 'Abbrechen'|trans : 'Andere Methode wählen'|trans }}</twig:Button>
                 </div>
             {{ form_end(form) }}
         </li>

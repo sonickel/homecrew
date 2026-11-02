@@ -271,6 +271,34 @@
         letter-spacing: 0.1em;
     }
 
+    /* Options in forms (radio buttons, checkboxes): the whole row is the touch target */
+    .hc-option {
+        margin: 0 0 var(--hc-space-4);
+        padding: 0;
+        border: 0;
+    }
+
+    .hc-option legend {
+        margin-bottom: var(--hc-space-1);
+        padding: 0;
+    }
+
+    .hc-option__row {
+        display: flex;
+        align-items: center;
+        gap: var(--hc-space-3);
+        min-height: var(--hc-target);
+        cursor: pointer;
+    }
+
+    .hc-option__row input {
+        flex: none;
+        width: 1.5rem;
+        height: 1.5rem;
+        margin: 0;
+        accent-color: var(--hc-enamel);
+    }
+
     /* Message box: symbol + text */
     .hc-alert {
         display: flex;
@@ -399,6 +427,109 @@
         margin-top: var(--hc-space-3);
         color: var(--hc-late);
         font-weight: 700;
+    }
+
+    /* Access card (start password, start PIN, invitation): printed and handed over */
+    .hc-access-card {
+        max-width: 40rem;
+        padding: var(--hc-space-5);
+        background: var(--hc-surface);
+        border: var(--hc-border-width) solid var(--hc-ink);
+    }
+
+    .hc-access-card__title {
+        font-size: var(--hc-text-2);
+    }
+
+    .hc-access-card__for {
+        font-size: var(--hc-text-1);
+    }
+
+    .hc-access-card__facts {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: var(--hc-space-2) var(--hc-space-4);
+        margin-block: var(--hc-space-4);
+    }
+
+    .hc-access-card__facts dd {
+        margin: 0;
+    }
+
+    .hc-access-card__value {
+        font-size: var(--hc-text-2);
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.08em;
+        overflow-wrap: anywhere;
+    }
+
+    .hc-access-card__qr {
+        display: block;
+        width: min(17.5rem, 100%);
+        height: auto;
+        margin-block: var(--hc-space-4);
+    }
+
+    .hc-access-card__steps li {
+        margin-bottom: var(--hc-space-2);
+        overflow-wrap: anywhere;
+    }
+
+    .hc-access-card__note {
+        margin-top: var(--hc-space-4);
+        font-size: var(--hc-text-0);
+    }
+
+    /* Running text (privacy notice): headings with air above */
+    .hc-prose h2 {
+        margin-top: var(--hc-space-5);
+        font-size: var(--hc-text-2);
+    }
+
+    .hc-prose__meta {
+        margin-top: var(--hc-space-5);
+        font-size: var(--hc-text-0);
+    }
+
+    /* Rows of a settings page ("Mein Konto"): label and state, the actions below or beside */
+    .hc-settings {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        max-width: none;
+    }
+
+    .hc-settings__row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--hc-space-3) var(--hc-space-5);
+        padding-block: var(--hc-space-4);
+        border-bottom: var(--hc-line-width) solid var(--hc-line);
+    }
+
+    .hc-settings__text {
+        flex: 1 1 18rem;
+    }
+
+    .hc-settings__text p {
+        margin: 0;
+    }
+
+    .hc-settings__label {
+        font-weight: 700;
+    }
+
+    .hc-settings__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--hc-space-3);
+    }
+
+    .hc-settings__actions form {
+        margin: 0;
     }
 
     /* Style guide (dev only): colour swatches */

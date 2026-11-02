@@ -34,6 +34,7 @@ Stand: 01.11.2026 (nachmittags) · Status: Entwurf zur Abstimmung
 - **Auftragsverarbeiter**: Cloudflare, Anthropic (KI – nur wenn eingerichtet), Mail-Anbieter.
 - Betreibt jemand eine Instanz für einen anderen Haushalt, ist er dessen Auftragsverarbeiter (AV-Vertrag).
 - Wird eine Erweiterung mit neuem Auftragsverarbeiter eingeschaltet (z. B. KI), steigt die Version der Datenschutzinfo; alle sehen beim nächsten Öffnen den Hinweis.
+- Umsetzung (M3): Datenschutzhinweis unter „Mein Konto → Datenschutz", Pflichtschritt bei der ersten Anmeldung, druckbar für Personen ohne eigenen Zugang; Version als Konstante im Code (`PrivacyNotice::VERSION`). Der Text ist ein Entwurf und vor dem Echtbetrieb zu prüfen.
 
 ### 4.2 Datenkategorien (Auszug)
 | Daten | Betroffene | Hinweis |

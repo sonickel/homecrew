@@ -24,3 +24,11 @@ webauthn:
                 user_entity_guesser: Webauthn\Bundle\Security\Guesser\CurrentUserEntityGuesser
                 success_handler: App\Security\Passkey\PasskeyRegisteredHandler
                 failure_handler: App\Security\Passkey\PasskeyRegisteredHandler
+        request:
+            # Fresh confirmation with a passkey before changing how one logs in ("Mein Konto")
+            confirm:
+                options_path: /konto/bestaetigen/passkey/optionen
+                result_path: /konto/bestaetigen/passkey
+                profile: login
+                success_handler: App\Security\Passkey\PasskeyConfirmationHandler
+                failure_handler: App\Security\Passkey\PasskeyConfirmationHandler

@@ -1,6 +1,6 @@
 # Konzept 1 – Rollen, Rechte, Personen anlegen, Anmeldung, E-Mail
 
-Stand: 01.11.2026 (nachmittags) · Status: Entwurf · App-Name: **HomeCrew**
+Stand: 02.11.2026 (M3: Personen und Zugänge) · Status: Entwurf · App-Name: **HomeCrew**
 
 ## 1. Grundsätze
 - **Eine Installation = ein Haushalt** (keine Mandanten; weitere Haushalte = eigene Instanz).
@@ -68,6 +68,7 @@ Legende: ✅ ja · ⚙️ per Schalter (Standard aus) · 👁 nur eigene · – 
    - **kein eigener Zugang** – arbeitet nur am Team-Tablet (Start-Empfehlung; Zeiten pflegt der Admin),
    - **Tablet-PIN** – ohne E-Mail und Handy; Zugangs-Kärtchen drucken,
    - **Handy/PC** – Start-Passwort (Pflicht zum Ändern) oder Einladung per QR/E-Mail.
+   - Start-Passwort (12 Zeichen) und Start-PIN (6 Ziffern) **erzeugt die App**; sie stehen nur einmal auf dem Zugangs-Kärtchen. Die **Einladung** gilt 72 Stunden und nur einmal, eine neue ersetzt die offene; der Code steht im QR-Code nur nach dem „#" der Adresse (erreicht den Server und dessen Log nicht). Hat die Person schon einen zweiten Schritt, meldet sie sich nach dem Einlösen normal an (Entscheidung 02.11.).
 3. Optional Checkliste „Einstellung" (Konzept 10).
 
 ## 5. Anmeldung
@@ -77,8 +78,10 @@ Legende: ✅ ja · ⚙️ per Schalter (Standard aus) · 👁 nur eigene · – 
   - 10 Wiederherstellungscodes, jeder einmal gültig, nur einmal angezeigt; zweiter Schritt und Passwort je 5 Versuche in 15 Minuten, dann Wartezeit.
   - Abmeldung nach **8 Stunden** ohne Aktivität (Tablet kürzer, Konzept 12).
 - **Tablet**: Modus pro Gerät – **Team** (ohne Anmeldung, Standard) · **Persönlich** (Name + PIN) · **Beides** (Konzept 12). Im Team-Modus kein eigener Entsperr-Code (Bildschirmschoner + ggf. Android-Sperre). PIN pro Person aktivierbar (Standard aus), nur gekoppelte Tablets im Heimnetz, nie Admin-Rechte über PIN. Admin-Anmeldung am Tablet nur voll mit 2FA, danach automatisch zurück.
-- **Zurücksetzen**: Admins setzen Passwort, PIN, 2FA anderer zurück; Manager: Wiederherstellungscodes, notfalls Server-Befehl `php bin/console app:manager:reset-2fa [--passwort]` (entfernt App, Codes und Passkeys, optional neues Start-Passwort). Erste Einrichtung: `php bin/console app:setup`.
-- **Austritt**: Zugang entfernt, Person bleibt als Anker für Arbeitszeiten; Checkliste „Austritt".
+- **Zurücksetzen**: Admins setzen Passwort, PIN, 2FA anderer zurück – **nicht beim Manager**: Den Manager bearbeitet nur der Manager selbst, niemand ändert die eigene Rolle oder das eigene Admin-Recht, den eigenen Zugang verwaltet jede Person unter „Mein Konto" (Entscheidung 02.11.); Manager: Wiederherstellungscodes, notfalls Server-Befehl `php bin/console app:manager:reset-2fa [--passwort]` (entfernt App, Codes und Passkeys, optional neues Start-Passwort). Erste Einrichtung: `php bin/console app:setup`.
+- **Austritt**: Zugang entfernt (Passwort, PIN, zweiter Schritt, Passkeys, Einladungen – sofort), Person bleibt als „ausgetreten" Anker für Arbeitszeiten; Datum heute oder früher, „Austritt zurücknehmen" bei Irrtum; Checkliste „Austritt". **Sperren** beendet auch laufende Sitzungen.
+- **„Mein Konto"**: Schriftgröße, hoher Kontrast, Passwort, zweiter Schritt, Passkeys, Wiederherstellungscodes, Datenschutzhinweis. Wer die eigene Anmeldung ändert – auch beim ersten zweiten Schritt oder Passkey –, bestätigt vorher wie beim Anmelden (Passkey oder Passwort + Code; 5 Minuten gültig, eine frische Anmeldung zählt). Admins mit 2FA-Pflicht behalten immer einen zweiten Schritt.
+- **Datenschutzhinweis**: bei der ersten Anmeldung (nach dem Passwortwechsel) einmal bestätigen; neue Version → erneut (Konzept 5 §4.1).
 
 ## 6. E-Mail
 Einladung, Passwort vergessen, 2FA-Code und **Benachrichtigungen** (pro Person und Ereignis, aus/sofort/täglich – v. a. neue Meldungen) – alles **Stufe 1**; über den SMTP-Zugang des eigenen Mail-Anbieters; Inhalte standardmäßig ohne Details.

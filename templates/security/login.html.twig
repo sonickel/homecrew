@@ -11,6 +11,9 @@
             : 'Du warst eine Minute nicht aktiv und wurdest abgemeldet. Melde dich bitte neu an.|Du warst %count% Minuten nicht aktiv und wurdest abgemeldet. Melde dich bitte neu an.'|trans({'%count%': idle_minutes}) %}
         <twig:Alert :message="idle_text" />
     {% endif %}
+    {% if blocked_logout %}
+        <twig:Alert type="error" :message="'Dein Zugang ist gesperrt. Bitte wende dich an einen Admin.'|trans" />
+    {% endif %}
     {% if error %}
         <twig:Alert type="error" :message="error.messageKey|trans(error.messageData, 'security')" />
     {% endif %}

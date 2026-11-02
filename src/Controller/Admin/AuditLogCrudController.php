@@ -50,7 +50,7 @@ final class AuditLogCrudController extends AbstractCrudController
             ->setEntityLabelInPlural('Einträge')
             ->setPageTitle(Crud::PAGE_INDEX, 'Protokoll')
             ->setPageTitle(Crud::PAGE_DETAIL, 'Protokolleintrag')
-            ->setHelp(Crud::PAGE_INDEX, 'Anmeldungen und Änderungen an Einstellungen. Ohne IP-Adressen, Passwörter oder Codes.')
+            ->setHelp(Crud::PAGE_INDEX, 'Anmeldungen, Änderungen an Personen, Zugängen und Einstellungen. Ohne IP-Adressen, Passwörter, PINs oder Codes.')
             ->setDefaultSort(['createdAt' => 'DESC', 'id' => 'DESC'])
             ->setSearchFields(null)
             ->setPaginatorPageSize(50);

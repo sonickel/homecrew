@@ -9,6 +9,7 @@ use App\Enum\UserRole;
 use App\Security\TwoFactor\AuthenticatorApp;
 use App\Security\TwoFactor\RecoveryCodeGenerator;
 use App\Security\TwoFactor\RecoveryCodeManager;
+use App\Service\Account\PrivacyNotice;
 use Doctrine\ORM\EntityManagerInterface;
 use OTPHP\TOTP;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -38,16 +39,34 @@ trait PeopleTrait
         return $client;
     }
 
-    protected function createPerson(UserRole $role, string $username, bool $admin = false, ?string $password = self::PASSWORD, bool $mustChange = false): AppUser
+    /**
+     * @param bool $privacyRead false: the privacy notice comes as a step after the login
+     */
+    protected function createPerson(UserRole $role, string $username, bool $admin = false, ?string $password = self::PASSWORD, bool $mustChange = false, bool $privacyRead = true): AppUser
     {
         $person = new AppUser($role, $username, ucfirst($username), new \DateTimeImmutable('2026-01-01'), $admin || UserRole::Manager === $role);
         if (null !== $password) {
             $person->changePassword(static::getContainer()->get(UserPasswordHasherInterface::class)->hashPassword($person, $password), $mustChange);
         }
+        if ($privacyRead) {
+            $person->acknowledgePrivacyNotice(PrivacyNotice::VERSION, new \DateTimeImmutable('2026-01-01'));
+        }
         $this->entityManager()->persist($person);
         $this->entityManager()->flush();
 
         return $person;
+    }
+
+    /**
+     * An admin who may open "Verwaltung" with ADMIN_2FA_REQUIRED=1: authenticator app and recovery codes.
+     */
+    protected function createAdminWithTwoFactor(UserRole $role, string $username): AppUser
+    {
+        $admin = $this->createPerson($role, $username, admin: true);
+        $this->enableAuthenticatorApp($admin);
+        $this->giveRecoveryCodes($admin);
+
+        return $admin;
     }
 
     /**
@@ -86,6 +105,16 @@ trait PeopleTrait
     {
         $client->request('GET', '/anmelden');
         $client->submitForm('Anmelden', ['_username' => $username, '_password' => $password]);
+    }
+
+    /**
+     * Fresh confirmation with the password (App\Service\Account\RecentConfirmation) – loginUser() gives none.
+     * For persons without second factor; $base for requests to another host such as https://127.0.0.1:8000.
+     */
+    protected function confirmIdentity(KernelBrowser $client, string $base = ''): void
+    {
+        $client->request('GET', $base.'/konto/bestaetigen');
+        $client->submitForm('Bestätigen', ['passwort' => self::PASSWORD]);
     }
 
     protected function submitSecondStep(KernelBrowser $client, string $code): void

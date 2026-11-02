@@ -14,15 +14,17 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 /**
  * Test household for dev (php bin/console doctrine:fixtures:load).
  *
- * Logins (dev only), all with the password "homecrew-test-2026":
+ * Logins (dev only), all with the password "homecrew-test-2026"; everybody reads the privacy notice first:
  * - manager (Max): start password – the first login asks for a new password (and a second factor when ADMIN_2FA_REQUIRED=1)
  * - schwester (Schwester, admin): password set, no second factor yet
  * - papa (Papa, no admin): password set – "Verwaltung" is forbidden
- * Anna (tablet PIN) and Ben (no login) get their access with M3/M4.
+ * - Anna (assistant): start PIN 246813, PIN login on (the PIN login itself follows in M4)
+ * - Ben (assistant): no own login, works at the team tablet only
  */
 final class AppFixtures extends Fixture
 {
     public const string PASSWORD = 'homecrew-test-2026';
+    public const string ANNA_PIN = '246813';
 
     public function __construct(
         private readonly UserPasswordHasherInterface $passwordHasher,
@@ -41,12 +43,16 @@ final class AppFixtures extends Fixture
         $this->setPassword($sister);
         $father = new AppUser(UserRole::Angehoerige, 'papa', 'Papa', $start);
         $this->setPassword($father);
+        $anna = new AppUser(UserRole::Assistenz, 'anna', 'Anna', $start);
+        $anna->setColor('#2e7d4f');
+        $anna->changePin($this->passwordHasher->hashPassword($anna, self::ANNA_PIN), mustChange: true);
+        $anna->enablePinLogin(true);
+        $ben = new AppUser(UserRole::Assistenz, 'ben', 'Ben', $start);
+        $ben->setColor('#8a5300');
 
-        foreach ([$max, $sister, $father] as $person) {
+        foreach ([$max, $sister, $father, $anna, $ben] as $person) {
             $manager->persist($person);
         }
-        $manager->persist(new AppUser(UserRole::Assistenz, 'anna', 'Anna', $start));
-        $manager->persist(new AppUser(UserRole::Assistenz, 'ben', 'Ben', $start));
 
         $manager->flush();
     }

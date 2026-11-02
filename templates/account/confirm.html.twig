@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Bestätigen'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Bestätige, dass du es bist'|trans"
+        :intro="'Damit niemand an einem offenen Gerät deine Anmeldung ändert. Danach kannst du %minutes% Minuten lang Änderungen machen.'|trans({'%minutes%': constant('App\\Service\\Account\\RecentConfirmation::VALID_MINUTES')})" />
+
+    {% if error %}
+        <twig:Alert type="error" :message="error|trans" />
+    {% endif %}
+
+    {% if has_passkeys and passkeys_possible() %}
+        <section class="hc-section" hidden
+                 data-controller="passkey"
+                 data-passkey-options-url-value="{{ path('webauthn.controller.request.request.confirm') }}"
+                 data-passkey-result-url-value="{{ path('webauthn.controller.request.response.confirm', {weiter: target}) }}">
+            <h2>{{ 'Mit Passkey'|trans }}</h2>
+            <div class="hc-button-row">
+                <twig:Button icon="tabler:fingerprint" data-action="passkey#login" data-passkey-target="button">{{ 'Mit Passkey bestätigen'|trans }}</twig:Button>
+            </div>
+            <p class="hc-passkey__message" data-passkey-target="message" role="alert" hidden></p>
+        </section>
+    {% endif %}
+
+    {% if person.hasPassword %}
+        <section class="hc-section">
+            {% if has_passkeys and passkeys_possible() %}<h2>{{ 'Mit Passwort'|trans }}</h2>{% endif %}
+            <form class="hc-form" method="post" action="{{ path('app_account_confirm', {weiter: target}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('account-confirm') }}">
+                <div class="hc-field">
+                    <label class="hc-field__label" for="passwort">{{ 'Dein Passwort'|trans }}</label>
+                    <input class="hc-input" type="password" id="passwort" name="passwort" autocomplete="current-password" required>
+                </div>
+                {% if person.hasTwoFactor %}
+                    <div class="hc-field">
+                        {% if person.twofaMethod.value == 'totp' %}
+                            <label class="hc-field__label" for="code">{{ 'Code aus der App'|trans }}</label>
+                            <p class="hc-field__help" id="code_help">{{ 'Oder einer deiner Wiederherstellungscodes.'|trans }}</p>
+                        {% else %}
+                            <label class="hc-field__label" for="code">{{ 'Wiederherstellungscode'|trans }}</label>
+                            <p class="hc-field__help" id="code_help">{{ 'Einfacher geht es mit deinem Passkey.'|trans }}</p>
+                        {% endif %}
+                        <input class="hc-input" type="text" id="code" name="code" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" required aria-describedby="code_help">
+                    </div>
+                {% endif %}
+                <div class="hc-button-row">
+                    <twig:Button type="submit" icon="tabler:shield-lock">{{ 'Bestätigen'|trans }}</twig:Button>
+                    <twig:Button variant="secondary" :href="path('app_account')">{{ 'Abbrechen'|trans }}</twig:Button>
+                </div>
+            </form>
+        </section>
+    {% endif %}
+{% endblock %}

@@ -52,6 +52,7 @@ final class PasskeyEndpointsTest extends WebTestCase
         $this->entityManager()->persist(new WebauthnCredential($max, 'bestehend', 'key', 0, null, ['internal']));
         $this->entityManager()->flush();
         $client->loginUser($max);
+        $this->confirmIdentity($client);
 
         $client->jsonRequest('POST', '/konto/passkey/optionen', []);
 
@@ -99,6 +100,7 @@ final class PasskeyEndpointsTest extends WebTestCase
     {
         $client = $this->startClient();
         $client->loginUser($this->createPerson(UserRole::Manager, 'max'));
+        $this->confirmIdentity($client, 'https://127.0.0.1:8000');
 
         $client->request('GET', 'https://127.0.0.1:8000/konto/zwei-faktor');
         self::assertSelectorExists('a.hc-choice[href="/konto/zwei-faktor/app"]');
@@ -123,6 +125,7 @@ final class PasskeyEndpointsTest extends WebTestCase
     {
         $client = $this->startClient();
         $client->loginUser($this->createPerson(UserRole::Manager, 'max'));
+        $this->confirmIdentity($client);
 
         $client->request('GET', '/konto/zwei-faktor/passkey');
 

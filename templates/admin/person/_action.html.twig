@@ -1,0 +1,8 @@
+{# One access action as its own POST form with CSRF token; params: route, person, label, variant (primary|secondary|danger), fields (hidden) #}
+<form class="hc-admin-action" method="post" action="{{ path(route, {id: person.id}) }}">
+    <input type="hidden" name="_token" value="{{ csrf_token('person-access-' ~ person.id) }}">
+    {% for name, value in fields|default({}) %}
+        <input type="hidden" name="{{ name }}" value="{{ value }}">
+    {% endfor %}
+    <button type="submit" class="btn btn-{{ variant|default('secondary') }}">{{ label }}</button>
+</form>

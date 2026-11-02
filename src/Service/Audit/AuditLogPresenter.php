@@ -20,6 +20,7 @@ final readonly class AuditLogPresenter
         'app_setting' => 'Einstellungen',
         'webauthn_credential' => 'Passkey',
         'device' => 'Gerät',
+        'invitation' => 'Einladung',
     ];
 
     private const array DETAIL_KEYS = [
@@ -29,6 +30,11 @@ final readonly class AuditLogPresenter
         'verbleibend' => 'Verbleibende Codes',
         'passkeys_entfernt' => 'Entfernte Passkeys',
         'neues_start_passwort' => 'Neues Start-Passwort',
+        'rolle' => 'Rolle',
+        'admin' => 'Admin-Recht',
+        'an' => 'Eingeschaltet',
+        'gueltig_bis' => 'Gültig bis',
+        'letzter_tag' => 'Letzter Arbeitstag',
     ];
 
     private const array DETAIL_VALUES = [
@@ -36,6 +42,9 @@ final readonly class AuditLogPresenter
         'passkey' => 'Passkey',
         'totp' => 'Authenticator-App',
         'code' => 'Code',
+        'manager' => 'Manager',
+        'assistenz' => 'Assistenz',
+        'angehoerige' => 'Angehörige',
     ];
 
     /** Columns of app_setting as the settings pages name them. */
@@ -56,6 +65,16 @@ final readonly class AuditLogPresenter
         'retention_notification_days' => 'Löschfrist Benachrichtigungen (Tage)',
         'retention_report_days' => 'Löschfrist Meldungen (Tage)',
         'retention_audit_days' => 'Löschfrist Protokoll (Tage)',
+    ];
+
+    /** Columns of app_user as the person form names them (App\EventListener\PersonAuditListener). */
+    private const array PERSON = [
+        'role' => 'Rolle',
+        'is_admin' => 'Admin-Recht',
+        'username' => 'Benutzername',
+        'display_name' => 'Name',
+        'color' => 'Farbe',
+        'active_from' => 'Eintritt',
     ];
 
     public function __construct(
@@ -102,7 +121,7 @@ final readonly class AuditLogPresenter
         foreach ($entry->getDetails() ?? [] as $key => $value) {
             if ('felder' === $key && \is_array($value)) {
                 foreach ($value as $column => $change) {
-                    $label = self::SETTINGS[$column] ?? (string) $column;
+                    $label = ('app_user' === $entry->getEntityType() ? self::PERSON : self::SETTINGS)[$column] ?? (string) $column;
                     $lines[] = \is_array($change)
                         ? \sprintf('%s: %s → %s', $label, self::value($change['alt'] ?? null), self::value($change['neu'] ?? null))
                         : \sprintf('%s: %s', $label, self::value($change));

@@ -1,0 +1,62 @@
+{% extends 'base.html.twig' %}
+
+{# Shows a start password, start PIN or invitation code once: keep the page out of the Turbo cache #}
+{% block head_meta %}<meta name="turbo-cache-control" content="no-cache">{% endblock %}
+{% block page_title %}{{ 'Zugangs-Kärtchen'|trans }}{% endblock %}
+
+{% block body %}
+    <div class="hc-no-print">
+        <twig:PageHeader :title="'Zugangs-Kärtchen für %name%'|trans({'%name%': person.displayName})"
+            :intro="'Das Kärtchen ist nur jetzt zu sehen. Druck es aus oder gib die Angaben direkt weiter.'|trans" />
+        <div class="hc-button-row" data-controller="print">
+            <twig:Button icon="tabler:printer" data-action="print#print">{{ 'Drucken'|trans }}</twig:Button>
+            <twig:Button variant="secondary" icon="tabler:arrow-left" :href="path('admin_person_access', {entityId: person.id})" data-turbo="false">{{ 'Zurück zum Zugang'|trans }}</twig:Button>
+        </div>
+    </div>
+
+    <article class="hc-access-card" aria-labelledby="kaertchen-titel">
+        <h2 id="kaertchen-titel" class="hc-access-card__title">{{ 'HomeCrew – %household%'|trans({'%household%': household_name()}) }}</h2>
+        <p class="hc-access-card__for">{{ 'Zugang für'|trans }} <strong>{{ person.displayName }}</strong></p>
+
+        <dl class="hc-access-card__facts">
+            {% if pin is not defined %}
+                <dt>{{ 'Benutzername'|trans }}</dt>
+                <dd class="hc-access-card__value">{{ person.username }}</dd>
+            {% endif %}
+            {% if password is defined %}
+                <dt>{{ 'Start-Passwort'|trans }}</dt>
+                <dd class="hc-access-card__value">{{ password }}</dd>
+            {% elseif pin is defined %}
+                <dt>{{ 'Start-PIN'|trans }}</dt>
+                <dd class="hc-access-card__value">{{ pin }}</dd>
+            {% else %}
+                <dt>{{ 'Einladungscode'|trans }}</dt>
+                <dd class="hc-access-card__value">{{ invitation_code }}</dd>
+                <dt>{{ 'Gültig bis'|trans }}</dt>
+                <dd>{{ invitation_expires|format_datetime(pattern: "EEEE, d. MMMM yyyy, HH:mm 'Uhr'", locale: 'de') }} – {{ 'nur einmal'|trans }}</dd>
+            {% endif %}
+        </dl>
+
+        {% if invitation_qr is defined %}
+            <img class="hc-access-card__qr" src="{{ invitation_qr }}" width="280" height="280" alt="{{ 'QR-Code der Einladung'|trans }}">
+        {% endif %}
+
+        <h3>{{ 'So geht es'|trans }}</h3>
+        <ol class="hc-access-card__steps">
+            {% if password is defined %}
+                <li>{{ 'Öffne am Handy oder PC:'|trans }} <strong>{{ address ~ path('app_login') }}</strong></li>
+                <li>{{ 'Melde dich mit Benutzername und Start-Passwort an.'|trans }}</li>
+                <li>{{ 'Wähle danach dein eigenes Passwort – nur du kennst es.'|trans }}</li>
+            {% elseif pin is defined %}
+                <li>{{ 'Tippe am Tablet auf „Persönlich anmelden" und wähle deinen Namen.'|trans }}</li>
+                <li>{{ 'Gib die Start-PIN ein.'|trans }}</li>
+                <li>{{ 'Wähle danach deine eigene PIN.'|trans }}</li>
+            {% else %}
+                <li>{{ 'Scanne den QR-Code mit der Kamera deines Handys.'|trans }} {{ 'Oder öffne'|trans }} <strong>{{ address ~ path('app_invitation') }}</strong> {{ 'und tippe den Einladungscode ein.'|trans }}</li>
+                <li>{{ 'Wähle dein Passwort.'|trans }}</li>
+                <li>{{ 'Fertig – du bist angemeldet. Später meldest du dich mit Benutzername und Passwort an.'|trans }}</li>
+            {% endif %}
+        </ol>
+        <p class="hc-access-card__note">{{ 'Bewahre das Kärtchen sicher auf und vernichte es, sobald du dich angemeldet hast.'|trans }}</p>
+    </article>
+{% endblock %}

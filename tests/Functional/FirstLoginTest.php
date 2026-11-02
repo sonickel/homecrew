@@ -139,15 +139,15 @@ final class FirstLoginTest extends WebTestCase
         self::assertSelectorNotExists('a.hc-button[href="/konto/zwei-faktor"]');
     }
 
-    public function testPasswordPageIsOnlyForTheStartPassword(): void
+    public function testChangingThePasswordLaterNeedsAFreshConfirmation(): void
     {
         $client = $this->startClient();
         $client->loginUser($this->createPerson(UserRole::Angehoerige, 'papa'));
 
         $client->request('GET', '/konto/passwort');
-        self::assertResponseRedirects('/');
+        self::assertResponseRedirects('/konto/bestaetigen?weiter=app_account_password');
         $client->request('POST', '/konto/passwort', ['change_password' => ['password' => ['first' => 'Gartenzaun-Leuchtturm-7', 'second' => 'Gartenzaun-Leuchtturm-7']]]);
-        self::assertResponseRedirects('/');
+        self::assertResponseRedirects('/konto/bestaetigen?weiter=app_account_password');
         self::assertSame([], $this->loggedActions());
     }
 
@@ -160,9 +160,9 @@ final class FirstLoginTest extends WebTestCase
         $client->loginUser($max);
 
         $client->request('GET', '/konto/zwei-faktor/codes');
-        self::assertResponseRedirects('/');
+        self::assertResponseRedirects('/konto/bestaetigen?weiter=app_account_recovery_codes');
         $client->request('POST', '/konto/zwei-faktor/codes', ['_token' => 'egal']);
-        self::assertResponseRedirects('/');
+        self::assertResponseRedirects('/konto/bestaetigen?weiter=app_account_recovery_codes');
 
         $this->entityManager()->clear();
         $reloaded = $this->entityManager()->find(AppUser::class, $max->getId());

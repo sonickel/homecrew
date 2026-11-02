@@ -9,10 +9,18 @@
 
     {% if codes is null %}
         <p>{{ 'Ist dein Handy weg oder kaputt, kommst du mit einem Wiederherstellungscode trotzdem hinein. Jeder Code funktioniert genau einmal.'|trans }}</p>
+        {% if replacing %}
+            <p>{{ 'Neue Codes ersetzen alle bisherigen – die alten gelten danach nicht mehr.'|trans }}</p>
+        {% endif %}
         {# Without Turbo: the codes come in the answer itself and are never stored readable #}
         <form method="post" action="{{ path('app_account_recovery_codes') }}" data-turbo="false">
             <input type="hidden" name="_token" value="{{ csrf_token('recovery-codes') }}">
-            <twig:Button type="submit" icon="tabler:key">{{ 'Codes anzeigen'|trans }}</twig:Button>
+            <div class="hc-button-row">
+                <twig:Button type="submit" icon="tabler:key">{{ replacing ? 'Neue Codes erzeugen'|trans : 'Codes anzeigen'|trans }}</twig:Button>
+                {% if replacing %}
+                    <twig:Button variant="secondary" :href="path('app_account')">{{ 'Abbrechen'|trans }}</twig:Button>
+                {% endif %}
+            </div>
         </form>
     {% else %}
         <twig:Alert type="ok" :message="'Deine Wiederherstellungscodes sind fertig. Du siehst sie nur dieses eine Mal.'|trans" />
@@ -24,7 +32,7 @@
         </ol>
         <div class="hc-button-row hc-no-print">
             <twig:Button variant="secondary" icon="tabler:printer" data-controller="print" data-action="print#print">{{ 'Drucken'|trans }}</twig:Button>
-            <twig:Button :href="path('app_home')">{{ 'Ich habe die Codes gesichert'|trans }}</twig:Button>
+            <twig:Button :href="path(done)">{{ 'Ich habe die Codes gesichert'|trans }}</twig:Button>
         </div>
     {% endif %}
 {% endblock %}

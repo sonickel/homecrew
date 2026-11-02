@@ -59,7 +59,7 @@ final readonly class PasskeyRegisteredHandler implements SuccessHandler, Failure
             $this->auditLogger->log(AuditAction::ZweifaktorEinrichten, $user, $user, ['methode' => TwoFactorMethod::Passkey->value]);
         }
 
-        $next = $this->accountSetup->nextStep($user) ?? 'app_home';
+        $next = $this->accountSetup->nextStep($user) ?? ($hadSecondFactor ? 'app_account' : 'app_home');
 
         return new JsonResponse(['status' => 'ok', 'redirect' => $this->urlGenerator->generate($next)], Response::HTTP_CREATED);
     }

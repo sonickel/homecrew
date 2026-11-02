@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Datenschutz'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Datenschutz bei HomeCrew'|trans"
+        :intro="'HomeCrew hilft dem Haushalt „%household%“ im Alltag. Hier steht kurz, welche Daten über dich gespeichert werden und warum.'|trans({'%household%': household_name()})" />
+
+    <div class="hc-prose">
+        <h2>{{ 'Wer ist verantwortlich?'|trans }}</h2>
+        <p>
+            {% if manager %}
+                {{ 'Verantwortlich ist %name% – die Person, die die Assistenz beschäftigt. Bei Fragen zu deinen Daten wendest du dich an sie.'|trans({'%name%': manager.displayName}) }}
+            {% else %}
+                {{ 'Verantwortlich ist die Person, die die Assistenz beschäftigt. Bei Fragen zu deinen Daten wendest du dich an sie.'|trans }}
+            {% endif %}
+        </p>
+
+        <h2>{{ 'Welche Daten?'|trans }}</h2>
+        <ul>
+            <li>{{ 'Dein Anzeigename, dein Benutzername, deine Rolle und seit wann du dabei bist.'|trans }}</li>
+            <li>{{ 'Für die Anmeldung: Passwort, PIN und zweiter Schritt – nur verschlüsselt oder als Prüfwert. Niemand kann sie lesen, auch kein Admin.'|trans }}</li>
+            <li>{{ 'Was du in HomeCrew einträgst, zum Beispiel erledigte Aufgaben, Meldungen und Übergaben.'|trans }}</li>
+            <li>{{ 'Für die Arbeit als Assistenz: Dienste, Arbeitszeiten, Urlaub und Krankheitszeiten (nur der Zeitraum, nie eine Diagnose).'|trans }}</li>
+            <li>{{ 'Deine Einstellungen wie Schriftgröße und Kontrast.'|trans }}</li>
+        </ul>
+
+        <h2>{{ 'Was HomeCrew nicht speichert'|trans }}</h2>
+        <p>{{ 'Keine Adressen, keine Sozialversicherungs- oder Steuernummern, keine Diagnosen oder Medikamente, keinen Standort. HomeCrew bewertet nicht, wie viel oder wie gut jemand arbeitet.'|trans }}</p>
+
+        <h2>{{ 'Wer sieht was?'|trans }}</h2>
+        <ul>
+            <li>{{ 'Alle sehen nur Anzeigenamen.'|trans }}</li>
+            <li>{{ 'Wer eine Aufgabe erledigt oder etwas gemeldet hat, sehen nur Admins – nach %days% Tagen wird der Name entfernt. Am Team-Tablet wird gar kein Name gespeichert.'|trans({'%days%': settings.retentionCompletionDays}) }}</li>
+            <li>{{ 'Admins sehen ein Protokoll mit Anmeldungen und wichtigen Änderungen – ohne IP-Adressen, Passwörter oder Codes. Es wird nach %days% Tagen gelöscht.'|trans({'%days%': settings.retentionAuditDays}) }}</li>
+        </ul>
+
+        <h2>{{ 'Wo liegen die Daten?'|trans }}</h2>
+        <p>{{ 'Auf einem eigenen Rechner im Haushalt, nicht in einer Cloud. Ist HomeCrew von unterwegs erreichbar, läuft die Verbindung verschlüsselt über einen Tunnel-Dienst. Zusätze wie E-Mail oder KI sind nur aktiv, wenn ein Admin sie einrichtet – dann bekommst du hier einen neuen Hinweis.'|trans }}</p>
+
+        <h2>{{ 'Wann wird gelöscht?'|trans }}</h2>
+        <p>{{ 'Hörst du auf, wird dein Zugang sofort entfernt. Dein Name bleibt nur dort, wo er aufbewahrt werden muss, zum Beispiel bei Arbeitszeiten. Übergaben, Meldungen und Benachrichtigungen werden nach festen Fristen gelöscht.'|trans }}</p>
+
+        <h2>{{ 'Deine Rechte'|trans }}</h2>
+        <p>{{ 'Du kannst Auskunft über deine Daten verlangen, falsche Daten berichtigen und Daten löschen lassen, soweit keine Aufbewahrungspflicht besteht. Beschweren kannst du dich bei der Datenschutz-Aufsicht (in Bayern: Bayerisches Landesamt für Datenschutzaufsicht).'|trans }}</p>
+
+        <p class="hc-prose__meta">{{ 'Stand: %version%'|trans({'%version%': version|date('d.m.Y')}) }}</p>
+    </div>
+
+    {% if needs_acknowledgement %}
+        <form method="post" action="{{ path('app_account_privacy') }}" class="hc-no-print">
+            <input type="hidden" name="_token" value="{{ csrf_token('privacy-notice') }}">
+            <div class="hc-button-row">
+                <twig:Button type="submit" icon="tabler:circle-check">{{ 'Gelesen, weiter'|trans }}</twig:Button>
+            </div>
+        </form>
+    {% else %}
+        {% if acknowledged_at %}
+            <p class="hc-no-print">{{ 'Du hast den Hinweis am %date% gelesen.'|trans({'%date%': acknowledged_at|format_date(pattern: 'd. MMMM yyyy', locale: 'de')}) }}</p>
+        {% endif %}
+        <div class="hc-button-row hc-no-print">
+            <twig:Button variant="secondary" icon="tabler:printer" data-controller="print" data-action="print#print">{{ 'Drucken'|trans }}</twig:Button>
+            <twig:Button variant="secondary" icon="tabler:arrow-left" :href="path('app_account')">{{ 'Zurück zu Mein Konto'|trans }}</twig:Button>
+        </div>
+    {% endif %}
+{% endblock %}

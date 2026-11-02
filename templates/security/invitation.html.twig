@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Einladung'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Einladung einlösen'|trans" :intro="'Mit der Einladung wählst du dein Passwort für HomeCrew.'|trans" />
+
+    {% if app.user %}
+        <twig:Alert :message="'Du bist schon angemeldet. Melde dich oben zuerst ab, um eine Einladung einzulösen.'|trans" />
+    {% else %}
+        {% if error %}
+            <twig:Alert type="error" :message="error|trans" />
+        {% endif %}
+        <form class="hc-form" method="post" action="{{ path('app_invitation') }}" data-controller="invitation-code">
+            <input type="hidden" name="_token" value="{{ csrf_token('invitation') }}">
+            <div class="hc-field">
+                <label class="hc-field__label" for="einladungscode">{{ 'Einladungscode'|trans }}</label>
+                <p class="hc-field__help" id="einladungscode_help">{{ 'Steht auf deinem Kärtchen beim QR-Code. Leerzeichen und Groß- oder Kleinschreibung sind egal.'|trans }}</p>
+                <input class="hc-input" type="text" id="einladungscode" name="code" required
+                       autocomplete="off" autocapitalize="characters" spellcheck="false"
+                       aria-describedby="einladungscode_help" data-invitation-code-target="code">
+            </div>
+            <div class="hc-button-row">
+                <twig:Button type="submit">{{ 'Weiter'|trans }}</twig:Button>
+            </div>
+        </form>
+    {% endif %}
+{% endblock %}

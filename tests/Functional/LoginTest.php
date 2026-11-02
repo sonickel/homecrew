@@ -63,6 +63,8 @@ final class LoginTest extends WebTestCase
         $this->loginWithPassword($client, 'papa', 'falsch-falsch-falsch');
         $client->followRedirect();
         self::assertSelectorTextContains('.hc-alert--error', 'Benutzername oder Passwort stimmt nicht.');
+        // No template source on the page (a broken edit once left "|trans(…)" visible after the message)
+        self::assertStringNotContainsString('|trans', (string) $client->getCrawler()->filter('main')->text());
         self::assertInputValueSame('_username', 'papa');
 
         // An unknown username is not logged – it could be a password typed into the wrong field

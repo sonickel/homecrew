@@ -2,13 +2,15 @@
 
 {% block page_title %}{{ 'Passkey'|trans }}{% endblock %}
 
+{% set back_label = back == 'app_account' ? 'Abbrechen'|trans : 'Andere Methode wählen'|trans %}
+
 {% block body %}
-    <twig:PageHeader :title="'Passkey einrichten'|trans"
+    <twig:PageHeader :title="back == 'app_account' ? 'Passkey hinzufügen'|trans : 'Passkey einrichten'|trans"
         :intro="'Dein Gerät speichert einen Schlüssel für HomeCrew. Zum Anmelden bestätigst du nur noch mit Fingerabdruck, Gesicht oder Geräte-PIN.'|trans" />
 
     {% if not passkeys_possible() %}
         {{ include('security/_passkey_unavailable.html.twig') }}
-        <twig:Button variant="secondary" :href="path('app_account_two_factor')">{{ 'Andere Methode wählen'|trans }}</twig:Button>
+        <twig:Button variant="secondary" :href="path(back)">{{ back_label }}</twig:Button>
     {% else %}
         <div data-controller="passkey"
              data-passkey-options-url-value="{{ path('webauthn.controller.creation.request.add_passkey') }}"
@@ -22,7 +24,7 @@
                 </div>
                 <div class="hc-button-row">
                     <twig:Button icon="tabler:fingerprint" data-action="passkey#register" data-passkey-target="button">{{ 'Passkey anlegen'|trans }}</twig:Button>
-                    <twig:Button variant="secondary" :href="path('app_account_two_factor')">{{ 'Andere Methode wählen'|trans }}</twig:Button>
+                    <twig:Button variant="secondary" :href="path(back)">{{ back_label }}</twig:Button>
                 </div>
                 <p class="hc-passkey__message" data-passkey-target="message" role="alert" hidden></p>
             </div>

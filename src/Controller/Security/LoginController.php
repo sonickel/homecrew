@@ -33,6 +33,7 @@ final class LoginController extends AbstractController
             'last_username' => $authenticationUtils->getLastUsername(),
             'error' => $error,
             'idle_logout' => 'inaktiv' === $request->query->getString('grund'),
+            'blocked_logout' => 'gesperrt' === $request->query->getString('grund'),
             'idle_minutes' => $idleMinutes,
         ], new Response(status: null === $error ? Response::HTTP_OK : Response::HTTP_UNPROCESSABLE_ENTITY));
     }

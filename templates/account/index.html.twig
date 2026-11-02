@@ -1,0 +1,146 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Mein Konto'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Mein Konto'|trans" :intro="'Angemeldet als %name% (%role%)'|trans({'%name%': person.displayName, '%role%': person.role.label|trans})" />
+
+    <section class="hc-section" aria-labelledby="darstellung">
+        <h2 id="darstellung">{{ 'Darstellung'|trans }}</h2>
+        {{ form_start(display_form, {attr: {class: 'hc-form'}}) }}
+            <fieldset class="hc-option">
+                <legend class="hc-field__label">{{ 'Schriftgröße'|trans }}</legend>
+                {% for choice in display_form.fontSize %}
+                    <label class="hc-option__row">{{ form_widget(choice) }}<span>{{ choice.vars.label|trans }}</span></label>
+                {% endfor %}
+            </fieldset>
+            <div class="hc-option">
+                <label class="hc-option__row">{{ form_widget(display_form.highContrast) }}<span>{{ display_form.highContrast.vars.label|trans }}</span></label>
+            </div>
+            <div class="hc-button-row">
+                <twig:Button type="submit">{{ 'Darstellung speichern'|trans }}</twig:Button>
+            </div>
+        {{ form_end(display_form) }}
+    </section>
+
+    {% set fresh = confirmed_until is not null %}
+    {% set has_password = person.hasPassword %}
+    <section class="hc-section" aria-labelledby="anmeldung">
+        <h2 id="anmeldung">{{ 'Anmeldung'|trans }}</h2>
+        {% if fresh %}
+            <twig:Alert type="ok" :message="'Bestätigt – du kannst bis %time% Uhr Änderungen machen.'|trans({'%time%': confirmed_until|date('H:i')})" />
+        {% else %}
+            <p>{{ 'Zum Ändern bestätigst du zuerst, dass du es bist.'|trans }}</p>
+            <div class="hc-button-row">
+                <twig:Button variant="secondary" icon="tabler:shield-lock" :href="path('app_account_confirm')">{{ 'Anmeldung ändern'|trans }}</twig:Button>
+            </div>
+        {% endif %}
+
+        <ul class="hc-settings">
+            {% if has_password %}
+                <li class="hc-settings__row">
+                    <div class="hc-settings__text">
+                        <p class="hc-settings__label">{{ 'Passwort'|trans }}</p>
+                        <p>{{ 'Gesetzt.'|trans }}</p>
+                    </div>
+                    {% if fresh %}
+                        <div class="hc-settings__actions">
+                            <twig:Button variant="secondary" :href="path('app_account_password')">{{ 'Passwort ändern'|trans }}</twig:Button>
+                        </div>
+                    {% endif %}
+                </li>
+            {% endif %}
+
+            <li class="hc-settings__row">
+                <div class="hc-settings__text">
+                    <p class="hc-settings__label">{{ 'Zweiter Schritt'|trans }}</p>
+                    <p>
+                        {% if person.twofaMethod.value == 'totp' %}
+                            {{ 'Authenticator-App.'|trans }}
+                        {% elseif person.twofaMethod.value == 'passkey' %}
+                            {{ 'Passkey.'|trans }}
+                        {% else %}
+                            {{ 'Keiner. Mit einem zweiten Schritt kommt niemand mit deinem Passwort allein hinein.'|trans }}
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="hc-settings__actions">
+                    {% if not person.hasTwoFactor %}
+                        <twig:Button variant="secondary" icon="tabler:shield-lock" :href="path('app_account_two_factor')">{{ 'Einrichten'|trans }}</twig:Button>
+                    {% elseif fresh and person.twofaMethod.value == 'passkey' %}
+                        <twig:Button variant="secondary" icon="tabler:device-mobile" :href="path('app_account_two_factor_app')">{{ 'Authenticator-App einrichten'|trans }}</twig:Button>
+                    {% elseif fresh and person.twofaMethod.value == 'totp' and (not two_factor_required or passkeys is not empty) %}
+                        <form method="post" action="{{ path('app_account_two_factor_app_remove') }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('two-factor-app-remove') }}">
+                            <twig:Button type="submit" variant="danger">{{ 'App entfernen'|trans }}</twig:Button>
+                        </form>
+                    {% endif %}
+                </div>
+            </li>
+
+            <li class="hc-settings__row">
+                <div class="hc-settings__text">
+                    <p class="hc-settings__label">{{ 'Passkeys'|trans }}</p>
+                    {% if passkeys is empty %}
+                        <p>{{ 'Keine. Mit einem Passkey meldest du dich per Fingerabdruck, Gesicht oder Geräte-PIN an.'|trans }}</p>
+                    {% endif %}
+                </div>
+                {% if fresh or not person.hasTwoFactor %}
+                    <div class="hc-settings__actions">
+                        <twig:Button variant="secondary" icon="tabler:fingerprint" :href="path('app_account_passkey_add')">{{ 'Passkey hinzufügen'|trans }}</twig:Button>
+                    </div>
+                {% endif %}
+            </li>
+            {% for passkey in passkeys %}
+                {% set last_one = passkeys|length == 1 and person.twofaMethod.value == 'passkey' %}
+                <li class="hc-settings__row">
+                    <div class="hc-settings__text">
+                        <p>{{ passkey.label ?? 'Passkey ohne Namen'|trans }}</p>
+                        <p>
+                            {{ 'Angelegt am %date%.'|trans({'%date%': passkey.createdAt|format_date(pattern: 'd. MMMM yyyy', locale: 'de')}) }}
+                            {% if passkey.lastUsedAt %}{{ 'Zuletzt benutzt am %date%.'|trans({'%date%': passkey.lastUsedAt|format_date(pattern: 'd. MMMM yyyy', locale: 'de')}) }}{% endif %}
+                        </p>
+                    </div>
+                    {% if fresh and not (last_one and two_factor_required) %}
+                        <div class="hc-settings__actions">
+                            <form method="post" action="{{ path('app_account_passkey_remove', {id: passkey.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('passkey-remove-' ~ passkey.id) }}">
+                                <twig:Button type="submit" variant="danger">{{ 'Entfernen'|trans }}</twig:Button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </li>
+            {% endfor %}
+
+            {% if person.hasTwoFactor %}
+                <li class="hc-settings__row">
+                    <div class="hc-settings__text">
+                        <p class="hc-settings__label">{{ 'Wiederherstellungscodes'|trans }}</p>
+                        <p>{{ 'Noch %count% übrig – für den Fall, dass dein Handy oder Passkey weg ist.'|trans({'%count%': person.countRecoveryCodes}) }}</p>
+                    </div>
+                    {% if fresh %}
+                        <div class="hc-settings__actions">
+                            <twig:Button variant="secondary" icon="tabler:key" :href="path('app_account_recovery_codes')">{{ 'Neue Codes'|trans }}</twig:Button>
+                        </div>
+                    {% endif %}
+                </li>
+            {% endif %}
+        </ul>
+        {% if fresh and two_factor_required %}
+            <p>{{ 'Als Admin brauchst du immer einen zweiten Schritt. Den letzten kannst du deshalb erst entfernen, wenn ein anderer eingerichtet ist.'|trans }}</p>
+        {% endif %}
+    </section>
+
+    <section class="hc-section" aria-labelledby="datenschutz">
+        <h2 id="datenschutz">{{ 'Datenschutz'|trans }}</h2>
+        <p>
+            {% if person.privacyNoticeAckAt %}
+                {{ 'Hinweis gelesen am %date%.'|trans({'%date%': person.privacyNoticeAckAt|format_date(pattern: 'd. MMMM yyyy', locale: 'de')}) }}
+            {% endif %}
+            {{ 'Welche Daten HomeCrew über dich speichert und welche Rechte du hast.'|trans }}
+        </p>
+        <div class="hc-button-row">
+            <twig:Button variant="secondary" icon="tabler:info-circle" :href="path('app_account_privacy')">{{ 'Datenschutzhinweis ansehen'|trans }}</twig:Button>
+        </div>
+    </section>
+{% endblock %}

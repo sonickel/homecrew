@@ -60,6 +60,8 @@ security:
         - { path: ^/anmelden, roles: PUBLIC_ACCESS }
         # The lazy firewall checks access before logging out: "Abbrechen" in the second step must work too (CSRF-protected)
         - { path: ^/abmelden$, roles: PUBLIC_ACCESS }
+        # Redeeming an invitation (konzept-1 §4): before the person has a password
+        - { path: ^/einladung, roles: PUBLIC_ACCESS }
         # Admin rights are decided by App\Security\Voter\AdminVoter, the controllers check again
         - { path: ^/verwaltung, roles: ADMIN }
         - { path: ^/, roles: IS_AUTHENTICATED_FULLY }

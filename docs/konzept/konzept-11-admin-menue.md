@@ -12,7 +12,7 @@ Antwort auf die Frage „Sind für alles Pflegemasken vorgesehen?": **Ja.** Alle
 
 | Bereich | Maske | Inhalt / Aktionen | Stufe |
 |---|---|---|---|
-| **Personen** | Personen | anlegen (Rolle, Admin-Recht, Benutzername, Anzeigename, Farbe, Eintritt), Zugang: **keiner (nur Team-Tablet)**, Start-PIN setzen, **PIN-Anmeldung an/aus**, Start-Passwort, Einladung (QR, per E-Mail nur wenn E-Mail eingerichtet), Zugangs-Kärtchen drucken; 2FA/PIN/Passwort zurücksetzen; Schalter (wiederkehrende Aufgaben, Anleitungen veröffentlichen, Termine anlegen, KI); sperren/Austritt | 1 |
+| **Personen** | Personen | anlegen (Rolle, Admin-Recht, Benutzername, Anzeigename, Farbe, Eintritt), Zugang: **keiner (nur Team-Tablet)**, Start-PIN setzen, **PIN-Anmeldung an/aus**, Start-Passwort, Einladung (QR, per E-Mail nur wenn E-Mail eingerichtet), Zugangs-Kärtchen drucken; 2FA/PIN/Passwort zurücksetzen; Schalter (wiederkehrende Aufgaben, Anleitungen veröffentlichen, Termine anlegen, KI); sperren/Austritt; **den Manager bearbeitet nur der Manager selbst**, den eigenen Zugang jede Person unter „Mein Konto"; Schalter erscheinen mit ihrer Funktion; Personen werden nicht gelöscht | 1 |
 | | Geräte | Tablet koppeln (QR), umbenennen, **Modus (Team · Persönlich · Beides)**, **Bildschirmschoner** (Minuten), Schriftgröße am Gerät, zuletzt aktiv, entkoppeln | 1 |
 | **Einstellungen** | Allgemein | Haushaltsname, Zeitzone, Feiertagsregion, Auto-Sperre Tablet, PIN nur im Heimnetz, Ansichtszeitraum eigener Zeiten (3 Monate), max. Dienstdauer, Videolänge, Freigabe-Modus für Anleitungen | 1 |
 | | Benachrichtigungen | Uhrzeit der Tageszusammenfassung (18:00), Push erlauben (Stufe 4); Standards je Rolle ansehen | 1 |
