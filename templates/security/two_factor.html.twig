@@ -14,7 +14,7 @@
     {% endif %}
 
     {% if twoFactorProvider == 'passkey' %}
-        {{ include('security/_passkey_login.html.twig') }}
+        {{ include(passkeys_possible() ? 'security/_passkey_login.html.twig' : 'security/_passkey_unavailable.html.twig') }}
     {% endif %}
 
     <form class="hc-form" method="post" action="{{ checkPathUrl ? checkPathUrl : path(checkPathRoute) }}">

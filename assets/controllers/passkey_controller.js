@@ -48,10 +48,9 @@ export default class extends Controller {
             const result = await ceremony();
             window.location.assign(result.redirect);
         } catch (error) {
-            // Cancelled in the browser dialog: no error message needed
-            if (error?.name !== 'NotAllowedError' && error?.name !== 'AbortError') {
-                this.#showMessage(error?.userMessage ?? 'Das hat nicht geklappt. Versuch es noch einmal.');
-            }
+            // Technical details for whoever helps; the page says in plain words what to do
+            console.warn('Passkey:', error?.code ?? error?.name, error);
+            this.#showMessage(this.#explain(error));
         } finally {
             this.buttonTargets.forEach((button) => { button.disabled = false; });
         }
@@ -72,6 +71,35 @@ export default class extends Controller {
         }
 
         return data;
+    }
+
+    /*
+     * Error codes of @simplewebauthn/browser (error.code) and of the browser (error.name);
+     * messages from HomeCrew itself come as error.userMessage.
+     */
+    #explain(error) {
+        if (error?.userMessage) {
+            return error.userMessage;
+        }
+
+        switch (error?.code ?? error?.name) {
+            case 'ERROR_INVALID_DOMAIN':
+            case 'ERROR_INVALID_RP_ID':
+            case 'SecurityError':
+                return 'Der Browser oder dein Passwort-Manager lässt Passkeys für diese Adresse nicht zu. Versuch es mit dem Passkey-Speicher des Geräts (z. B. Windows Hello) oder nimm die Authenticator-App.';
+            case 'ERROR_AUTHENTICATOR_PREVIOUSLY_REGISTERED':
+            case 'InvalidStateError':
+                return 'Auf diesem Gerät gibt es schon einen Passkey für dich. Du kannst dich damit anmelden.';
+            case 'ERROR_AUTHENTICATOR_MISSING_DISCOVERABLE_CREDENTIAL_SUPPORT':
+            case 'ERROR_AUTHENTICATOR_MISSING_USER_VERIFICATION_SUPPORT':
+                return 'Dieses Gerät kann keinen passenden Passkey speichern (nötig: Fingerabdruck, Gesicht oder Geräte-PIN). Nimm ein anderes Gerät oder die Authenticator-App.';
+            case 'ERROR_CEREMONY_ABORTED':
+            case 'NotAllowedError':
+            case 'AbortError':
+                return 'Kein Passkey verwendet: abgebrochen, Zeit abgelaufen oder auf diesem Gerät gibt es keinen Passkey für HomeCrew. Versuch es noch einmal.';
+            default:
+                return 'Das hat nicht geklappt. Versuch es noch einmal oder nimm die Authenticator-App.';
+        }
     }
 
     #showMessage(text) {

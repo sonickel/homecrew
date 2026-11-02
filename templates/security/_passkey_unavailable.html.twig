@@ -1,0 +1,9 @@
+{# Shown instead of passkey buttons when HomeCrew was opened via an IP address (App\Security\Passkey\PasskeySupport) #}
+{% set address = passkey_address() %}
+{% if address %}
+    <twig:Alert :message="'Passkeys gehen hier nicht, weil HomeCrew über eine IP-Adresse geöffnet ist.'|trans">
+        <a href="{{ address|trim('/', 'right') ~ app.request.pathInfo }}">{{ 'HomeCrew über %address% öffnen'|trans({'%address%': address}) }}</a>
+    </twig:Alert>
+{% else %}
+    <twig:Alert :message="'Passkeys gehen hier nicht, weil HomeCrew über eine IP-Adresse geöffnet ist. Öffne HomeCrew über seinen Namen statt über die Zahlen-Adresse.'|trans" />
+{% endif %}

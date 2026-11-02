@@ -17,14 +17,19 @@
                 </span>
             </a>
         </li>
-        <li>
-            <a class="hc-choice" href="{{ path('app_account_two_factor_passkey') }}">
-                {{ ux_icon('tabler:fingerprint', {class: 'hc-choice__icon', 'aria-hidden': 'true'}) }}
-                <span class="hc-choice__text">
-                    <strong>{{ 'Passkey'|trans }}</strong>
-                    <span>{{ 'Du meldest dich künftig mit Fingerabdruck, Gesicht oder Geräte-PIN an – ganz ohne Passwort.'|trans }}</span>
-                </span>
-            </a>
-        </li>
+        {% if passkeys_possible() %}
+            <li>
+                <a class="hc-choice" href="{{ path('app_account_two_factor_passkey') }}">
+                    {{ ux_icon('tabler:fingerprint', {class: 'hc-choice__icon', 'aria-hidden': 'true'}) }}
+                    <span class="hc-choice__text">
+                        <strong>{{ 'Passkey'|trans }}</strong>
+                        <span>{{ 'Du meldest dich künftig mit Fingerabdruck, Gesicht oder Geräte-PIN an – ganz ohne Passwort.'|trans }}</span>
+                    </span>
+                </a>
+            </li>
+        {% endif %}
     </ul>
+    {% if not passkeys_possible() %}
+        {{ include('security/_passkey_unavailable.html.twig') }}
+    {% endif %}
 {% endblock %}

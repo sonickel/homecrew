@@ -144,6 +144,7 @@ Nicht in Stufe 1 (27 Tabellen): Personal & Abrechnung, Checklisten, Sätze/Grenz
 - `composer qa` leert vor PHPUnit den Test-Cache (siehe „Gelernt" in CLAUDE.md).
 - Pakete statt `scheb/2fa-totp`: `spomky-labs/otphp` ^11.5 und `paragonie/constant_time_encoding` ^3.1 (vorher schon dessen Abhängigkeiten); Importmap `@simplewebauthn/browser` 14.0.0.
 - **Nach dem Review:** Passkeys lassen sich nur hinzufügen, solange noch kein zweiter Schritt besteht (`PasskeyRegistrationGuard`); `/konto/passwort` nur für das Start-Passwort; Wiederherstellungscodes nur neu, wenn keine mehr übrig sind – freiwilliges Ändern mit frischer Bestätigung kommt mit „Mein Konto" (M3). Wiederherstellungscodes als HMAC mit Serverschlüssel (`RecoveryCodeManager`, `SecretBox::fingerprint`). Sessions in `var/sessions/<env>` mit 10 h Lebensdauer (PHP-Standard 24 min hätte die 8 h unterlaufen). Protokoll in Klartext ohne Spalten- und Tabellennamen (`AuditLogPresenter`), Sperre im zweiten Schritt wird protokolliert. `app:setup` prüft zuerst den Hauptschlüssel.
+- **Nach dem ersten Browsertest (Passkey mit Bitwarden schlug fehl):** HomeCrew war über `https://127.0.0.1:8000` geöffnet – darauf lehnen Browser und Passwort-Manager Passkeys ab. Über eine IP-Adresse blendet HomeCrew Passkeys jetzt aus und verlinkt die Adresse mit Namen (bei 127.0.0.1 `localhost`, sonst `DEFAULT_URI`); Fehler beim Passkey werden in Klartext erklärt statt verschwiegen.
 
 ---
 

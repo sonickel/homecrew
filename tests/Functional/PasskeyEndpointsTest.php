@@ -83,6 +83,33 @@ final class PasskeyEndpointsTest extends WebTestCase
         self::assertResponseStatusCodeSame(403);
     }
 
+    public function testOverAnIpAddressPasskeysAreHiddenAndTheNamedAddressIsOffered(): void
+    {
+        $client = $this->startClient();
+
+        $client->request('GET', 'https://192.168.1.20/anmelden');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorNotExists('[data-controller="passkey"]');
+        self::assertSelectorTextContains('.hc-alert', 'Passkeys gehen hier nicht, weil HomeCrew über eine IP-Adresse geöffnet ist.');
+        self::assertSelectorExists('.hc-alert a[href="https://localhost:8000/anmelden"]');
+    }
+
+    public function testOverAnIpAddressTheSetupOffersOnlyTheApp(): void
+    {
+        $client = $this->startClient();
+        $client->loginUser($this->createPerson(UserRole::Manager, 'max'));
+
+        $client->request('GET', 'https://127.0.0.1:8000/konto/zwei-faktor');
+        self::assertSelectorExists('a.hc-choice[href="/konto/zwei-faktor/app"]');
+        self::assertSelectorNotExists('a.hc-choice[href="/konto/zwei-faktor/passkey"]');
+        self::assertSelectorExists('.hc-alert a[href="https://localhost:8000/konto/zwei-faktor"]');
+
+        $client->request('GET', 'https://127.0.0.1:8000/konto/zwei-faktor/passkey');
+        self::assertSelectorNotExists('[data-controller="passkey"]');
+        self::assertSelectorExists('a.hc-button[href="/konto/zwei-faktor"]');
+    }
+
     public function testRegistrationNeedsALogin(): void
     {
         $client = $this->startClient();

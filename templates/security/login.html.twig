@@ -31,5 +31,5 @@
         </div>
     </form>
 
-    {{ include('security/_passkey_login.html.twig') }}
+    {{ include(passkeys_possible() ? 'security/_passkey_login.html.twig' : 'security/_passkey_unavailable.html.twig') }}
 {% endblock %}
