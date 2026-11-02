@@ -284,7 +284,7 @@ VALUES (@m_martin, '2026-12-22 09:00:00', '2026-12-22 13:00:00', 'ausgefallen', 
 INSERT INTO calendar_feed (user_id, token_hash) VALUES (@m_martin, SHA2('feed', 256));
 
 -- Team-Tablet: Gerät ohne Personenanmeldung erledigt eine Aufgabe, schreibt eine Übergabe, ergänzt die Liste
-UPDATE device SET mode = 'team', dim_after_seconds = 600 WHERE id = @dev;
+UPDATE device SET mode = 'team', dim_after_seconds = 600, font_size = 'sehr_gross' WHERE id = @dev;
 INSERT INTO task (title, category, assignee_role, due_date) VALUES ('Blumen gießen', 'haushalt', 'assistenz', '2026-11-05');
 SET @task_team = LAST_INSERT_ID();
 INSERT INTO task_completion (task_id, action, device_id, done_at) VALUES (@task_team, 'erledigt', @dev, '2026-11-05 11:00:00');
@@ -615,6 +615,8 @@ CALL _expect_fail('B91 E-Mail eingeschaltet ohne Absenderadresse',
   'UPDATE app_setting SET mail_from_address = NULL WHERE id = 1', 4025);
 CALL _expect_fail('B92 SMTP mit unbekannter Verschlüsselung',
   'UPDATE app_setting SET smtp_encryption = ''rot13'' WHERE id = 1', 4025);
+CALL _expect_fail('B93 Tablet mit unbekannter Schriftgröße',
+  'UPDATE device SET font_size = ''riesig'' WHERE id = @dev', 4025);
 CALL _expect_fail('B47 Zweite Übersetzung derselben Version in dieselbe Sprache',
   'INSERT INTO guide_translation (version_id, language, title) VALUES (@gv1, ''pl'', ''x'')', 1062);
 CALL _expect_fail('B48 „Übersetzung" nach Deutsch',

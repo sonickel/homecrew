@@ -235,13 +235,15 @@ CREATE TABLE device (
   paired_by_user_id  BIGINT UNSIGNED NULL,
   mode               VARCHAR(12)     NOT NULL DEFAULT 'team',   -- team: Team-Tablet ohne Personenanmeldung · persoenlich: nur PIN · beides
   dim_after_seconds  SMALLINT UNSIGNED NOT NULL DEFAULT 300,    -- Bildschirmschoner im Team-Modus
+  font_size          VARCHAR(12)     NOT NULL DEFAULT 'normal', -- Schriftgröße am Gerät (Werte wie app_user.font_size)
   paired_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
   last_seen_at       DATETIME        NULL,
   revoked_at         DATETIME        NULL,
   PRIMARY KEY (id),
   UNIQUE KEY uq_device_token (token_hash),
   CONSTRAINT fk_device_paired FOREIGN KEY (paired_by_user_id) REFERENCES app_user (id) ON DELETE SET NULL,
-  CONSTRAINT ck_device_mode   CHECK (mode IN ('team','persoenlich','beides'))
+  CONSTRAINT ck_device_mode   CHECK (mode IN ('team','persoenlich','beides')),
+  CONSTRAINT ck_device_font   CHECK (font_size IN ('normal','gross','sehr_gross'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Gekoppeltes Tablet: Team-Tablet (sieht alles für die Rolle Assistenz, keine Person) und/oder persönliche PIN-Anmeldung';
 
