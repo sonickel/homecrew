@@ -1,0 +1,7 @@
+# Second login step in plain words (overrides the bundled texts)
+code_invalid: 'Der Code stimmt nicht. Versuch es noch einmal.'
+code_reused: 'Dieser Code wurde schon benutzt. Warte auf den nächsten Code in der App.'
+'Invalid CSRF token.': 'Die Seite war zu lange offen. Bitte versuch es noch einmal.'
+'Too many failed login attempts, please try again later.': 'Zu viele Fehlversuche. Bitte warte etwas und versuch es dann noch einmal.'
+'Too many failed login attempts, please try again in %minutes% minute.': 'Zu viele Fehlversuche. Bitte warte eine Minute und versuch es dann noch einmal.'
+'Too many failed login attempts, please try again in %minutes% minutes.': 'Zu viele Fehlversuche. Bitte warte %minutes% Minuten und versuch es dann noch einmal.'

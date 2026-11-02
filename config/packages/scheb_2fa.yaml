@@ -1,0 +1,14 @@
+# See the configuration reference at https://symfony.com/bundles/SchebTwoFactorBundle/current/configuration.html
+scheb_two_factor:
+    # Only a password login asks for the second step; a passkey login (WebauthnToken) is complete on its own
+    security_tokens:
+        - Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken
+        - Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken
+    # Providers: App\Security\TwoFactor\AuthenticatorAppProvider ("app"), PasskeyRecoveryProvider ("passkey")
+    # Recovery codes: keyed hashes, see App\Security\TwoFactor\RecoveryCodeManager
+    backup_codes:
+        enabled: true
+        manager: App\Security\TwoFactor\RecoveryCodeManager
+    # A code from the app works only once
+    code_reuse_cache: cache.app
+    code_reuse_cache_duration: 90

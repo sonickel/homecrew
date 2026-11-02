@@ -17,7 +17,7 @@ Antwort auf die Frage „Sind für alles Pflegemasken vorgesehen?": **Ja.** Alle
 | **Einstellungen** | Allgemein | Haushaltsname, Zeitzone, Feiertagsregion, Auto-Sperre Tablet, PIN nur im Heimnetz, Ansichtszeitraum eigener Zeiten (3 Monate), max. Dienstdauer, Videolänge, Freigabe-Modus für Anleitungen | 1 |
 | | Benachrichtigungen | Uhrzeit der Tageszusammenfassung (18:00), Push erlauben (Stufe 4); Standards je Rolle ansehen | 1 |
 | | Nachrichten | **Sprachnachrichten an/aus**, Assistenz untereinander an/aus | 2 |
-| | Löschfristen | Übergaben, Erledigungen, **Meldungen (365 Tage)**, Nachrichten (365 Tage), Benachrichtigungen, KI, Protokoll, Personaldaten | 1 |
+| | Löschfristen | Übergaben, Erledigungen, **Meldungen (365 Tage)**, Nachrichten (365 Tage), Benachrichtigungen, KI, Protokoll, Personaldaten – jede Frist erscheint erst mit ihrer Funktion (Nachrichten/KI Stufe 2, KI nur wenn eingerichtet; Personaldaten Stufe 3) | 1 |
 | **Erweiterungen** | **Übersicht** | Kacheln mit Status: KI · Spracherkennung · E-Mail · Push (Stufe 4) – jeweils „nicht eingerichtet" / „ok" / „Fehler" | 1 |
 | | **KI** | API-Schlüssel hinterlegen (danach nur „••••a1b2"), Modell, **Verbindung testen**, Hauptschalter, Funktionen einzeln (Assistent · Schreibhilfe · Übersetzung · am Team-Tablet), Monatsbudget, Verbrauch dieses Monats – Details Konzept 7 §2 | 1 (Seite), 2 (Funktionen) |
 | | **Spracherkennung** | lokal (whisper.cpp) / aus, Status des Dienstes, Testaufnahme | 2 |
@@ -59,5 +59,5 @@ Einzelne Termine und Besuche legen Admins direkt im Kalender an (Tipp in einen f
 
 ## 3. Kleine Helfer
 - **Zugangs-Kärtchen** drucken (Name, Benutzername, Start-PIN/-Passwort, Hinweis zur ersten Anmeldung).
-- **Prüfliste vor dem Start**: Manager mit 2FA (Passkey oder Authenticator-App – geht ohne E-Mail), E-Mail eingerichtet und Testmail ok, E-Mail-Benachrichtigung für Meldungen eingerichtet, Tablet gekoppelt (Modus Team), Notfall-Infos gepflegt, Profil-Einträge auf richtige Sichtbarkeit geprüft, Dienstplan angelegt, regelmäßige Besuche (Physio, Caritas …) als Serien angelegt; optional KI-Schlüssel hinterlegt.
+- **Prüfliste vor dem Start**: 2FA-Pflicht für Admins eingeschaltet (`ADMIN_2FA_REQUIRED=1`), Manager mit 2FA (Passkey oder Authenticator-App – geht ohne E-Mail), E-Mail eingerichtet und Testmail ok, E-Mail-Benachrichtigung für Meldungen eingerichtet, Tablet gekoppelt (Modus Team), Notfall-Infos gepflegt, Profil-Einträge auf richtige Sichtbarkeit geprüft, Dienstplan angelegt, regelmäßige Besuche (Physio, Caritas …) als Serien angelegt; optional KI-Schlüssel hinterlegt.
 - **Erinnerung Monatsende**: „Dienstplan für Oktober übernehmen und prüfen" auf „Heute" der Admins.

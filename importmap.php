@@ -28,4 +28,7 @@ return [
     '@hotwired/turbo' => [
         'version' => '8.0.23',
     ],
+    '@simplewebauthn/browser' => [
+        'version' => '14.0.0',
+    ],
 ];

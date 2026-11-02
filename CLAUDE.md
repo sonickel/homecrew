@@ -47,7 +47,7 @@ Abweichungen vom Konzept nur nach Rückfrage; danach das Konzept-Dokument mit an
 - **Besuche** externer Dienste: reine Info, für alle sichtbar, keine Zuständigkeit/Begleitung
 - **Meldungen**: „nicht möglich" erzeugt genau eine Meldung; Admins werden nach ihren Regeln benachrichtigt; automatischer Abschluss
 - **„Zuletzt erledigt"**: für alle nur Datum; Person bzw. „Team-Tablet" nur für Admins
-- **Admins**: 2FA/Passkey Pflicht; PIN und Team-Modus geben nie Admin-Rechte
+- **Admins**: 2FA/Passkey Pflicht (Schalter `ADMIN_2FA_REQUIRED`, vorerst aus – vor dem Echtbetrieb einschalten); Admin-Recht nur über `AdminVoter` (`Permission::ADMIN`), nie über eine Rolle; PIN und Team-Modus geben nie Admin-Rechte
 - **Arbeitszeiten**: Assistenz sieht 3 Monate, bearbeitet nur am selben Tag; danach nur Admins mit Begründung; „Dienstplan übernehmen" überschreibt nie
 - **Datenschutz**: nur Anzeigenamen; keine Diagnosen, Medikamente, Adressen, SV-/Steuernummern; Löschfristen
 - **Barrierefreiheit**: WCAG 2.2 AA, Bedienelemente ≥ 48 px, Status nie nur über Farbe, Schriftgröße pro Person/Gerät
@@ -58,3 +58,7 @@ Abweichungen vom Konzept nur nach Rückfrage; danach das Konzept-Dokument mit an
 - CSS nie aus JavaScript importieren: AssetMapper macht daraus `data:`-Module, die die strikte CSP blockiert – dann läuft gar kein JS (Turbo/Stimulus). BrowserKit-Tests merken das nicht; nach Änderungen an Assets im echten Browser prüfen (Konsole ohne CSP-Fehler, `typeof Turbo === "object"`). (M0)
 - Die lokale CA der Symfony CLI liegt unter `~/.config/symfony-cli/certs/` (nicht `~/.symfony5`). (M0)
 - dama/doctrine-test-bundle hält je Verbindungsname eine offene Verbindung und nutzt sie auch bei geänderter `DATABASE_URL` weiter – ein Test, der die DB unerreichbar macht, muss `StaticDriver::setKeepStaticConnections(false)` setzen (und danach zurück). Die Testumgebung liest `.env.local` nicht, Zugangsdaten stehen in `.env.test.local`. (M1)
+- Tests mit `createClient(['debug' => false])` prüfen den Container-Cache in `var/cache/test` nicht auf Aktualität – nach Konfigurationsänderungen laufen sie sonst mit altem Container (z. B. ohne Security). `composer qa` leert deshalb vorher den Test-Cache. (M2)
+- Rate-Limiter und `cache.app` liegen in Tests im Dateicache und überdauern Tests – Testklassen mit Anmeldungen starten über `PeopleTrait::startClient()`, das die Pools leert. Ein Array-Cache hilft nicht: Symfony setzt ihn nach jedem Request zurück. (M2)
+- Die Firewall ist „lazy": `access_control` greift vor dem Abmelden. Pfade, die mitten im zweiten Anmeldeschritt erreichbar sein müssen (`/abmelden`), brauchen eine eigene `PUBLIC_ACCESS`-Regel. (M2)
+- EasyAdmin gibt Werte aus `formatValue()` als HTML aus (`|raw`) – dort immer selbst escapen. Generische `Field::new()` ersetzt EasyAdmin durch einen geratenen Typ (dabei geht `formatValue` verloren); virtuelle Spalten brauchen einen expliziten Template-Pfad. (M2)

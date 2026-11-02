@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Wiederherstellungscodes'|trans }}{% endblock %}
+
+{% block head_meta %}<meta name="turbo-cache-control" content="no-cache">{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Wiederherstellungscodes'|trans" />
+
+    {% if codes is null %}
+        <p>{{ 'Ist dein Handy weg oder kaputt, kommst du mit einem Wiederherstellungscode trotzdem hinein. Jeder Code funktioniert genau einmal.'|trans }}</p>
+        {# Without Turbo: the codes come in the answer itself and are never stored readable #}
+        <form method="post" action="{{ path('app_account_recovery_codes') }}" data-turbo="false">
+            <input type="hidden" name="_token" value="{{ csrf_token('recovery-codes') }}">
+            <twig:Button type="submit" icon="tabler:key">{{ 'Codes anzeigen'|trans }}</twig:Button>
+        </form>
+    {% else %}
+        <twig:Alert type="ok" :message="'Deine Wiederherstellungscodes sind fertig. Du siehst sie nur dieses eine Mal.'|trans" />
+        <p>{{ 'Drucke sie aus oder schreib sie ab und bewahre sie gut auf – nicht auf dem Handy, mit dem du dich anmeldest.'|trans }}</p>
+        <ol class="hc-codes" translate="no">
+            {% for code in codes %}
+                <li class="hc-tabular">{{ code }}</li>
+            {% endfor %}
+        </ol>
+        <div class="hc-button-row hc-no-print">
+            <twig:Button variant="secondary" icon="tabler:printer" data-controller="print" data-action="print#print">{{ 'Drucken'|trans }}</twig:Button>
+            <twig:Button :href="path('app_home')">{{ 'Ich habe die Codes gesichert'|trans }}</twig:Button>
+        </div>
+    {% endif %}
+{% endblock %}

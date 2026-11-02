@@ -1,0 +1,51 @@
+{% extends 'form_div_layout.html.twig' %}
+
+{# One field per row: label above, hint below the label, error with symbol and word (never colour alone) #}
+{%- block form_row -%}
+    {#- Screen readers read hint and errors together with the field -#}
+    {%- set described_by = [] -%}
+    {%- if help is not empty -%}{%- set described_by = described_by|merge([id ~ '_help']) -%}{%- endif -%}
+    {%- if errors|length > 0 -%}{%- set described_by = described_by|merge([id ~ '_errors']) -%}{%- endif -%}
+    {%- set widget_attr = described_by is empty ? {} : {attr: {'aria-describedby': described_by|join(' ')}} -%}
+    <div class="hc-field{{ errors|length > 0 ? ' hc-field--error' }}">
+        {{- form_label(form) -}}
+        {{- form_help(form) -}}
+        {{- form_errors(form) -}}
+        {{- form_widget(form, widget_attr) -}}
+    </div>
+{%- endblock form_row -%}
+
+{%- block repeated_row -%}
+    {{- block('form_rows') -}}
+{%- endblock repeated_row -%}
+
+{%- block form_label_class -%}hc-field__label{%- endblock -%}
+
+{%- block form_label -%}
+    {%- set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' hc-field__label')|trim}) -%}
+    {{- parent() -}}
+{%- endblock form_label -%}
+
+{%- block form_help -%}
+    {%- if help is not empty -%}
+        <p id="{{ id }}_help" class="hc-field__help">{{ help|trans(help_translation_parameters, translation_domain) }}</p>
+    {%- endif -%}
+{%- endblock form_help -%}
+
+{%- block form_errors -%}
+    {%- if errors|length > 0 -%}
+        <ul class="hc-field__errors" id="{{ id }}_errors">
+            {%- for error in errors -%}
+                <li>{{ ux_icon('tabler:alert-circle', {'aria-hidden': 'true'}) }}<span>{{ error.message }}</span></li>
+            {%- endfor -%}
+        </ul>
+    {%- endif -%}
+{%- endblock form_errors -%}
+
+{%- block widget_attributes -%}
+    {%- set attr = attr|merge({class: (attr.class|default('') ~ ' hc-input')|trim}) -%}
+    {%- if errors|length > 0 -%}
+        {%- set attr = attr|merge({'aria-invalid': 'true'}) -%}
+    {%- endif -%}
+    {{- parent() -}}
+{%- endblock widget_attributes -%}

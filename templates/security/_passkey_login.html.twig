@@ -1,0 +1,12 @@
+{# Passkey login without username; hidden until the Stimulus controller knows the browser supports passkeys #}
+<section class="hc-section hc-passkey" hidden
+         data-controller="passkey"
+         data-passkey-options-url-value="{{ path('webauthn.controller.security.main.request.options') }}"
+         data-passkey-result-url-value="{{ path('webauthn.controller.security.main.request.result') }}">
+    <h2>{{ 'Ohne Passwort'|trans }}</h2>
+    <p>{{ 'Mit einem Passkey meldest du dich per Fingerabdruck, Gesicht oder Geräte-PIN an.'|trans }}</p>
+    <div class="hc-button-row">
+        <twig:Button variant="secondary" icon="tabler:fingerprint" data-action="passkey#login" data-passkey-target="button">{{ 'Mit Passkey anmelden'|trans }}</twig:Button>
+    </div>
+    <p class="hc-passkey__message" data-passkey-target="message" role="alert" hidden></p>
+</section>

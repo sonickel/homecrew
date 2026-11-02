@@ -1,0 +1,9 @@
+# Login messages of Symfony in plain words and the informal "du" of HomeCrew (overrides the bundled "Sie" texts)
+'Invalid credentials.': 'Benutzername oder Passwort stimmt nicht.'
+'Invalid CSRF token.': 'Die Seite war zu lange offen. Bitte versuch es noch einmal.'
+'Account is disabled.': 'Dein Zugang ist gesperrt. Bitte wende dich an einen Admin.'
+'Too many failed login attempts, please try again later.': 'Zu viele Fehlversuche. Bitte warte etwas und versuch es dann noch einmal.'
+'Too many failed login attempts, please try again in %minutes% minute.': 'Zu viele Fehlversuche. Bitte warte eine Minute und versuch es dann noch einmal.'
+'Too many failed login attempts, please try again in %minutes% minutes.': 'Zu viele Fehlversuche. Bitte warte %minutes% Minuten und versuch es dann noch einmal.'
+'Authentication request could not be processed due to a system problem.': 'Die Anmeldung geht gerade nicht. Bitte versuch es später noch einmal.'
+'An authentication exception occurred.': 'Die Anmeldung hat nicht geklappt. Bitte versuch es noch einmal.'

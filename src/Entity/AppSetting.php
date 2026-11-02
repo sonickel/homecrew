@@ -8,6 +8,7 @@ use App\Doctrine\Type\TinyIntType;
 use App\Enum\AiProvider;
 use App\Enum\ExtensionStatus;
 use App\Enum\GuidePublishMode;
+use App\Enum\HolidayRegion;
 use App\Enum\MinijobProcedure;
 use App\Enum\SmtpEncryption;
 use App\Enum\SpeechRecognition;
@@ -15,6 +16,7 @@ use App\Repository\AppSettingRepository;
 use Doctrine\DBAL\Schema\DefaultExpression\CurrentTimestamp;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Settings of the household: exactly one row (id = 1), created by the first migration.
@@ -31,13 +33,16 @@ class AppSetting
     private int $id = self::ID;
 
     #[ORM\Column(name: 'household_name', length: 100, options: ['default' => 'Mein Haushalt'])]
+    #[Assert\NotBlank(message: 'Bitte gib einen Namen für den Haushalt ein.')]
+    #[Assert\Length(max: 100)]
     private string $householdName = 'Mein Haushalt';
 
     #[ORM\Column(name: 'timezone', length: 40, options: ['default' => 'Europe/Berlin'])]
+    #[Assert\Timezone(message: 'Diese Zeitzone gibt es nicht.')]
     private string $timezone = 'Europe/Berlin';
 
-    #[ORM\Column(name: 'holiday_region', length: 20, options: ['default' => 'BY'])]
-    private string $holidayRegion = 'BY';
+    #[ORM\Column(name: 'holiday_region', length: 20, enumType: HolidayRegion::class, options: ['default' => 'BY'])]
+    private HolidayRegion $holidayRegion = HolidayRegion::Bayern;
 
     #[ORM\Column(name: 'minijob_procedure', length: 20, enumType: MinijobProcedure::class, options: ['default' => 'haushaltsscheck'])]
     private MinijobProcedure $minijobProcedure = MinijobProcedure::Haushaltsscheck;
@@ -55,9 +60,11 @@ class AppSetting
     private int $maxShiftMinutes = 600;
 
     #[ORM\Column(name: 'time_view_months', type: TinyIntType::NAME, options: ['unsigned' => true, 'default' => 3])]
+    #[Assert\Range(min: 1, max: 24, notInRangeMessage: 'Bitte wähle zwischen {{ min }} und {{ max }} Monaten.')]
     private int $timeViewMonths = 3;
 
     #[ORM\Column(name: 'video_max_seconds', type: Types::SMALLINT, options: ['unsigned' => true, 'default' => 90])]
+    #[Assert\Range(min: 10, max: 90, notInRangeMessage: 'Videos dürfen zwischen {{ min }} und {{ max }} Sekunden lang sein.')]
     private int $videoMaxSeconds = 90;
 
     #[ORM\Column(name: 'voice_messages_enabled', options: ['default' => true])]
@@ -145,27 +152,34 @@ class AppSetting
     private ?\DateTimeImmutable $mailCheckedAt = null;
 
     #[ORM\Column(name: 'retention_handover_days', type: Types::SMALLINT, options: ['unsigned' => true, 'default' => 30])]
+    #[Assert\Range(min: 1, max: 3650, notInRangeMessage: 'Bitte wähle zwischen {{ min }} und {{ max }} Tagen.')]
     private int $retentionHandoverDays = 30;
 
     #[ORM\Column(name: 'retention_completion_days', type: Types::SMALLINT, options: ['unsigned' => true, 'default' => 90])]
+    #[Assert\Range(min: 1, max: 3650, notInRangeMessage: 'Bitte wähle zwischen {{ min }} und {{ max }} Tagen.')]
     private int $retentionCompletionDays = 90;
 
     #[ORM\Column(name: 'completion_keep_last', type: TinyIntType::NAME, options: ['unsigned' => true, 'default' => 5])]
+    #[Assert\Range(min: 1, max: 50, notInRangeMessage: 'Bitte wähle zwischen {{ min }} und {{ max }}.')]
     private int $completionKeepLast = 5;
 
     #[ORM\Column(name: 'retention_done_task_days', type: Types::SMALLINT, options: ['unsigned' => true, 'default' => 365])]
+    #[Assert\Range(min: 1, max: 3650, notInRangeMessage: 'Bitte wähle zwischen {{ min }} und {{ max }} Tagen.')]
     private int $retentionDoneTaskDays = 365;
 
     #[ORM\Column(name: 'retention_chat_days', type: Types::SMALLINT, options: ['unsigned' => true, 'default' => 365])]
     private int $retentionChatDays = 365;
 
     #[ORM\Column(name: 'retention_notification_days', type: Types::SMALLINT, options: ['unsigned' => true, 'default' => 30])]
+    #[Assert\Range(min: 1, max: 3650, notInRangeMessage: 'Bitte wähle zwischen {{ min }} und {{ max }} Tagen.')]
     private int $retentionNotificationDays = 30;
 
     #[ORM\Column(name: 'retention_report_days', type: Types::SMALLINT, options: ['unsigned' => true, 'default' => 365])]
+    #[Assert\Range(min: 1, max: 3650, notInRangeMessage: 'Bitte wähle zwischen {{ min }} und {{ max }} Tagen.')]
     private int $retentionReportDays = 365;
 
     #[ORM\Column(name: 'retention_audit_days', type: Types::SMALLINT, options: ['unsigned' => true, 'default' => 365])]
+    #[Assert\Range(min: 30, max: 3650, notInRangeMessage: 'Bitte wähle zwischen {{ min }} und {{ max }} Tagen.')]
     private int $retentionAuditDays = 365;
 
     #[ORM\Column(name: 'retention_ai_days', type: Types::SMALLINT, options: ['unsigned' => true, 'default' => 7])]
@@ -202,8 +216,198 @@ class AppSetting
         return $this->householdName;
     }
 
+    public function setHouseholdName(string $householdName): void
+    {
+        $this->householdName = trim($householdName);
+    }
+
     public function getTimezone(): string
     {
         return $this->timezone;
+    }
+
+    public function setTimezone(string $timezone): void
+    {
+        $this->timezone = $timezone;
+    }
+
+    public function getHolidayRegion(): HolidayRegion
+    {
+        return $this->holidayRegion;
+    }
+
+    public function setHolidayRegion(HolidayRegion $holidayRegion): void
+    {
+        $this->holidayRegion = $holidayRegion;
+    }
+
+    public function getGuidePublishMode(): GuidePublishMode
+    {
+        return $this->guidePublishMode;
+    }
+
+    public function setGuidePublishMode(GuidePublishMode $guidePublishMode): void
+    {
+        $this->guidePublishMode = $guidePublishMode;
+    }
+
+    public function getTabletLockSeconds(): int
+    {
+        return $this->tabletLockSeconds;
+    }
+
+    /**
+     * Admin form: auto lock of a personal PIN login at the tablet, in minutes.
+     */
+    #[Assert\Range(min: 1, max: 60, notInRangeMessage: 'Bitte wähle zwischen {{ min }} und {{ max }} Minuten.')]
+    public function getTabletLockMinutes(): int
+    {
+        return intdiv($this->tabletLockSeconds, 60);
+    }
+
+    public function setTabletLockMinutes(int $minutes): void
+    {
+        $this->tabletLockSeconds = $minutes * 60;
+    }
+
+    public function isPinLanOnly(): bool
+    {
+        return $this->pinLanOnly;
+    }
+
+    public function setPinLanOnly(bool $pinLanOnly): void
+    {
+        $this->pinLanOnly = $pinLanOnly;
+    }
+
+    public function getMaxShiftMinutes(): int
+    {
+        return $this->maxShiftMinutes;
+    }
+
+    /**
+     * Admin form: after how many hours an open shift raises the hint "Dienst noch offen?".
+     */
+    #[Assert\Range(min: 1, max: 24, notInRangeMessage: 'Bitte wähle zwischen {{ min }} und {{ max }} Stunden.')]
+    public function getMaxShiftHours(): int
+    {
+        return intdiv($this->maxShiftMinutes, 60);
+    }
+
+    public function setMaxShiftHours(int $hours): void
+    {
+        $this->maxShiftMinutes = $hours * 60;
+    }
+
+    public function getTimeViewMonths(): int
+    {
+        return $this->timeViewMonths;
+    }
+
+    public function setTimeViewMonths(int $timeViewMonths): void
+    {
+        $this->timeViewMonths = $timeViewMonths;
+    }
+
+    public function getVideoMaxSeconds(): int
+    {
+        return $this->videoMaxSeconds;
+    }
+
+    public function setVideoMaxSeconds(int $videoMaxSeconds): void
+    {
+        $this->videoMaxSeconds = $videoMaxSeconds;
+    }
+
+    public function isAiEnabled(): bool
+    {
+        return $this->aiEnabled;
+    }
+
+    public function getAiKeyStatus(): ExtensionStatus
+    {
+        return $this->aiKeyStatus;
+    }
+
+    public function isMailEnabled(): bool
+    {
+        return $this->mailEnabled;
+    }
+
+    public function getMailStatus(): ExtensionStatus
+    {
+        return $this->mailStatus;
+    }
+
+    // Retention periods (Stage 1; chat, AI and HR data appear with their features)
+
+    public function getRetentionHandoverDays(): int
+    {
+        return $this->retentionHandoverDays;
+    }
+
+    public function setRetentionHandoverDays(int $days): void
+    {
+        $this->retentionHandoverDays = $days;
+    }
+
+    public function getRetentionCompletionDays(): int
+    {
+        return $this->retentionCompletionDays;
+    }
+
+    public function setRetentionCompletionDays(int $days): void
+    {
+        $this->retentionCompletionDays = $days;
+    }
+
+    public function getCompletionKeepLast(): int
+    {
+        return $this->completionKeepLast;
+    }
+
+    public function setCompletionKeepLast(int $count): void
+    {
+        $this->completionKeepLast = $count;
+    }
+
+    public function getRetentionDoneTaskDays(): int
+    {
+        return $this->retentionDoneTaskDays;
+    }
+
+    public function setRetentionDoneTaskDays(int $days): void
+    {
+        $this->retentionDoneTaskDays = $days;
+    }
+
+    public function getRetentionNotificationDays(): int
+    {
+        return $this->retentionNotificationDays;
+    }
+
+    public function setRetentionNotificationDays(int $days): void
+    {
+        $this->retentionNotificationDays = $days;
+    }
+
+    public function getRetentionReportDays(): int
+    {
+        return $this->retentionReportDays;
+    }
+
+    public function setRetentionReportDays(int $days): void
+    {
+        $this->retentionReportDays = $days;
+    }
+
+    public function getRetentionAuditDays(): int
+    {
+        return $this->retentionAuditDays;
+    }
+
+    public function setRetentionAuditDays(int $days): void
+    {
+        $this->retentionAuditDays = $days;
     }
 }

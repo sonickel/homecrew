@@ -15,12 +15,17 @@ use Doctrine\DBAL\Schema\DefaultExpression\CurrentTimestamp;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Uid\Uuid;
 
 /**
  * Person in the household: role, admin right, login data (password/passkey/2FA and/or tablet PIN), personal settings.
  * Mapped column by column after docs/datenbank/schema.sql; CHECK constraints and the generated
  * column manager_marker live in the migration. External services are no AppUser (see visitor).
+ *
+ * Also the security user of a personal login. It only grants ROLE_USER – the admin right is decided by
+ * App\Security\Voter\AdminVoter (admin flag + 2FA + full login), never by a role.
  */
 #[ORM\Entity(repositoryClass: AppUserRepository::class)]
 #[ORM\Table(name: 'app_user', options: ['comment' => 'Person im Haushalt: Rolle, Admin-Recht, Anmeldung (Passwort/Passkey/2FA und/oder Tablet-PIN), Einstellungen'])]
@@ -29,7 +34,7 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\UniqueConstraint(name: 'uq_user_display', columns: ['display_name'])]
 #[ORM\UniqueConstraint(name: 'uq_user_email', columns: ['email'])]
 #[ORM\UniqueConstraint(name: 'uq_user_manager', columns: ['manager_marker'])]
-class AppUser
+class AppUser implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -259,9 +264,24 @@ class AppUser
         return $this->activeFrom;
     }
 
+    public function getActiveUntil(): ?\DateTimeImmutable
+    {
+        return $this->activeUntil;
+    }
+
+    public function getDisabledAt(): ?\DateTimeImmutable
+    {
+        return $this->disabledAt;
+    }
+
     public function getTwofaMethod(): TwoFactorMethod
     {
         return $this->twofaMethod;
+    }
+
+    public function hasTwoFactor(): bool
+    {
+        return TwoFactorMethod::Keine !== $this->twofaMethod;
     }
 
     public function getFontSize(): FontSize
@@ -277,5 +297,151 @@ class AppUser
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    // Security user
+
+    public function getUserIdentifier(): string
+    {
+        \assert('' !== $this->username);
+
+        return $this->username;
+    }
+
+    public function getRoles(): array
+    {
+        return ['ROLE_USER'];
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->passwordHash;
+    }
+
+    #[\Deprecated]
+    public function eraseCredentials(): void
+    {
+        // Nothing to erase: the entity never holds a plain password, PIN or secret
+    }
+
+    /**
+     * Only what the firewall needs to reload the person; the password hash only as checksum,
+     * so a password change ends other sessions (Symfony compares it on every request).
+     *
+     * @return array{id: ?int, username: string, password: ?string}
+     */
+    public function __serialize(): array
+    {
+        return [
+            'id' => $this->id,
+            'username' => $this->username,
+            'password' => null === $this->passwordHash ? null : hash('crc32c', $this->passwordHash),
+        ];
+    }
+
+    /**
+     * @param array{id: ?int, username: string, password: ?string} $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $this->id = $data['id'];
+        $this->username = $data['username'];
+        $this->passwordHash = $data['password'];
+    }
+
+    public function isPasswordMustChange(): bool
+    {
+        return $this->passwordMustChange;
+    }
+
+    /**
+     * @param string $passwordHash already hashed by the password hasher
+     * @param bool   $mustChange   true for a start password set by an admin or the setup command
+     */
+    public function changePassword(string $passwordHash, bool $mustChange = false): void
+    {
+        $this->passwordHash = $passwordHash;
+        $this->passwordMustChange = $mustChange;
+    }
+
+    public function recordLogin(\DateTimeImmutable $at): void
+    {
+        $this->lastLoginAt = $at;
+    }
+
+    public function getLastLoginAt(): ?\DateTimeImmutable
+    {
+        return $this->lastLoginAt;
+    }
+
+    // Second factor
+
+    /**
+     * @param string $encryptedSecret encrypted by App\Service\Security\SecretBox
+     */
+    public function enableAuthenticatorApp(string $encryptedSecret): void
+    {
+        $this->totpSecretEnc = $encryptedSecret;
+        $this->twofaMethod = TwoFactorMethod::Totp;
+    }
+
+    public function getTotpSecretEnc(): ?string
+    {
+        return $this->totpSecretEnc;
+    }
+
+    /**
+     * A passkey becomes the second factor only when there is none yet; an authenticator app stays in charge.
+     */
+    public function addPasskeyAsTwoFactor(): void
+    {
+        if (TwoFactorMethod::Keine === $this->twofaMethod) {
+            $this->twofaMethod = TwoFactorMethod::Passkey;
+        }
+    }
+
+    /**
+     * Removes app secret and recovery codes (passkeys are separate rows, see WebauthnCredentialRepository).
+     */
+    public function resetTwoFactor(): void
+    {
+        $this->twofaMethod = TwoFactorMethod::Keine;
+        $this->totpSecretEnc = null;
+        $this->twofaBackupCodes = null;
+    }
+
+    /**
+     * Recovery codes are stored as keyed hashes only (App\Security\TwoFactor\RecoveryCodeManager);
+     * the plain codes are shown once and never saved.
+     *
+     * @param list<string> $hashes
+     */
+    public function replaceRecoveryCodeHashes(array $hashes): void
+    {
+        $this->twofaBackupCodes = $hashes;
+    }
+
+    public function countRecoveryCodes(): int
+    {
+        return \count($this->twofaBackupCodes ?? []);
+    }
+
+    public function hasRecoveryCodeHash(string $hash): bool
+    {
+        foreach ($this->twofaBackupCodes ?? [] as $storedHash) {
+            if (hash_equals($storedHash, $hash)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function removeRecoveryCodeHash(string $hash): void
+    {
+        $this->twofaBackupCodes = array_values(array_filter(
+            $this->twofaBackupCodes ?? [],
+            static fn (string $storedHash): bool => !hash_equals($storedHash, $hash),
+        ));
     }
 }

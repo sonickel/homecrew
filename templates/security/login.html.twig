@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Anmelden'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Anmelden'|trans" :intro="household_name()" />
+
+    {% if idle_logout %}
+        {% set idle_text = idle_minutes % 60 == 0
+            ? 'Du warst eine Stunde nicht aktiv und wurdest abgemeldet. Melde dich bitte neu an.|Du warst %count% Stunden nicht aktiv und wurdest abgemeldet. Melde dich bitte neu an.'|trans({'%count%': idle_minutes // 60})
+            : 'Du warst eine Minute nicht aktiv und wurdest abgemeldet. Melde dich bitte neu an.|Du warst %count% Minuten nicht aktiv und wurdest abgemeldet. Melde dich bitte neu an.'|trans({'%count%': idle_minutes}) %}
+        <twig:Alert :message="idle_text" />
+    {% endif %}
+    {% if error %}
+        <twig:Alert type="error" :message="error.messageKey|trans(error.messageData, 'security')" />
+    {% endif %}
+
+    <form class="hc-form" method="post" action="{{ path('app_login') }}">
+        <div class="hc-field">
+            <label class="hc-field__label" for="username">{{ 'Benutzername'|trans }}</label>
+            <input class="hc-input" type="text" id="username" name="_username" value="{{ last_username }}"
+                   autocomplete="username webauthn" autocapitalize="none" spellcheck="false" required>
+        </div>
+        <div class="hc-field">
+            <label class="hc-field__label" for="password">{{ 'Passwort'|trans }}</label>
+            <input class="hc-input" type="password" id="password" name="_password" autocomplete="current-password" required>
+        </div>
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}" data-controller="csrf-protection">
+        <div class="hc-button-row">
+            <twig:Button type="submit" icon="tabler:login">{{ 'Anmelden'|trans }}</twig:Button>
+        </div>
+    </form>
+
+    {{ include('security/_passkey_login.html.twig') }}
+{% endblock %}

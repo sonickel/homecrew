@@ -1,0 +1,26 @@
+# Passkeys (konzept-1 §5): login without username and adding a passkey as second factor.
+# Origins are not listed: the origin must match the relying party id (WEBAUTHN_RP_ID or the host of the request).
+webauthn:
+    credential_repository: App\Security\Passkey\PasskeyCredentialRepository
+    user_repository: App\Security\Passkey\PasskeyUserRepository
+    creation_profiles:
+        default:
+            rp:
+                id: '%env(default::WEBAUTHN_RP_ID)%'
+            authenticator_selection_criteria:
+                resident_key: required
+                user_verification: required
+            attestation_conveyance: none
+    request_profiles:
+        login:
+            rp_id: '%env(default::WEBAUTHN_RP_ID)%'
+            user_verification: required
+    controllers:
+        enabled: true
+        creation:
+            add_passkey:
+                options_path: /konto/passkey/optionen
+                result_path: /konto/passkey
+                user_entity_guesser: Webauthn\Bundle\Security\Guesser\CurrentUserEntityGuesser
+                success_handler: App\Security\Passkey\PasskeyRegisteredHandler
+                failure_handler: App\Security\Passkey\PasskeyRegisteredHandler

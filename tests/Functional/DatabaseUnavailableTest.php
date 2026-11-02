@@ -8,7 +8,7 @@ use DAMA\DoctrineTestBundle\Doctrine\DBAL\StaticDriver;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
- * If the database is down (e.g. MariaDB restarting on the Pi), visitors still get a German error page
+ * If the database is down (e.g. MariaDB restarting on the Pi), visitors still get German pages
  * instead of a blank one – so neither the layout nor the error pages may need the database.
  */
 final class DatabaseUnavailableTest extends WebTestCase
@@ -32,10 +32,21 @@ final class DatabaseUnavailableTest extends WebTestCase
         $_SERVER['DATABASE_URL'] = $_ENV['DATABASE_URL'] = $this->databaseUrl;
     }
 
+    public function testLoginPageRendersWithFallbackName(): void
+    {
+        $client = static::createClient(['debug' => false]);
+        $client->request('GET', '/anmelden');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextSame('title', 'Anmelden – HomeCrew');
+    }
+
     public function testPageThatNeedsTheDatabaseShowsTheGermanErrorPage(): void
     {
         $client = static::createClient(['debug' => false]);
-        $client->request('GET', '/');
+        $client->request('GET', '/anmelden');
+        // Checking the password needs the database
+        $client->submitForm('Anmelden', ['_username' => 'max', '_password' => 'egal-egal-egal']);
 
         self::assertResponseStatusCodeSame(500);
         self::assertSelectorTextContains('h1', 'Etwas ist schiefgelaufen');

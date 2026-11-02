@@ -6,6 +6,15 @@ framework:
         cookie_secure: auto
         cookie_samesite: lax
         cookie_httponly: true
+        cookie_lifetime: 0
+        # Own place and lifetime instead of php.ini (Debian deletes sessions there after 24 minutes):
+        # logins end after SESSION_IDLE_MINUTES (8 h) without a request (App\EventSubscriber\SessionIdleSubscriber),
+        # so the session files must live longer than that – keep gc_maxlifetime above SESSION_IDLE_MINUTES * 60
+        handler_id: session.handler.native_file
+        save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
+        gc_maxlifetime: 36000
+        gc_probability: 1
+        gc_divisor: 100
 
 when@test:
     framework:

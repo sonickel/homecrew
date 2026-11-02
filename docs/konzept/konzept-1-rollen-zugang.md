@@ -16,7 +16,7 @@ Stand: 01.11.2026 (nachmittags) · Status: Entwurf · App-Name: **HomeCrew**
 | **Angehörige** | Familie, Vertrauenspersonen | optional |
 | **Assistenz** | Assistenzkräfte | nie (keine Bearbeitung eigener Zeiten) |
 
-„Admins" = Manager + Angehörige mit Admin-Recht. **2FA oder Passkey ist für alle Admins Pflicht.**
+„Admins" = Manager + Angehörige mit Admin-Recht. **2FA oder Passkey ist für alle Admins Pflicht** – technisch über den Schalter `ADMIN_2FA_REQUIRED`, auf Wunsch vorerst aus (Admins sehen dann einen Hinweis zum Einrichten); vor dem Echtbetrieb einschalten (Entscheidung 01.11. abends).
 
 ## 3. Rechte-Matrix
 Legende: ✅ ja · ⚙️ per Schalter (Standard aus) · 👁 nur eigene · – nein
@@ -72,9 +72,12 @@ Legende: ✅ ja · ⚙️ per Schalter (Standard aus) · 👁 nur eigene · – 
 
 ## 5. Anmeldung
 - **Web-App** im Browser (Handy, Tablet, PC), kein App-Store, kein Offline.
-- **Handy/PC**: Benutzername + Passwort oder Passkey; 2FA (Passkey · Authenticator-App · E-Mail-Code) + Wiederherstellungscodes; Pflicht für Admins.
+- **Handy/PC**: Benutzername + Passwort oder Passkey; 2FA (Passkey · Authenticator-App · E-Mail-Code) + Wiederherstellungscodes; Pflicht für Admins (Schalter, s. §2).
+  - **Passkey = vollständige Anmeldung** (Fingerabdruck, Gesicht oder Geräte-PIN, ohne Benutzername). Wer einen Passkey als zweiten Schritt hat, kommt mit dem Passwort nur zusammen mit einem Wiederherstellungscode weiter.
+  - 10 Wiederherstellungscodes, jeder einmal gültig, nur einmal angezeigt; zweiter Schritt und Passwort je 5 Versuche in 15 Minuten, dann Wartezeit.
+  - Abmeldung nach **8 Stunden** ohne Aktivität (Tablet kürzer, Konzept 12).
 - **Tablet**: Modus pro Gerät – **Team** (ohne Anmeldung, Standard) · **Persönlich** (Name + PIN) · **Beides** (Konzept 12). Im Team-Modus kein eigener Entsperr-Code (Bildschirmschoner + ggf. Android-Sperre). PIN pro Person aktivierbar (Standard aus), nur gekoppelte Tablets im Heimnetz, nie Admin-Rechte über PIN. Admin-Anmeldung am Tablet nur voll mit 2FA, danach automatisch zurück.
-- **Zurücksetzen**: Admins setzen Passwort, PIN, 2FA anderer zurück; Manager: Wiederherstellungscodes, notfalls Server-Befehl.
+- **Zurücksetzen**: Admins setzen Passwort, PIN, 2FA anderer zurück; Manager: Wiederherstellungscodes, notfalls Server-Befehl `php bin/console app:manager:reset-2fa [--passwort]` (entfernt App, Codes und Passkeys, optional neues Start-Passwort). Erste Einrichtung: `php bin/console app:setup`.
 - **Austritt**: Zugang entfernt, Person bleibt als Anker für Arbeitszeiten; Checkliste „Austritt".
 
 ## 6. E-Mail

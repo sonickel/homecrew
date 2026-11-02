@@ -1,0 +1,28 @@
+/* Administration (EasyAdmin): same font, colours and focus ring as HomeCrew; the denser table look stays */
+:root,
+.ea-dark-scheme {
+    --font-family-base: var(--hc-font-family);
+    --font-family-sans-serif: var(--hc-font-family);
+}
+
+body.ea {
+    font-family: var(--hc-font-family);
+    font-size: max(1rem, 16px);
+}
+
+body.ea :focus-visible {
+    outline: var(--hc-focus-width) solid var(--hc-focus);
+    outline-offset: 2px;
+}
+
+/* Touch targets of at least 48px for buttons, menu entries and form fields */
+body.ea .btn,
+body.ea .menu-item-contents,
+body.ea .form-control,
+body.ea .form-select {
+    min-height: var(--hc-target);
+}
+
+body.ea .form-help {
+    color: var(--hc-ink);
+}

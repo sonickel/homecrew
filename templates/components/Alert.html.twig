@@ -1,0 +1,10 @@
+{# Message box: symbol + text, read out by screen readers; message is passed already translated #}
+{% props message, type = 'info' %}
+{% set icons = {info: 'tabler:info-circle', ok: 'tabler:circle-check', error: 'tabler:alert-circle'} %}
+<div {{ attributes.defaults({class: 'hc-alert hc-alert--' ~ type, role: type == 'error' ? 'alert' : 'status'}) }}>
+    {{ ux_icon(icons[type] ?? icons.info, {class: 'hc-alert__icon', 'aria-hidden': 'true'}) }}
+    <div class="hc-alert__body">
+        <p class="hc-alert__message">{{ message }}</p>
+        {% block content %}{% endblock %}
+    </div>
+</div>

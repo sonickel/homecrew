@@ -18,7 +18,7 @@ description: Prüfliste für Rechte, Sichtbarkeit, Team-Tablet, Geheimnisse und 
 - [ ] Admin-Anmeldung am Tablet: volle Anmeldung mit 2FA, automatische Rückkehr in den Team-Modus.
 
 ## Anmeldung
-- [ ] Admins: 2FA/Passkey erzwungen; PIN-Anmeldung und Team-Modus geben nie Admin-Rechte.
+- [ ] Admins: 2FA/Passkey erzwungen, sobald `ADMIN_2FA_REQUIRED=1` (vor dem Echtbetrieb Pflicht); Admin-Recht nur über `AdminVoter`; PIN-Anmeldung und Team-Modus geben nie Admin-Rechte.
 - [ ] PIN: nur wenn für die Person aktiviert, nur gekoppeltes Gerät im Heimnetz, Sperre nach Fehlversuchen.
 - [ ] Rate-Limiting (Symfony RateLimiter) für Login, PIN, Passwort vergessen, 2FA-Code.
 - [ ] Sessions: sichere Cookies, Abmeldung nach Inaktivität (Tablet kürzer).

@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Database;
 
 use App\Enum\AiProvider;
+use App\Enum\AuditVia;
 use App\Enum\CalendarView;
+use App\Enum\DeviceMode;
 use App\Enum\EmailNotification;
 use App\Enum\ExtensionStatus;
 use App\Enum\FontSize;
@@ -39,6 +41,9 @@ final class EnumCheckConstraintTest extends DatabaseTestCase
         yield 'app_setting.ai_key_status' => ['app_setting', 'ck_setting_ai_stat', ExtensionStatus::class];
         yield 'app_setting.mail_status' => ['app_setting', 'ck_setting_mail_st', ExtensionStatus::class];
         yield 'app_setting.smtp_encryption' => ['app_setting', 'ck_setting_mail_enc', SmtpEncryption::class];
+        yield 'device.mode' => ['device', 'ck_device_mode', DeviceMode::class];
+        yield 'device.font_size' => ['device', 'ck_device_font', FontSize::class];
+        yield 'audit_log.via' => ['audit_log', 'ck_audit_via', AuditVia::class];
     }
 
     /**

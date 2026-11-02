@@ -3,9 +3,11 @@ security:
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
 
-    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_in_memory: { memory: null }
+        app_user_provider:
+            entity:
+                class: App\Entity\AppUser
+                property: username
 
     firewalls:
         dev:
@@ -14,18 +16,53 @@ security:
             security: false
         main:
             lazy: true
-            provider: users_in_memory
+            provider: app_user_provider
+            user_checker: App\Security\UserChecker
+            access_denied_handler: App\Security\AccessDeniedHandler
 
-            # Activate different ways to authenticate:
-            # https://symfony.com/doc/current/security.html#the-firewall
+            # Username + password (konzept-1 §5); a person with a second factor continues with two_factor
+            form_login:
+                login_path: app_login
+                check_path: app_login
+                enable_csrf: true
+                default_target_path: app_home
+            login_throttling:
+                max_attempts: 5
+                interval: '15 minutes'
 
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
+            # Second step after the password (scheb/2fa): code from the app or recovery code
+            two_factor:
+                auth_form_path: 2fa_login
+                check_path: 2fa_login_check
+                enable_csrf: true
+                default_target_path: app_home
+
+            # Passkey login without username – a complete login on its own (user verification required)
+            webauthn:
+                success_handler: App\Security\Passkey\PasskeyLoginHandler
+                failure_handler: App\Security\Passkey\PasskeyLoginHandler
+                authentication:
+                    profile: login
+                    routes:
+                        options_path: /anmelden/passkey/optionen
+                        result_path: /anmelden/passkey
+                registration:
+                    enabled: false
+
+            logout:
+                path: app_logout
+                target: app_login
+                enable_csrf: true
 
     # Note: Only the *first* matching rule is applied
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/anmelden/code, roles: IS_AUTHENTICATED_2FA_IN_PROGRESS }
+        - { path: ^/anmelden, roles: PUBLIC_ACCESS }
+        # The lazy firewall checks access before logging out: "Abbrechen" in the second step must work too (CSRF-protected)
+        - { path: ^/abmelden$, roles: PUBLIC_ACCESS }
+        # Admin rights are decided by App\Security\Voter\AdminVoter, the controllers check again
+        - { path: ^/verwaltung, roles: ADMIN }
+        - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:
     security:

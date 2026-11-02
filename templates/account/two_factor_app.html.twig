@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Authenticator-App'|trans }}{% endblock %}
+
+{% block head_meta %}<meta name="turbo-cache-control" content="no-cache">{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Authenticator-App einrichten'|trans" />
+
+    <ol class="hc-steps">
+        <li>
+            <p>{{ 'Öffne die Authenticator-App auf deinem Handy und scanne diesen Code:'|trans }}</p>
+            <img class="hc-qr" src="{{ qr_code }}" width="240" height="240" alt="{{ 'QR-Code für die Authenticator-App'|trans }}">
+            <p>{{ 'Scannen geht nicht? Tippe diesen Schlüssel in der App ein:'|trans }}</p>
+            <p class="hc-secret" translate="no">{% for group in secret_groups %}<span>{{ group }}</span>{% endfor %}</p>
+        </li>
+        <li>
+            <p>{{ 'Gib den Code ein, den die App jetzt für HomeCrew zeigt.'|trans }}</p>
+            {{ form_start(form, {attr: {class: 'hc-form', novalidate: 'novalidate'}}) }}
+                {{ form_widget(form) }}
+                <div class="hc-button-row">
+                    <twig:Button type="submit">{{ 'Code prüfen'|trans }}</twig:Button>
+                    <twig:Button variant="secondary" :href="path('app_account_two_factor')">{{ 'Andere Methode wählen'|trans }}</twig:Button>
+                </div>
+            {{ form_end(form) }}
+        </li>
+    </ol>
+{% endblock %}

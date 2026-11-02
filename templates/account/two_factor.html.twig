@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Zweiter Schritt'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Zweiten Schritt einrichten'|trans"
+        :intro="admin ? 'Als Admin schützt du deinen Zugang mit einem zweiten Schritt: Wer nur dein Passwort kennt, kommt dann nicht hinein.'|trans : 'Ein zweiter Schritt schützt deinen Zugang: Wer nur dein Passwort kennt, kommt dann nicht hinein.'|trans" />
+
+    <p>{{ 'Wähle, womit du dich zusätzlich ausweist. Beides geht ohne E-Mail.'|trans }}</p>
+    <ul class="hc-choice-list">
+        <li>
+            <a class="hc-choice" href="{{ path('app_account_two_factor_app') }}">
+                {{ ux_icon('tabler:device-mobile', {class: 'hc-choice__icon', 'aria-hidden': 'true'}) }}
+                <span class="hc-choice__text">
+                    <strong>{{ 'Authenticator-App'|trans }}</strong>
+                    <span>{{ 'Eine App auf deinem Handy zeigt alle 30 Sekunden einen neuen Code, z. B. Google Authenticator, Microsoft Authenticator oder Aegis.'|trans }}</span>
+                </span>
+            </a>
+        </li>
+        <li>
+            <a class="hc-choice" href="{{ path('app_account_two_factor_passkey') }}">
+                {{ ux_icon('tabler:fingerprint', {class: 'hc-choice__icon', 'aria-hidden': 'true'}) }}
+                <span class="hc-choice__text">
+                    <strong>{{ 'Passkey'|trans }}</strong>
+                    <span>{{ 'Du meldest dich künftig mit Fingerabdruck, Gesicht oder Geräte-PIN an – ganz ohne Passwort.'|trans }}</span>
+                </span>
+            </a>
+        </li>
+    </ul>
+{% endblock %}

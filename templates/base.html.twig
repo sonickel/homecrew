@@ -1,16 +1,20 @@
 <!DOCTYPE html>
-<html lang="de" data-font="{{ hc_font_size|default('normal') }}" data-contrast="{{ hc_high_contrast|default(false) ? 'hoch' : 'normal' }}">
+<html lang="de" data-font="{{ display_font_size() }}" data-contrast="{{ display_high_contrast() ? 'hoch' : 'normal' }}">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         {# Turbo reads this nonce for its progress bar. Nelmio uses one nonce per request for script and style.
            Pages loaded via Turbo keep the CSP of the first page, so: no inline <script>/<style>, only Stimulus and CSS files. #}
         <meta name="csp-nonce" content="{{ csp_nonce('style') }}">
-        <title>{% block title %}HomeCrew{% endblock %}</title>
+        {# Title: "<page> – <household>"; pages set the optional block page_title #}
+        {# Pages showing secrets: <meta name="turbo-cache-control" content="no-cache"> keeps them out of the Turbo snapshot cache #}
+        {% block head_meta %}{% endblock %}
+        <title>{% if block('page_title') is defined %}{{ block('page_title') }} – {% endif %}{{ household_name() }}</title>
         <link rel="icon" href="data:,">
         {% block stylesheets %}
             {# app.css declares the layer order and must come first #}
             <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
+            <link rel="stylesheet" href="{{ asset('styles/fonts.css') }}">
             <link rel="stylesheet" href="{{ asset('styles/tokens.css') }}">
             <link rel="stylesheet" href="{{ asset('styles/base.css') }}">
             <link rel="stylesheet" href="{{ asset('styles/components.css') }}">
@@ -26,8 +30,25 @@
         <header class="hc-topbar">
             {% set now = today() %}
             <p class="hc-topbar__date"><time datetime="{{ now|date('Y-m-d') }}">{{ now|format_date(pattern: 'EEEE, d. MMMM', locale: 'de') }}</time></p>
+            {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                <nav class="hc-topbar__nav" aria-label="{{ 'Konto'|trans }}">
+                    {% if is_granted('ADMIN') %}
+                        {# EasyAdmin brings its own layout and scripts: load it as a full page, not via Turbo #}
+                        <a class="hc-topbar__link" href="{{ path('admin') }}" data-turbo="false">{{ ux_icon('tabler:settings', {'aria-hidden': 'true'}) }}<span>{{ 'Verwaltung'|trans }}</span></a>
+                    {% endif %}
+                    <form class="hc-topbar__form" method="post" action="{{ path('app_logout') }}">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}" data-controller="csrf-protection">
+                        <button class="hc-topbar__link" type="submit">{{ ux_icon('tabler:logout', {'aria-hidden': 'true'}) }}<span>{{ 'Abmelden'|trans }}</span></button>
+                    </form>
+                </nav>
+            {% endif %}
         </header>
         <main id="inhalt" class="hc-page" tabindex="-1">
+            {% for type, messages in app.flashes(['ok', 'info', 'error']) %}
+                {% for message in messages %}
+                    <twig:Alert :type="type" :message="message|trans" />
+                {% endfor %}
+            {% endfor %}
             {% block body %}{% endblock %}
         </main>
     </body>

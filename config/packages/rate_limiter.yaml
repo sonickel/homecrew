@@ -1,0 +1,7 @@
+framework:
+    rate_limiter:
+        # Second login step (code from the app or recovery code), per person
+        two_factor:
+            policy: sliding_window
+            limit: 5
+            interval: '15 minutes'

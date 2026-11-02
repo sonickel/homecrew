@@ -1,6 +1,7 @@
 twig:
     file_name_pattern: '*.twig'
-    # Display time zone of the household; becomes app_setting.timezone later (M2)
+    form_themes: ['form/homecrew_form_theme.html.twig']
+    # Fallback only: App\EventSubscriber\TwigTimezoneSubscriber sets app_setting.timezone on every request
     date:
         timezone: 'Europe/Berlin'
 

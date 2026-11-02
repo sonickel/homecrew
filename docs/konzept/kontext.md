@@ -40,12 +40,13 @@ Stand: 01.11.2026 (nachmittags) · **Dieses Dokument ist maßgeblich**; Details 
 | 01.11. nachm. | **Lokale Entwicklung**: WSL2 Debian (`/var/www/homecrew`), PHP 8.4, **Symfony 7.4 LTS**, Symfony CLI als Webserver, vorhandene MariaDB – **ohne Docker/FrankenPHP/Mercure/whisper**. Pi später per Docker Compose mit derselben MariaDB-Version wie lokal |
 | 01.11. nachm. | **Erweiterungen im Admin-Menü**: KI-Schlüssel, Modell, Verbindungstest, Funktionsschalter, Budget; ebenso **E-Mail (SMTP)** mit Testmail. **Nicht eingerichtet = Funktion unsichtbar**; Geheimnisse verschlüsselt, Ändern nur mit erneuter 2FA (Konzept 7 §2, Konzept 11) |
 | 01.11. abends | **MariaDB 11.8 LTS** statt 11.4 LTS (lokal in WSL vorhanden: 11.8.6); der Pi nutzt im Docker-Image dieselbe Version; Migrationsstrategie in Konzept 6 §6 |
+| 01.11. abends (M2) | **Anmeldung**: Passkey ist eine vollständige Anmeldung (Fingerabdruck/Gesicht/Geräte-PIN, ohne Benutzername); wer Passkey als zweiten Schritt hat, kommt mit Passwort nur plus Wiederherstellungscode weiter. **2FA-Pflicht für Admins per Schalter** (`ADMIN_2FA_REQUIRED`) – auf Wunsch vorerst aus, **vor dem Echtbetrieb einschalten**. Persönliche Anmeldungen (Handy/PC) enden nach **8 Stunden** ohne Aktivität. Löschfristen-Maske zeigt nur Fristen vorhandener Funktionen. **Schriftgröße am Gerät** (`device.font_size`) im Schema |
 
 ## 3. Rollen (Kurzfassung)
 - **Manager** – assistierte Person, genau einer, immer Admin.
 - **Angehörige** – eigener Zugang, optional Admin.
 - **Assistenz** – Alltag, Wissen, Melden; mit eigenem Zugang zusätzlich eigene Dienste/Zeiten und Nachrichten; nie Admin.
-- **Admins** – Manager + Angehörige mit Admin-Recht: Verwaltung, Personen, Geräte, Einstellungen, Erweiterungen, Meldungs-Log; 2FA/Passkey Pflicht.
+- **Admins** – Manager + Angehörige mit Admin-Recht: Verwaltung, Personen, Geräte, Einstellungen, Erweiterungen, Meldungs-Log; 2FA/Passkey Pflicht (Schalter `ADMIN_2FA_REQUIRED`, vorerst aus – vor dem Echtbetrieb einschalten).
 - **Team-Tablet** – keine Person, sondern ein Gerät: sieht und erledigt, was für die Rolle Assistenz bestimmt ist, und kann melden.
 - **Externe Dienste** (Physio, Caritas …) – keine Nutzer, nur Besuche im Kalender.
 
@@ -77,7 +78,7 @@ Stand: 01.11.2026 (nachmittags) · **Dieses Dokument ist maßgeblich**; Details 
 - `konzept-13-meldungen.md` – Meldungen, Meldungs-Log, automatischer Abschluss, Benachrichtigungsregeln je Ereignis
 - `../archiv/review-schwachstellen-ideen.md` – Review (Stand Vormittag, nicht maßgeblich)
 - `../plan-stufe-1.md` – Umsetzungsplan Stufe 1 (legt Claude Code an)
-- `/CLAUDE.md` – Anweisungen für Claude Code · `../datenbank/schema.sql` – Referenzschema · `../datenbank/smoke_test.sql` – Test (92 Regeln) · `/.claude/skills/` – Projekt-Skills
+- `/CLAUDE.md` – Anweisungen für Claude Code · `../datenbank/schema.sql` – Referenzschema · `../datenbank/smoke_test.sql` – Test (93 Regeln) · `/.claude/skills/` – Projekt-Skills
 
 ## 6. Offene Fragen
 1. Arbeitsverträge: feste Dienste oder Arbeit auf Abruf?

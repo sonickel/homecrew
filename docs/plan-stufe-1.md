@@ -114,14 +114,36 @@ Nicht in Stufe 1 (27 Tabellen): Personal & Abrechnung, Checklisten, Sätze/Grenz
 **Tabellen:** neu `webauthn_credential`, `audit_log`; mitgezogen `device` (`audit_log` verweist darauf); genutzt `app_user`, `app_setting`.
 
 **Akzeptanzkriterien**
-- [ ] `php bin/console app:setup` legt den Manager an; ein zweiter Aufruf wird abgelehnt.
-- [ ] Erste Anmeldung: Start-Passwort ändern → 2FA einrichten → Wiederherstellungscodes → „Heute"; vorher ist keine andere Seite erreichbar.
-- [ ] Anmeldung mit Passwort + Authenticator-Code und mit Passkey unter https://localhost:8000; jeder Wiederherstellungscode funktioniert genau einmal.
-- [ ] Nach wiederholten Fehlversuchen verständliche Sperrmeldung mit Wartezeit.
-- [ ] `/verwaltung`: Nicht-Admin 403, nicht angemeldet → Anmeldung; gespeicherte Einstellungen stehen im Protokoll.
-- [ ] TOTP-Geheimnis nicht im Klartext in der Datenbank (Test).
-- [ ] Nirgends „Passwort vergessen" oder E-Mail-Optionen.
-- [ ] Funktionale Tests: nicht angemeldet, Admin ohne 2FA, Admin mit 2FA, Nicht-Admin.
+- [x] `php bin/console app:setup` legt den Manager an; ein zweiter Aufruf wird abgelehnt (`CommandsTest`).
+- [x] Erste Anmeldung: Start-Passwort ändern → 2FA einrichten → Wiederherstellungscodes → „Heute"; vorher ist keine andere Seite erreichbar (`FirstLoginTest`, mit `ADMIN_2FA_REQUIRED=1`; mit Schalter aus entfällt nur der 2FA-Schritt).
+- [ ] Anmeldung mit Passwort + Authenticator-Code und mit Passkey unter https://localhost:8000; jeder Wiederherstellungscode funktioniert genau einmal. – Passwort + Code und Wiederherstellungscodes per Test (`TwoFactorLoginTest`); Passkey-Endpunkte per Test (`PasskeyEndpointsTest`, `PasskeyStorageTest`). **Offen:** Passkey und Authenticator-App einmal im echten Browser/Handy durchspielen (Andreas).
+- [x] Nach wiederholten Fehlversuchen verständliche Sperrmeldung mit Wartezeit (Passwort und zweiter Schritt, je 5 Versuche / 15 min).
+- [x] `/verwaltung`: Nicht-Admin 403, nicht angemeldet → Anmeldung; gespeicherte Einstellungen stehen im Protokoll (alt → neu).
+- [x] TOTP-Geheimnis nicht im Klartext in der Datenbank (Test).
+- [x] Nirgends „Passwort vergessen" oder E-Mail-Optionen.
+- [x] Funktionale Tests: nicht angemeldet, Admin ohne 2FA (Schalter an und aus), Admin mit 2FA, Nicht-Admin, Assistenz.
+- [ ] Browser: Anmeldeseite bei 1024 × 768 und 500 px Breite geprüft (Screenshot, JS läuft trotz CSP), Verwaltung per `curl` (alle Skripte mit Nonce). **Offen (Andreas):** angemeldete Seiten bei 390 × 844, „sehr groß", nur Tastatur, Konsole ohne CSP-Fehler in `/verwaltung` – das automatische Prüfen über das DevTools-Protokoll war aus WSL nicht möglich (Port nach außen gesperrt).
+
+**Abweichungen** (Entscheidungen 01.11. abends, mit Andreas abgestimmt):
+- **2FA-Pflicht für Admins schaltbar** über `ADMIN_2FA_REQUIRED` – auf Wunsch vorerst `0`, vor dem Echtbetrieb auf `1` (dann Einrichtung bei der ersten Anmeldung erzwungen). Ohne Pflicht zeigt „Heute" Admins ohne 2FA einen Hinweis mit „Zweiten Schritt einrichten". Tests laufen mit `1` (`.env.test`), die Variante `0` hat eigene Tests.
+- **Passkey = vollständige Anmeldung** (Benutzerverifikation Pflicht, ohne Benutzername). Wer Passkey als zweiten Schritt hat, kommt mit Passwort nur zusammen mit einem Wiederherstellungscode weiter (`PasskeyRecoveryProvider`).
+- **Abmeldung nach 8 h** ohne Anfrage (`SESSION_IDLE_MINUTES=480`), Hinweis auf der Anmeldeseite; Session-Lebensdauer passend.
+- **Löschfristen-Maske nur mit Stufe-1-Fristen** (Übergaben, Erledigungen, erledigte Aufgaben, letzte n je Wartungsplan, Meldungen, Benachrichtigungen, Protokoll).
+- **`device.font_size`** in `schema.sql` + `smoke_test.sql` ergänzt (Regel B93, offener Punkt 3 erledigt); Oberfläche in M4.
+- **TOTP ohne `scheb/2fa-totp`:** eigener scheb-Provider (`AuthenticatorAppProvider`) mit `spomky-labs/otphp`; das Geheimnis wird erst beim Prüfen entschlüsselt und liegt nie am User-Objekt oder in der Session. Codes gelten 15 s über ihr Fenster hinaus und nur einmal (`code_reuse_cache`).
+- Zusätzliches Paket per Importmap: `@simplewebauthn/browser` (lokal abgelegt) für `assets/controllers/passkey_controller.js`.
+- Löschjob ohne Cron-Paket: `RecurringMessage::every('1 day')` ab 03:30.
+- Hauptschlüssel `APP_ENCRYPTION_KEY` (≥ 32 zufällige Zeichen, BLAKE2b → secretbox-Schlüssel); dev in `.env.dev.local` (von Claude Code erzeugt, nicht committet), test fest in `.env.test`.
+- Nach dem zweiten Schritt geht es zur ursprünglich angeforderten Seite (z. B. `/verwaltung`).
+- Ohne Datenbank: Anmeldeseite rendert mit „HomeCrew", Absenden zeigt die deutsche Fehlerseite (Test angepasst).
+- `/abmelden` braucht in `access_control` eine eigene öffentliche Regel (die „lazy" Firewall prüft den Zugriff vor dem Abmelden – sonst geht „Abbrechen" im zweiten Schritt nicht); geschützt bleibt es über das CSRF-Token.
+- Offene Pflichtschritte werden auch bei verbotenen Seiten angezeigt (`AccessDeniedHandler` leitet um statt 403).
+- Feiertagsregion als Enum `HolidayRegion` (Bayern · mit Mariä Himmelfahrt · Augsburg).
+- Passkeys: RP-ID per `WEBAUTHN_RP_ID`, leer = Host der Anfrage.
+- Schrift-`@font-face` in `assets/styles/fonts.css` ausgelagert (Layout und Verwaltung nutzen dieselbe lokale Schrift).
+- `composer qa` leert vor PHPUnit den Test-Cache (siehe „Gelernt" in CLAUDE.md).
+- Pakete statt `scheb/2fa-totp`: `spomky-labs/otphp` ^11.5 und `paragonie/constant_time_encoding` ^3.1 (vorher schon dessen Abhängigkeiten); Importmap `@simplewebauthn/browser` 14.0.0.
+- **Nach dem Review:** Passkeys lassen sich nur hinzufügen, solange noch kein zweiter Schritt besteht (`PasskeyRegistrationGuard`); `/konto/passwort` nur für das Start-Passwort; Wiederherstellungscodes nur neu, wenn keine mehr übrig sind – freiwilliges Ändern mit frischer Bestätigung kommt mit „Mein Konto" (M3). Wiederherstellungscodes als HMAC mit Serverschlüssel (`RecoveryCodeManager`, `SecretBox::fingerprint`). Sessions in `var/sessions/<env>` mit 10 h Lebensdauer (PHP-Standard 24 min hätte die 8 h unterlaufen). Protokoll in Klartext ohne Spalten- und Tabellennamen (`AuditLogPresenter`), Sperre im zweiten Schritt wird protokolliert. `app:setup` prüft zuerst den Hauptschlüssel.
 
 ---
 
@@ -395,7 +417,7 @@ Nicht in Stufe 1 (27 Tabellen): Personal & Abrechnung, Checklisten, Sätze/Grenz
 ## Offene Punkte (vor dem jeweiligen Meilenstein klären)
 1. ~~**M0 – Wert der Schriftgröße:** Skill `homecrew-ui` schreibt `sehr-gross`, das Schema `sehr_gross`.~~ Erledigt 01.11.: überall `sehr_gross` (Enum `App\Enum\FontSize`), Skill angeglichen.
 2. **M3 – Datenschutzhinweis** (`privacy_notice_version`, Konzept 5 §4.1): Vorschlag Bestätigung bei der ersten Anmeldung in M3, neue Version mit Einrichtung einer Erweiterung in M13.
-3. **M4 – Schriftgröße am Gerät:** Konzept 11 sieht sie vor, `device` hat keine Spalte. Vorschlag: `device.font_size` (Werte wie `app_user.font_size`) in `schema.sql` + `smoke_test.sql` ergänzen.
+3. ~~**M4 – Schriftgröße am Gerät:** Konzept 11 sieht sie vor, `device` hat keine Spalte.~~ Erledigt 01.11. (M2): `device.font_size` in `schema.sql` + `smoke_test.sql` (B93) und in der Migration; Oberfläche in M4.
 4. **M4 – echtes Tablet lokal:** WSL läuft im NAT-Modus; ein Tablet im WLAN erreicht den Rechner erst mit `networkingMode=mirrored` in `.wslconfig` oder per Portweiterleitung. Bis dahin Tablet im Windows-Browser prüfen (zweites Profil, Gerätesimulation).
 5. **M12 – Rezepte:** kontext.md §4 nennt Rezepte in Stufe 2, Konzept 6 und das Entscheidungs-Log (Druckansicht Rezepte) in Stufe 1. Vorschlag: Typ Rezept mit Zutaten und Druck in M12, „aus Rezepten auf die Liste" in Stufe 2.
 6. **Mitgezogene Tabellen ohne Oberfläche** (Folge der Strategie): `asset`, `asset_component` (Pflege Stufe 2), `chat_conversation`, `chat_message` (Chat Stufe 2).
@@ -408,4 +430,13 @@ Auffälligkeiten außerhalb eines Meilensteins (siehe Skill `meilenstein`).
 - **Dev-Werkzeug Screenshots:** Headless-Chrome unter Windows erzwingt ≥ 500 px Breite; für 390 px die Gerätesimulation über das DevTools-Protokoll nutzen (Hilfsskript liegt nicht im Projekt).
 - **DBAL 5:** Die TINYINT-Lösung (`MariaDbSchemaManager`) hängt am alten Introspektionsweg von DBAL 4; der neue `MetadataProvider` liest `TINYINT UNSIGNED` weiterhin als bool. Beim Umstieg auf DBAL 5 anpassen (`MappingTest::testMappingMatchesTheMigratedSchema` schlägt an). (M1)
 - **Pi/Docker:** PHP muss in UTC laufen (`date.timezone = UTC`), damit `DATETIME`-Werte aus der Datenbank richtig gelesen werden – lokal ist das so; beim Bau des FrankenPHP-Images setzen. (M1)
-- **M2 – Schema-Abgleich mit Fremdschlüsseln:** M1 hat keine Fremdschlüssel; in M2 einmal bewusst ein `ON DELETE` in der Migration ändern und prüfen, dass `composer schema:check` rot wird (Review M1).
+- ~~**M2 – Schema-Abgleich mit Fremdschlüsseln:** in M2 einmal bewusst ein `ON DELETE` in der Migration ändern und prüfen, dass `composer schema:check` rot wird (Review M1).~~ Erledigt (M2): `fk_webauthn_user` auf RESTRICT → Abgleich meldet die Abweichung, danach zurück.
+- **Vor dem Echtbetrieb – 2FA-Pflicht einschalten:** `ADMIN_2FA_REQUIRED=1` setzen (vorerst `0` auf Wunsch); in die „Prüfliste vor dem Start" (M13) aufnehmen. (M2)
+- **Pi – Anmelde-Sperre und Proxy:** Die Sperre nach Fehlversuchen zählt auch je IP (global 25 / 15 min). Hinter cloudflared müssen Trusted Proxies stimmen, sonst teilen sich alle Anfragen eine IP und ein Angreifer sperrt alle aus. Zusammen mit Punkt 7 der offenen Punkte abnehmen. (M2)
+- **Pi – Passkeys und Hostnamen:** Ein Passkey gilt nur für den Hostnamen, unter dem er angelegt wurde. Ist HomeCrew im WLAN und über den Tunnel unter verschiedenen Namen erreichbar, `WEBAUTHN_RP_ID` auf die gemeinsame Domain setzen (UniFi-DNS und Tunnel mit demselben Namen). (M2)
+- **Browser-Prüfung automatisieren:** Das DevTools-Protokoll von Chrome unter Windows ist aus WSL nur über einen nach außen offenen Port erreichbar (gesperrt). Für Screenshots angemeldeter Seiten und Passkey-Tests mit virtuellem Authenticator ein lokales Werkzeug klären (z. B. Chromium in WSL). (M2)
+- **Verwaltung (EasyAdmin):** Dunkelmodus ist abgeschaltet; Schriftgröße/Kontrast der Person wirken dort noch nicht (nur Schrift, Farben, Fokus, 48-px-Ziele). Bei Bedarf in M3 nachziehen. (M2)
+- **M3 – Laufende Sitzungen sofort beenden:** Sperre und Austritt prüft bisher nur der `UserChecker` bei der Anmeldung. Mit der Personenverwaltung (M3) gesperrte/ausgetretene Personen auch in laufenden Sitzungen abmelden (z. B. `EquatableInterface` oder Request-Listener). (Review M2)
+- **M3 – Frische Bestätigung:** Passwort ändern, neue Wiederherstellungscodes und weitere Passkeys nur nach erneuter Bestätigung (Passwort + zweiter Schritt, wenige Minuten gültig) – bis dahin gesperrt. (Review M2)
+- **M13 – Protokoll der Einstellungen:** Reine Statusspalten (`*_status`, `*_checked_at`, `ai_key_error`) nicht protokollieren, sonst füllt der Gesundheitscheck das Protokoll. (Review M2)
+- **Löschjob-Zeit:** Der Scheduler startet nachts um 03:30 deutscher Zeit (fest, nicht aus `app_setting.timezone` – der Worker soll ohne Datenbank starten). Für die Fristen spielt die Uhrzeit keine Rolle. (Review M2)

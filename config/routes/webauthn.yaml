@@ -1,0 +1,4 @@
+# Routes of the passkey endpoints configured in config/packages/webauthn.yaml and the firewall
+webauthn_routes:
+    resource: .
+    type: webauthn

@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Zweiter Schritt'|trans }}{% endblock %}
+
+{% block body %}
+    {% if twoFactorProvider == 'passkey' %}
+        <twig:PageHeader :title="'Zweiter Schritt'|trans" :intro="'Melde dich mit deinem Passkey an oder gib einen Wiederherstellungscode ein.'|trans" />
+    {% else %}
+        <twig:PageHeader :title="'Zweiter Schritt'|trans" :intro="'Gib den Code aus deiner Authenticator-App ein. Hast du dein Handy nicht, nimm einen Wiederherstellungscode.'|trans" />
+    {% endif %}
+
+    {% if authenticationError %}
+        <twig:Alert type="error" :message="authenticationError|trans(authenticationErrorData, 'SchebTwoFactorBundle')" />
+    {% endif %}
+
+    {% if twoFactorProvider == 'passkey' %}
+        {{ include('security/_passkey_login.html.twig') }}
+    {% endif %}
+
+    <form class="hc-form" method="post" action="{{ checkPathUrl ? checkPathUrl : path(checkPathRoute) }}">
+        <div class="hc-field">
+            <label class="hc-field__label" for="_auth_code">
+                {{- twoFactorProvider == 'passkey' ? 'Wiederherstellungscode'|trans : 'Code aus der App oder Wiederherstellungscode'|trans -}}
+            </label>
+            <input class="hc-input hc-input--code" type="text" id="_auth_code" name="{{ authCodeParameterName }}"
+                   autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" required autofocus>
+        </div>
+        {% if isCsrfProtectionEnabled %}
+            <input type="hidden" name="{{ csrfParameterName }}" value="{{ csrf_token(csrfTokenId) }}">
+        {% endif %}
+        <div class="hc-button-row">
+            <twig:Button type="submit" icon="tabler:login">{{ 'Anmelden'|trans }}</twig:Button>
+        </div>
+    </form>
+
+    <form method="post" action="{{ path('app_logout') }}">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}" data-controller="csrf-protection">
+        <twig:Button variant="secondary" type="submit">{{ 'Abbrechen'|trans }}</twig:Button>
+    </form>
+{% endblock %}
