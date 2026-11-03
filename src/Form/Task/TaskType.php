@@ -45,7 +45,7 @@ final class TaskType extends AbstractType
                 'label' => 'Beschreibung',
                 'required' => false,
                 'help' => 'Wenn nötig: wie, womit, wo. Bitte keine Gesundheitsangaben.',
-                'attr' => ['rows' => 3],
+                'attr' => ['rows' => 2],
             ])
             ->add('dueDate', DateType::class, [
                 'label' => 'Fällig am',
@@ -54,23 +54,25 @@ final class TaskType extends AbstractType
             ])
             ->add('dueTime', TimeType::class, [
                 'label' => 'Uhrzeit',
-                'help' => 'Nur, wenn es zu einer bestimmten Zeit sein muss.',
                 'required' => false,
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
             ])
             ->add('showFrom', ChoiceType::class, [
                 'label' => 'Ab wann zeigen?',
+                'help' => '„Ab sofort“ steht bis dahin unter „Wenn Zeit ist“, „Ab einem Tag“ täglich unter „Heute möglich“.',
                 'expanded' => true,
+                'row_attr' => ['class' => 'hc-option--inline'],
                 'choices' => [
-                    'Ab sofort – unter „Wenn Zeit ist“' => TaskData::SHOW_NOW,
+                    'Ab sofort' => TaskData::SHOW_NOW,
                     'Erst am Fälligkeitstag' => TaskData::SHOW_ON_DUE_DATE,
-                    'Ab einem bestimmten Tag – dann täglich unter „Heute möglich“' => TaskData::SHOW_FROM,
+                    'Ab einem Tag' => TaskData::SHOW_FROM,
                 ],
             ])
             ->add('showFromDate', DateType::class, [
                 'label' => 'Ab diesem Tag',
-                'help' => 'Nur bei „Ab einem bestimmten Tag“.',
+                // Shown only for "Ab einem Tag" (reveal_controller.js)
+                'row_attr' => ['data-reveal-target' => 'field'],
                 'required' => false,
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
@@ -86,9 +88,8 @@ final class TaskType extends AbstractType
                 'class' => Visibility::class,
                 'choices' => $visibilities,
                 'label' => 'Wer sieht die Aufgabe?',
-                'expanded' => true,
                 'choice_label' => static fn (Visibility $visibility): string => $visibility->label(),
-                'help' => 'Personen ohne eigenen Zugang sehen Aufgaben „Nur wer zuständig ist“ auch am Team-Tablet nicht.',
+                'help' => 'Wer keinen eigenen Zugang hat, sieht „Nur wer zuständig ist“ auch am Team-Tablet nicht.',
             ])
             ->add('category', EnumType::class, [
                 'class' => TaskCategory::class,
@@ -96,7 +97,7 @@ final class TaskType extends AbstractType
                 'choice_label' => static fn (TaskCategory $category): string => $category->label(),
             ])
             ->add('estimatedMinutes', IntegerType::class, [
-                'label' => 'Dauer in Minuten (ungefähr)',
+                'label' => 'Dauer (Minuten, ungefähr)',
                 'required' => false,
                 'attr' => ['min' => 1, 'max' => 600, 'inputmode' => 'numeric'],
             ])

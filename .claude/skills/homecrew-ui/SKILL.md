@@ -56,6 +56,14 @@ Team-Tablet quer (Hauptgerät):
 - **Rückgängig statt Nachfragen**: „Erledigt" sofort ausführen, 30 Sekunden „Rückgängig" anbieten (Hinweis unten, Komponente `Toast`; Entscheidung 03.11.). Bestätigungsdialoge nur für Löschen/Unumkehrbares.
 - Symbole lokal als SVG (z. B. symfony/ux-icons mit lokal importierten Icons), immer mit sichtbarem Text oder `aria-label`.
 
+## Formulare: kompakt (Entscheidung 03.11.)
+Wenig scrollen, ohne die Trefferflächen zu verkleinern:
+- Zusammengehörige kurze Felder in **eine Zeile** (`<div class="hc-form-row">`, auf schmalen Schirmen untereinander); **Datum + Uhrzeit immer nebeneinander** (`hc-form-row hc-form-row--pair`). Felder einer Zeile stehen unten bündig.
+- Wenige kurze Optionen **nebeneinander** (`row_attr: {class: 'hc-option--inline'}`); lange oder viele Optionen als **Auswahlliste**.
+- Abhängige Felder erst zeigen, wenn sie gebraucht werden (Stimulus `reveal`: `data-controller="reveal" data-reveal-when-value="…"`, Feld mit `row_attr: {'data-reveal-target': 'field'}`; ohne JavaScript bleibt alles sichtbar).
+- Gruppen als `hc-fieldset` mit kurzer Legende („Wann?", „Wer?", „Einzelheiten"); Hinweise kurz, eine Zeile, wo möglich; breite Formulare `hc-form hc-form--wide`.
+- Ein Tag zum Verschieben: Wochenkalender `WeekPicker` statt Datumsfeld.
+
 ## Bewegung
 Nur als Antwort auf eine Handlung (Zeile wird erledigt, Bereich klappt auf). Keine Einblend-Animationen beim Laden, keine Hover-Effekte auf jeder Zeile. `prefers-reduced-motion` respektieren.
 

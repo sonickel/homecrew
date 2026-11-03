@@ -254,7 +254,7 @@ final class TaskPagesTest extends WebTestCase
         self::mockTime('2026-11-03 09:00:00 UTC');
 
         $crawler = $client->request('GET', '/aufgaben/neu');
-        self::assertSelectorNotExists('input[value="privat"]');
+        self::assertSelectorNotExists('select[name="task[visibility]"] option[value="privat"]');
         self::assertSelectorExists('select[name="task[assignee]"] option[value="da"][selected]');
         $client->submit($crawler->selectButton('Aufgabe anlegen')->form(), ['task[title]' => 'Spülmaschine ausräumen']);
 
@@ -273,6 +273,11 @@ final class TaskPagesTest extends WebTestCase
         $client->loginUser($papa);
 
         $crawler = $client->request('GET', '/aufgaben/neu');
+        self::assertSelectorExists('select[name="task[visibility]"] option[value="privat"]');
+        // Compact: day and time share a row, "Ab diesem Tag" is revealed by the choice
+        self::assertSelectorExists('.hc-form-row--pair input[name="task[dueDate]"]');
+        self::assertSelectorExists('.hc-form-row--pair input[name="task[dueTime]"]');
+        self::assertSelectorExists('[data-reveal-target="field"] input[name="task[showFromDate]"]');
         $client->submit($crawler->selectButton('Aufgabe anlegen')->form(), ['task[title]' => 'Geschenk', 'task[dueDate]' => '2026-11-02']);
         self::assertResponseStatusCodeSame(422);
         self::assertSelectorTextContains('.hc-field__errors', 'Der Tag liegt in der Vergangenheit.');
@@ -291,7 +296,7 @@ final class TaskPagesTest extends WebTestCase
         $client->request('GET', '/aufgaben/neu');
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorNotExists('input[value="privat"]');
+        self::assertSelectorNotExists('select[name="task[visibility]"] option[value="privat"]');
     }
 
     public function testOnlyAdminsAndTheCreatorChangeATask(): void
@@ -399,7 +404,7 @@ final class TaskPagesTest extends WebTestCase
         $client->request('GET', '/verwaltung');
         self::assertResponseIsSuccessful();
         $client->request('GET', '/aufgaben/neu');
-        self::assertSelectorExists('input[value="admins"]');
+        self::assertSelectorExists('select[name="task[visibility]"] option[value="admins"]');
     }
 
     public function testTheTopBarLeadsBackToToday(): void

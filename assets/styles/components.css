@@ -216,7 +216,7 @@
         display: flex;
         flex-direction: column;
         gap: var(--hc-space-1);
-        margin-bottom: var(--hc-space-4);
+        margin-bottom: var(--hc-space-3);
     }
 
     .hc-field__label {
@@ -274,7 +274,7 @@
 
     /* Options in forms (radio buttons, checkboxes): the whole row is the touch target */
     .hc-option {
-        margin: 0 0 var(--hc-space-4);
+        margin: 0 0 var(--hc-space-3);
         padding: 0;
         border: 0;
     }
@@ -1033,8 +1033,8 @@
 
     /* Groups of fields in longer forms */
     .hc-fieldset {
-        margin: 0 0 var(--hc-space-5);
-        padding: var(--hc-space-4);
+        margin: 0 0 var(--hc-space-4);
+        padding: var(--hc-space-2) var(--hc-space-4) var(--hc-space-1);
         border: var(--hc-line-width) solid var(--hc-line);
         border-radius: var(--hc-radius-control);
         background: var(--hc-surface);
@@ -1042,7 +1042,7 @@
 
     .hc-fieldset > legend {
         padding: 0 var(--hc-space-2);
-        font-size: var(--hc-text-1);
+        font-size: var(--hc-text-0);
         font-weight: 700;
     }
 
@@ -1106,10 +1106,6 @@
 
 @layer components {
     /* Small week calendar: every day is a button, one tap chooses it (WeekPicker) */
-    .hc-form--wide {
-        max-width: 40rem;
-    }
-
     .hc-week-picker {
         margin: 0 0 var(--hc-space-5);
         padding: 0;
@@ -1175,5 +1171,35 @@
         .hc-week-picker__days {
             gap: var(--hc-space-1);
         }
+    }
+}
+
+@layer components {
+    /* Compact forms: short fields that belong together share a row (they stack on narrow screens) */
+    .hc-form--wide {
+        max-width: 48rem;
+    }
+
+    .hc-form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+        gap: 0 var(--hc-space-4);
+        align-items: end;
+    }
+
+    /* Day and time: always one row – the time field needs little room */
+    .hc-form-row--pair {
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    }
+
+    .hc-field[hidden] {
+        display: none;
+    }
+
+    /* Few short options side by side (row_attr class "hc-option--inline") */
+    .hc-option--inline .hc-option__choices {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: var(--hc-space-5);
     }
 }

@@ -1,28 +1,37 @@
-{# Task form ("Neue Aufgabe", "Bearbeiten"): what – when – who – details #}
-{{ form_start(form, {attr: {class: 'hc-form', novalidate: 'novalidate'}}) }}
+{# Task form ("Neue Aufgabe", "Bearbeiten"): what – when – who – details; short fields share a row (.hc-form-row),
+   "Ab diesem Tag" shows only for "Ab einem Tag" (reveal_controller.js) #}
+{{ form_start(form, {attr: {class: 'hc-form hc-form--wide', novalidate: 'novalidate'}}) }}
     {{ form_row(form.title) }}
     {{ form_row(form.description) }}
 
-    <fieldset class="hc-fieldset">
+    <fieldset class="hc-fieldset" data-controller="reveal" data-reveal-when-value="ab" data-action="change->reveal#update">
         <legend>{{ 'Wann?'|trans }}</legend>
-        {{ form_row(form.dueDate) }}
-        {{ form_row(form.dueTime) }}
+        <div class="hc-form-row hc-form-row--pair">
+            {{ form_row(form.dueDate) }}
+            {{ form_row(form.dueTime) }}
+        </div>
         {{ form_row(form.showFrom) }}
         {{ form_row(form.showFromDate) }}
     </fieldset>
 
     <fieldset class="hc-fieldset">
         <legend>{{ 'Wer?'|trans }}</legend>
-        {{ form_row(form.assignee) }}
-        {{ form_row(form.visibility) }}
+        <div class="hc-form-row">
+            {{ form_row(form.assignee) }}
+            {{ form_row(form.visibility) }}
+        </div>
     </fieldset>
 
     <fieldset class="hc-fieldset">
         <legend>{{ 'Einzelheiten'|trans }}</legend>
-        {{ form_row(form.category) }}
-        {{ form_row(form.estimatedMinutes) }}
-        {{ form_row(form.important) }}
-        {{ form_row(form.requiresManager) }}
+        <div class="hc-form-row">
+            {{ form_row(form.category) }}
+            {{ form_row(form.estimatedMinutes) }}
+        </div>
+        <div class="hc-form-row">
+            {{ form_row(form.important) }}
+            {{ form_row(form.requiresManager) }}
+        </div>
     </fieldset>
 
     <div class="hc-button-row">

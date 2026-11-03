@@ -24,6 +24,7 @@ final class HandOverType extends AbstractType
             'label' => 'An wen?',
             'choices' => $options['assignees'],
             'expanded' => true,
+            'row_attr' => ['class' => 'hc-option--inline'],
             'choice_value' => static fn (?Assignment $assignment): ?string => $assignment?->key(),
             'choice_label' => static fn (Assignment $assignment): string => $assignment->label(),
             'constraints' => [new NotNull(message: 'Bitte wähle, wer die Aufgabe übernimmt.')],

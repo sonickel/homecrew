@@ -7,7 +7,9 @@
     {%- if help is not empty -%}{%- set described_by = described_by|merge([id ~ '_help']) -%}{%- endif -%}
     {%- if errors|length > 0 -%}{%- set described_by = described_by|merge([id ~ '_errors']) -%}{%- endif -%}
     {%- set widget_attr = described_by is empty ? {} : {attr: {'aria-describedby': described_by|join(' ')}} -%}
-    <div class="hc-field{{ errors|length > 0 ? ' hc-field--error' }}">
+    {#- row_attr: extra class (e.g. for layout) and data attributes of the row (e.g. Stimulus targets) -#}
+    {%- set row_attr = row_attr|merge({class: ('hc-field' ~ (errors|length > 0 ? ' hc-field--error') ~ ' ' ~ row_attr.class|default(''))|trim}) -%}
+    <div{% with {attr: row_attr} %}{{ block('attributes') }}{% endwith %}>
         {{- form_label(form) -}}
         {{- form_help(form) -}}
         {{- form_errors(form) -}}
@@ -15,16 +17,21 @@
     </div>
 {%- endblock form_row -%}
 
-{#- Radio buttons and checkboxes: the whole row is the touch target (.hc-option__row) -#}
+{#- Radio buttons and checkboxes: the whole row is the touch target (.hc-option__row);
+    row_attr class "hc-option--inline" puts few short options side by side -#}
 {%- block choice_row -%}
     {%- if expanded -%}
-        <fieldset class="hc-option{{ errors|length > 0 ? ' hc-field--error' }}"{% if help is not empty %} aria-describedby="{{ id }}_help"{% endif %}>
+        {%- set row_attr = row_attr|merge({class: ('hc-option' ~ (errors|length > 0 ? ' hc-field--error') ~ ' ' ~ row_attr.class|default(''))|trim}) -%}
+        {%- if help is not empty -%}{%- set row_attr = row_attr|merge({'aria-describedby': id ~ '_help'}) -%}{%- endif -%}
+        <fieldset{% with {attr: row_attr} %}{{ block('attributes') }}{% endwith %}>
             <legend class="hc-field__label">{{ label|trans(label_translation_parameters, translation_domain) }}</legend>
             {{- form_help(form) -}}
             {{- form_errors(form) -}}
-            {%- for child in form -%}
-                <label class="hc-option__row">{{ form_widget(child) }}<span>{{ child.vars.label|trans(child.vars.label_translation_parameters, choice_translation_domain) }}</span></label>
-            {%- endfor -%}
+            <div class="hc-option__choices">
+                {%- for child in form -%}
+                    <label class="hc-option__row">{{ form_widget(child) }}<span>{{ child.vars.label|trans(child.vars.label_translation_parameters, choice_translation_domain) }}</span></label>
+                {%- endfor -%}
+            </div>
         </fieldset>
     {%- else -%}
         {{- block('form_row') -}}
@@ -32,7 +39,8 @@
 {%- endblock choice_row -%}
 
 {%- block checkbox_row -%}
-    <div class="hc-option">
+    {%- set row_attr = row_attr|merge({class: ('hc-option ' ~ row_attr.class|default(''))|trim}) -%}
+    <div{% with {attr: row_attr} %}{{ block('attributes') }}{% endwith %}>
         {{- form_errors(form) -}}
         <label class="hc-option__row">{{ form_widget(form) }}<span>{{ label|trans(label_translation_parameters, translation_domain) }}</span></label>
         {{- form_help(form) -}}

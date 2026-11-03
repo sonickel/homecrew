@@ -76,3 +76,4 @@ Abweichungen vom Konzept nur nach Rückfrage; danach das Konzept-Dokument mit an
 - Einspaltige CSS-Raster brauchen `grid-template-columns: minmax(0, 1fr)`, sonst wächst die Spalte bei „sehr groß" über die Bildschirmbreite (Knöpfe abgeschnitten). (M5)
 - Tests mit `mockTime()` und zweitem Schritt: Die App prüft TOTP-Codes gegen ihre (feste) Uhr – Code mit `PeopleTrait::codeAt()` erzeugen. (M5)
 - Fixtures nicht in der Entwicklungsdatenbank neu laden, wenn dort eigene Daten stehen (eigenes Manager-Passwort): zum Prüfen in eine Wegwerf-DB `homecrew_…` laden. (M5)
+- Turbo führt Inline-Skripte einer neu geladenen Seite aus, der Browser prüft sie aber gegen die CSP der **ersten** Seite (anderer Nonce) → Konsolenfehler „Executing inline script violates …“. Kam von der Web-Debug-Toolbar (dev). `assets/app.js` setzt deshalb bei `turbo:before-render` an allen Inline-Skripten `data-turbo-eval="false"`; eigene Inline-Skripte gibt es ohnehin nicht. (M5)
