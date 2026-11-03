@@ -1,0 +1,11 @@
+{# Hint at the bottom after "Erledigt"/"Überspringen": offers "Rückgängig" for a short time, then disappears (homecrew-ui).
+   message is passed already translated; the surrounding .hc-toasts region reads it out. #}
+{% props message, undoPath, seconds, back = 'heute' %}
+<div {{ attributes.defaults({class: 'hc-toast', 'data-controller': 'undo', 'data-undo-seconds-value': seconds}) }}>
+    <p class="hc-toast__message">{{ ux_icon('tabler:circle-check', {'aria-hidden': 'true'}) }}<span>{{ message }}</span></p>
+    <form class="hc-toast__form" method="post" action="{{ undoPath }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('submit') }}" data-controller="csrf-protection">
+        <input type="hidden" name="zurueck" value="{{ back }}">
+        <button class="hc-button hc-button--secondary" type="submit">{{ ux_icon('tabler:arrow-back-up', {'aria-hidden': 'true'}) }}<span>{{ 'Rückgängig'|trans }}</span></button>
+    </form>
+</div>

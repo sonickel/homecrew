@@ -810,3 +810,370 @@
     .hc-text-3 { font-size: var(--hc-text-3); }
     .hc-text-4 { font-size: var(--hc-text-4); }
 }
+
+@layer components {
+    /* "Heute": tasks on the left, actions and areas on the right (tablet landscape); on phones the actions come first */
+    .hc-today {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--hc-space-5);
+    }
+
+    .hc-today__side {
+        display: flex;
+        flex-direction: column;
+        gap: var(--hc-space-4);
+    }
+
+    @media (min-width: 60em) {
+        .hc-today {
+            grid-template-columns: minmax(0, 1fr) 17rem;
+            align-items: start;
+        }
+
+        .hc-today__main {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .hc-today__side {
+            grid-column: 2;
+            grid-row: 1;
+            position: sticky;
+            top: var(--hc-space-4);
+        }
+    }
+
+    .hc-today__block {
+        margin-block: 0 var(--hc-space-6);
+    }
+
+    .hc-today__new {
+        width: 100%;
+    }
+
+    .hc-today__logins {
+        display: flex;
+        flex-direction: column;
+        gap: var(--hc-space-3);
+    }
+
+    /* Areas as tiles: only areas that exist */
+    .hc-tiles {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 9rem), 1fr));
+        gap: var(--hc-space-3);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .hc-tile {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--hc-space-2);
+        min-height: var(--hc-target-large);
+        height: 100%;
+        padding: var(--hc-space-3) var(--hc-space-4);
+        background: var(--hc-surface);
+        border: var(--hc-border-width) solid var(--hc-line);
+        border-radius: var(--hc-radius-control);
+        color: var(--hc-enamel);
+        font-weight: 700;
+        line-height: var(--hc-leading-tight);
+        text-decoration: none;
+    }
+
+    .hc-tile svg {
+        width: 1.75em;
+        height: 1.75em;
+    }
+
+    /* Tasks: rows with dividing lines, the status as symbol + word, "Erledigt" as large button on the right */
+    .hc-task-group {
+        margin-bottom: var(--hc-space-5);
+    }
+
+    .hc-task-group__title {
+        margin-bottom: var(--hc-space-2);
+        font-size: var(--hc-text-1);
+    }
+
+    .hc-task-group__count {
+        font-weight: 400;
+    }
+
+    .hc-task-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        border-top: var(--hc-line-width) solid var(--hc-line);
+    }
+
+    .hc-task {
+        position: relative;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--hc-space-3) var(--hc-space-4);
+        padding: var(--hc-space-3) var(--hc-space-4);
+        background: var(--hc-surface);
+        border-bottom: var(--hc-line-width) solid var(--hc-line);
+        border-left: var(--hc-space-1) solid transparent;
+    }
+
+    .hc-task--late {
+        border-left-color: var(--hc-late);
+    }
+
+    .hc-task--due {
+        border-left-color: var(--hc-due);
+    }
+
+    .hc-task__main {
+        display: flex;
+        flex: 1 1 16rem;
+        flex-direction: column;
+        gap: var(--hc-space-1);
+        min-width: 0;
+    }
+
+    .hc-task__when {
+        margin: 0;
+    }
+
+    .hc-task__title {
+        color: var(--hc-ink);
+        font-size: var(--hc-text-1);
+        font-weight: 700;
+        line-height: var(--hc-leading-tight);
+        overflow-wrap: anywhere;
+        text-decoration: none;
+    }
+
+    /* The whole row opens the details; the button lies above the stretched link */
+    .hc-task__title::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+    }
+
+    .hc-task__details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--hc-space-1) var(--hc-space-4);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .hc-task__important {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--hc-space-1);
+        font-weight: 700;
+    }
+
+    .hc-task__important svg {
+        width: 1.1em;
+        height: 1.1em;
+    }
+
+    .hc-task__action {
+        position: relative;
+        z-index: 1;
+        margin: 0;
+    }
+
+    .hc-task__done {
+        min-height: var(--hc-target-large);
+    }
+
+    .hc-status--possible {
+        color: var(--hc-enamel);
+    }
+
+    .hc-status--later {
+        color: var(--hc-ink);
+    }
+
+    /* Details of a task */
+    .hc-task-description {
+        max-width: var(--hc-measure);
+        margin-bottom: var(--hc-space-5);
+    }
+
+    .hc-facts {
+        display: grid;
+        grid-template-columns: minmax(8rem, max-content) minmax(0, 1fr);
+        gap: var(--hc-space-2) var(--hc-space-5);
+        max-width: 48rem;
+        margin: 0 0 var(--hc-space-5);
+    }
+
+    .hc-facts dt {
+        font-weight: 700;
+    }
+
+    .hc-facts dd {
+        margin: 0;
+    }
+
+    @media (max-width: 30em) {
+        .hc-facts {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 0;
+        }
+
+        .hc-facts dd {
+            margin-bottom: var(--hc-space-3);
+        }
+    }
+
+    /* Groups of fields in longer forms */
+    .hc-fieldset {
+        margin: 0 0 var(--hc-space-5);
+        padding: var(--hc-space-4);
+        border: var(--hc-line-width) solid var(--hc-line);
+        border-radius: var(--hc-radius-control);
+        background: var(--hc-surface);
+    }
+
+    .hc-fieldset > legend {
+        padding: 0 var(--hc-space-2);
+        font-size: var(--hc-text-1);
+        font-weight: 700;
+    }
+
+    /* Hint at the bottom with "Rückgängig" – disappears by itself (undo_controller.js) */
+    .hc-toasts {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 20;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--hc-space-2);
+        padding: var(--hc-space-4);
+        pointer-events: none;
+    }
+
+    .hc-toast {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--hc-space-3) var(--hc-space-4);
+        width: min(100%, 40rem);
+        padding: var(--hc-space-3) var(--hc-space-4);
+        background: var(--hc-ink);
+        color: var(--hc-surface);
+        border: var(--hc-border-width) solid var(--hc-ink);
+        border-radius: var(--hc-radius-control);
+        pointer-events: auto;
+    }
+
+    [data-contrast="hoch"] .hc-toast {
+        background: var(--hc-surface);
+        color: var(--hc-ink);
+    }
+
+    .hc-toast__message {
+        display: flex;
+        align-items: center;
+        gap: var(--hc-space-2);
+        margin: 0;
+        font-weight: 700;
+    }
+
+    .hc-toast__message svg {
+        flex: none;
+        width: 1.5em;
+        height: 1.5em;
+    }
+
+    .hc-toast__form {
+        margin: 0;
+    }
+
+    .hc-toast :focus-visible {
+        outline-color: currentColor;
+    }
+}
+
+@layer components {
+    /* Small week calendar: every day is a button, one tap chooses it (WeekPicker) */
+    .hc-form--wide {
+        max-width: 40rem;
+    }
+
+    .hc-week-picker {
+        margin: 0 0 var(--hc-space-5);
+        padding: 0;
+        border: 0;
+    }
+
+    .hc-week-picker__range {
+        margin: var(--hc-space-3) 0 var(--hc-space-2);
+        font-weight: 700;
+    }
+
+    .hc-week-picker__days {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: var(--hc-space-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .hc-week-picker__day {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        width: 100%;
+        min-height: var(--hc-target-large);
+        padding: var(--hc-space-2) 0;
+        border: var(--hc-border-width) solid var(--hc-border);
+        border-radius: var(--hc-radius-control);
+        background: var(--hc-surface);
+        color: var(--hc-enamel);
+        font: inherit;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        line-height: var(--hc-leading-tight);
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    /* Today: thicker frame (and "heute" for screen readers) – not by colour alone */
+    .hc-week-picker__day--today {
+        border-width: var(--hc-focus-width);
+        border-color: var(--hc-enamel);
+    }
+
+    /* Past days and the current due date cannot be chosen */
+    .hc-week-picker__day--off {
+        border-style: dashed;
+        border-color: var(--hc-line);
+        background: transparent;
+        color: var(--hc-border);
+        cursor: default;
+    }
+
+    .hc-week-picker__weekday {
+        font-weight: 400;
+    }
+
+    /* Phones: smaller gaps, so the seven days keep about 48 px */
+    @media (max-width: 30em) {
+        .hc-week-picker__days {
+            gap: var(--hc-space-1);
+        }
+    }
+}

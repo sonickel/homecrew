@@ -61,7 +61,7 @@ Beim ersten Einschalten zeigt die App: „Anthropic wird Auftragsverarbeiter –
 | Meldung weitergeben/schließen | ✅ | – | – | – |
 | Termin/Besuch anlegen, verschieben, absagen (inkl. „nur für mich") | ✅ | ✅ | ⚙️ (Standard nein) | – |
 | Aufgabe anlegen | ✅ | ✅ | ✅ | ✅ |
-| Aufgabe weitergeben | ✅ | eigene | – | – |
+| Aufgabe weitergeben | ✅ | wofür zuständig | wofür zuständig | wofür zuständig |
 | Aufgabe erledigen (inkl. Messwerte, „nicht möglich") | ✅ | ✅ | ✅ | ✅ |
 | Gesprächspunkt anlegen | ✅ | – | – | – |
 | Übergabe schreiben | ✅ | ✅ | ✅ | ✅ |

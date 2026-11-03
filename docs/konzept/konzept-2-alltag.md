@@ -1,6 +1,6 @@
 # Konzept 2 – Alltag: Heute, Dienstplan, Dienst, Aufgaben & Wartung, Übergabe, Termine, Listen, Druck
 
-Stand: 01.11.2026 (nachmittags) · Status: Entwurf · Ausbaustufe 1 · Kalender & Besuche: Konzept 8 · Team-Tablet: Konzept 12 · Meldungen: Konzept 13
+Stand: 03.11.2026 (M5: „Heute" und einmalige Aufgaben) · Status: Entwurf · Ausbaustufe 1 · Kalender & Besuche: Konzept 8 · Team-Tablet: Konzept 12 · Meldungen: Konzept 13
 
 ## 1. Szenarien
 | # | Szenario | Erwartung |
@@ -25,7 +25,7 @@ Stand: 01.11.2026 (nachmittags) · Status: Entwurf · Ausbaustufe 1 · Kalender 
 5. **Heute kommen** (für alle): Besuche externer Dienste mit Uhrzeit und Hinweis fürs Team, z. B. „13:00 Caritas (Putzen) – Bad und Küche übernimmt die Caritas"; abgesagte als „fällt aus".
 6. **Nur Admins**: „Wer ist heute da / kommt als Nächstes", Gesprächspunkte, „Routinen & Wartung: 2 überfällig", offene Checklisten-Punkte.
 7. Termine heute (nach Sichtbarkeit).
-8. Aufgaben (Überfällig · Heute fällig · Heute möglich · Wenn Zeit ist) mit Symbolen und **„Zuletzt: vor 14 Tagen"** (nur Datum).
+8. Aufgaben (Überfällig · Heute fällig · Heute möglich · Wenn Zeit ist) mit Symbolen und **„Zuletzt: vor 14 Tagen"** (nur Datum). Es steht dort, was man sehen darf **und** wofür man zuständig ist (am Team-Tablet zusätzlich Aufgaben einzelner Assistenzkräfte, die für alle sichtbar sind); **Admins und Manager** sehen darunter getrennt die **„Aufgaben der Assistenz"**. Alles andere Sichtbare zeigt „Offene Aufgaben". Das Team-Tablet lädt „Heute" jede Minute neu (Entscheidung 03.11., M5).
 9. Großer Knopf **„Melden"** (leer · kaputt · fehlt) – für alle, auch am Team-Tablet.
 10. Kacheln: Listen, Wissen, Notfall, Kalender, Meldungen, Nachrichten (nicht am Team-Tablet), KI.
 
@@ -42,16 +42,16 @@ Feste Tage als Muster; geplante Dienste; Admins verschieben, ergänzen, sagen ab
 Titel, Beschreibung, Kategorie (Haushalt · Wäsche · Küche · Hilfsmittel · Einkauf · Termin · Gespräch · Sonstiges), Dauer, Priorität, „nur gemeinsam mit Manager", Nachweis, Checkliste mit Sollwerten, Verknüpfungen, Zuständigkeit, Sichtbarkeit, Fotos/Videos, **Vorschlag bei „nicht möglich"** (Liste + Artikel, nur Wartungspläne).
 
 ### 5.2 Zuständigkeit & Weitergeben
-Admins · Rolle (Manager/Assistenz/Angehörige) · bestimmte Person · wer gerade da ist. Beim Anlegen legt man fest, wer zuerst zuständig ist (oft Admins); Admins (und Angehörige bei eigenen Aufgaben) geben weiter – gespeichert wird, wer wann. Gilt auch für Termine und Checklisten-Punkte (nicht für Besuche – die sind reine Info). Das Team-Tablet zeigt alles für die Rolle Assistenz und „wer da ist".
+Admins · Rolle (Manager/Assistenz/Angehörige) · bestimmte Person · wer gerade da ist. Beim Anlegen legt man fest, wer zuerst zuständig ist (oft Admins); **Admins geben jede Aufgabe weiter, die sie sehen; alle anderen – auch Assistenz und Team-Tablet – was sie zuständig sind** (Entscheidung 03.11.) – gespeichert wird, wer wann (Person oder Tablet). Bearbeiten: Admins und wer die Aufgabe angelegt hat. Gilt auch für Termine und Checklisten-Punkte (nicht für Besuche – die sind reine Info). Das Team-Tablet zeigt alles für die Rolle Assistenz und „wer da ist".
 
 ### 5.3 Sichtbarkeit
-alle · zuständig (+ Admins) · admins · privat (nur Ersteller).
+alle · zuständig (+ Admins) · admins · privat (nur Ersteller). Wer eine Aufgabe angelegt hat, sieht sie immer. „Zuständig" ist streng: Das Team-Tablet ist nie eine bestimmte Person – wer keinen eigenen Zugang hat, sieht solche Aufgaben nicht. „Privat" wählen nur Admins und Angehörige; zuständig ist dann immer die Person selbst, weitergeben geht nicht (Entscheidung 02.11., M5).
 
 ### 5.4 Fälligkeit & Wiederholung
-Stichtag, Zeitfenster oder „beim nächsten Dienst von …"; Kalender- oder Intervall-Wiederholung; Ursprungstag gegen Doppelungen; Pausieren; Fotos/Videos am Plan.
+Stichtag, Zeitfenster oder „beim nächsten Dienst von …"; bei einmaligen Aufgaben „Ab wann zeigen?": ab sofort (bis dahin „Wenn Zeit ist") · erst am Fälligkeitstag · ab einem Tag (dann täglich „Heute möglich"); Kalender- oder Intervall-Wiederholung; Ursprungstag gegen Doppelungen; Pausieren; Fotos/Videos am Plan.
 
 ### 5.5 Status & „nicht möglich"
-erledigt · übersprungen · **nicht möglich** · verschoben.
+erledigt · übersprungen · **nicht möglich** · verschoben. „Erledigt" und „Überspringen" sofort, **30 Sekunden „Rückgängig"** (nur dieselbe Person bzw. dasselbe Tablet); Verschieben per Tipp in einem kleinen Wochenkalender (Entscheidung 03.11.).
 „Nicht möglich" erzeugt immer eine **Meldung** (Konzept 13): Grund kurz eingeben („Seife leer"), Folgeaktion wählen oder den Vorschlag des Wartungsplans bestätigen – auf eine Liste · Aufgabe für Person/Rolle · Übergabe · nur melden. Die Admins werden benachrichtigt; die Meldung schließt sich, sobald der Listeneintrag abgehakt oder die Aufgabe erledigt ist.
 
 ### 5.6 Übersicht „Routinen & Wartung"

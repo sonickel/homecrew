@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Weitergeben'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Weitergeben'|trans" :intro="task.title" />
+    <p>{{ 'Zuständig bisher: %name%'|trans({'%name%': current.label|trans}) }}</p>
+
+    {{ form_start(form, {attr: {class: 'hc-form', novalidate: 'novalidate'}}) }}
+        {{ form_row(form.assignee) }}
+        <div class="hc-button-row">
+            <twig:Button type="submit" icon="tabler:arrow-forward-up">{{ 'Weitergeben'|trans }}</twig:Button>
+            <twig:Button variant="secondary" :href="path('app_task_show', {id: task.id})">{{ 'Abbrechen'|trans }}</twig:Button>
+        </div>
+    {{ form_end(form) }}
+{% endblock %}

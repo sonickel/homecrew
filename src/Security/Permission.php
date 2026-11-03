@@ -32,4 +32,19 @@ final class Permission
 
     /** Emergency page: every person and the paired tablet (also without PIN). */
     public const string EMERGENCY_VIEW = 'EMERGENCY_VIEW';
+
+    /** "Heute", the task list and creating one-off tasks: every person and the team tablet (konzept-1 §3). */
+    public const string TASK_CREATE = 'TASK_CREATE';
+
+    /** See a task (subject: Task) – App\Service\Visibility\VisibilityRules. */
+    public const string TASK_VIEW = 'TASK_VIEW';
+
+    /** Complete, skip or postpone an open task (subject: Task): whoever sees it. */
+    public const string TASK_ACT = 'TASK_ACT';
+
+    /** Hand an open task on (subject: Task): admins every task they see, everybody else what they are responsible for. */
+    public const string TASK_HANDOVER = 'TASK_HANDOVER';
+
+    /** Change an open task (subject: Task): admins and the person who created it. */
+    public const string TASK_EDIT = 'TASK_EDIT';
 }

@@ -15,6 +15,30 @@
     </div>
 {%- endblock form_row -%}
 
+{#- Radio buttons and checkboxes: the whole row is the touch target (.hc-option__row) -#}
+{%- block choice_row -%}
+    {%- if expanded -%}
+        <fieldset class="hc-option{{ errors|length > 0 ? ' hc-field--error' }}"{% if help is not empty %} aria-describedby="{{ id }}_help"{% endif %}>
+            <legend class="hc-field__label">{{ label|trans(label_translation_parameters, translation_domain) }}</legend>
+            {{- form_help(form) -}}
+            {{- form_errors(form) -}}
+            {%- for child in form -%}
+                <label class="hc-option__row">{{ form_widget(child) }}<span>{{ child.vars.label|trans(child.vars.label_translation_parameters, choice_translation_domain) }}</span></label>
+            {%- endfor -%}
+        </fieldset>
+    {%- else -%}
+        {{- block('form_row') -}}
+    {%- endif -%}
+{%- endblock choice_row -%}
+
+{%- block checkbox_row -%}
+    <div class="hc-option">
+        {{- form_errors(form) -}}
+        <label class="hc-option__row">{{ form_widget(form) }}<span>{{ label|trans(label_translation_parameters, translation_domain) }}</span></label>
+        {{- form_help(form) -}}
+    </div>
+{%- endblock checkbox_row -%}
+
 {%- block repeated_row -%}
     {{- block('form_rows') -}}
 {%- endblock repeated_row -%}

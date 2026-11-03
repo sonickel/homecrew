@@ -8,6 +8,7 @@ use App\Entity\WebauthnCredential;
 use App\Enum\UserRole;
 use App\Security\Passkey\PasskeyLoginHandler;
 use App\Tests\Support\PeopleTrait;
+use App\Tests\Support\TabletTrait;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
@@ -17,6 +18,7 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 final class PasskeyEndpointsTest extends WebTestCase
 {
     use PeopleTrait;
+    use TabletTrait;
 
     public function testLoginOptionsRequireUserVerificationWithoutRevealingAccounts(): void
     {
@@ -32,6 +34,23 @@ final class PasskeyEndpointsTest extends WebTestCase
         self::assertSame('required', $options['userVerification']);
         self::assertGreaterThanOrEqual(43, \strlen($options['challenge']));
         self::assertEmpty($options['allowCredentials'] ?? []);
+    }
+
+    /**
+     * "Admin-Anmeldung" at the paired tablet with a passkey (konzept-12 §5) – the allow list of the team tablet
+     * (App\EventSubscriber\TeamTabletGuard) lets the login endpoints of the bundle through.
+     */
+    public function testThePairedTabletGetsPasskeyLoginOptions(): void
+    {
+        $client = $this->startClient();
+        $this->pairTablet($client);
+
+        $client->request('GET', '/anmelden');
+        self::assertResponseIsSuccessful();
+        $client->jsonRequest('POST', '/anmelden/passkey/optionen', []);
+
+        self::assertResponseIsSuccessful();
+        self::assertJson((string) $client->getResponse()->getContent());
     }
 
     public function testFailedPasskeyLoginAnswersInPlainWords(): void

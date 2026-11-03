@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Tablet;
 
+use App\Security\Attribute\TeamTabletAllowed;
 use App\Service\Tablet\DeviceCookie;
 use App\Service\Tablet\DevicePairing;
 use App\Service\Tablet\HomeNetwork;
@@ -19,6 +20,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * assets/controllers/fragment_code_controller.js) or typed. Only in the home network – the tablet would not work
  * anywhere else. Success sets the device cookie and opens the start page of the tablet.
  */
+#[TeamTabletAllowed]
 final class PairingController extends AbstractController
 {
     public function __construct(

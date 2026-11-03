@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Verschieben'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Verschieben'|trans" :intro="task.title" />
+    <p>{{ 'Bisher fällig: %day%'|trans({'%day%': task_due(task)}) }}</p>
+
+    {# One tap on a day moves the task #}
+    {{ form_start(form, {attr: {class: 'hc-form hc-form--wide'}}) }}
+        {{ form_errors(form.dueDate) }}
+        <twig:WeekPicker :name="form.dueDate.vars.full_name" :weeks="weeks" :today="today" :current="task.dueDate|date('Y-m-d', false)" :min="today" label="Neuer Tag – antippen" />
+        {{ form_widget(form._token) }}
+    {{ form_end(form, {render_rest: false}) }}
+
+    <div class="hc-button-row">
+        {% if week_offset > 0 %}
+            <twig:Button variant="secondary" icon="tabler:arrow-left" :href="path('app_task_postpone', {id: task.id, woche: max(0, week_offset - 2)})">{{ 'Frühere Wochen'|trans }}</twig:Button>
+        {% endif %}
+        {% if week_offset < 50 %}
+            <twig:Button variant="secondary" icon="tabler:calendar-event" :href="path('app_task_postpone', {id: task.id, woche: week_offset + 2})">{{ 'Spätere Wochen'|trans }}</twig:Button>
+        {% endif %}
+        <twig:Button variant="secondary" :href="path('app_task_show', {id: task.id})">{{ 'Abbrechen'|trans }}</twig:Button>
+    </div>
+{% endblock %}

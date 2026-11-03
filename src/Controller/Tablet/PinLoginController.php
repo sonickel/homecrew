@@ -6,6 +6,7 @@ namespace App\Controller\Tablet;
 
 use App\Entity\AppUser;
 use App\Repository\AppUserRepository;
+use App\Security\Attribute\TeamTabletAllowed;
 use App\Security\Permission;
 use App\Security\Pin\PinAuthenticator;
 use App\Service\Household\HouseholdContext;
@@ -19,6 +20,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * "Persönlich anmelden" at the tablet (konzept-12 §2): tap the own name, type the PIN.
  * The PIN form is handled by App\Security\Pin\PinAuthenticator; access by App\Security\Voter\TabletVoter.
  */
+#[TeamTabletAllowed]
 final class PinLoginController extends AbstractController
 {
     public function __construct(

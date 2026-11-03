@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Security;
 
 use App\Entity\AppUser;
+use App\Security\Attribute\TeamTabletAllowed;
 use App\Security\Permission;
 use App\Service\Tablet\DeviceCookie;
 use App\Service\Tablet\HomeNetwork;
@@ -16,6 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
+#[TeamTabletAllowed]
 final class LoginController extends AbstractController
 {
     /**

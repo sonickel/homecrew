@@ -1,0 +1,94 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ task.title }}{% endblock %}
+
+{% block body %}
+    {% set status = task_status(task) %}
+    <twig:PageHeader :title="task.title">
+        <p class="hc-status hc-status--{{ status.modifier }} hc-text-1">{{ ux_icon(status.icon, {'aria-hidden': 'true'}) }}<span>{{ status.text }}</span></p>
+    </twig:PageHeader>
+
+    {% if task.open %}
+        <div class="hc-button-row">
+            {% if is_granted('TASK_ACT', task) %}
+                <form method="post" action="{{ path('app_task_complete', {id: task.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('submit') }}" data-controller="csrf-protection">
+                    <twig:Button type="submit" icon="tabler:check">{{ 'Erledigt'|trans }}</twig:Button>
+                </form>
+                <form method="post" action="{{ path('app_task_skip', {id: task.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('submit') }}" data-controller="csrf-protection">
+                    <twig:Button type="submit" variant="secondary" icon="tabler:player-skip-forward">{{ 'Überspringen'|trans }}</twig:Button>
+                </form>
+                <twig:Button variant="secondary" icon="tabler:calendar-event" :href="path('app_task_postpone', {id: task.id})">{{ 'Verschieben'|trans }}</twig:Button>
+            {% endif %}
+            {% if is_granted('TASK_HANDOVER', task) %}
+                <twig:Button variant="secondary" icon="tabler:arrow-forward-up" :href="path('app_task_handover', {id: task.id})">{{ 'Weitergeben'|trans }}</twig:Button>
+            {% endif %}
+            {% if is_granted('TASK_EDIT', task) %}
+                <twig:Button variant="secondary" icon="tabler:pencil" :href="path('app_task_edit', {id: task.id})">{{ 'Bearbeiten'|trans }}</twig:Button>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% if task.description %}
+        <div class="hc-prose hc-task-description">{{ task.description|nl2br }}</div>
+    {% endif %}
+
+    <dl class="hc-facts">
+        <dt>{{ 'Fällig'|trans }}</dt>
+        <dd>{{ task_due(task) }}</dd>
+        {% if task.open %}
+            <dt>{{ 'Erscheint'|trans }}</dt>
+            <dd>{{ task_show_from(task) }}</dd>
+        {% endif %}
+        <dt>{{ 'Zuständig'|trans }}</dt>
+        <dd>{{ task_assignee(task)|trans }}</dd>
+        <dt>{{ 'Wer sieht sie'|trans }}</dt>
+        <dd>{{ task.visibility.label|trans }}</dd>
+        <dt>{{ 'Kategorie'|trans }}</dt>
+        <dd>{{ task.category.label|trans }}</dd>
+        {% if task.estimatedMinutes %}
+            <dt>{{ 'Dauer'|trans }}</dt>
+            <dd>{{ 'ca. %minutes% Minuten'|trans({'%minutes%': task.estimatedMinutes}) }}</dd>
+        {% endif %}
+        {% if task.important %}
+            <dt>{{ 'Wichtig'|trans }}</dt>
+            <dd>{{ 'Ja'|trans }}</dd>
+        {% endif %}
+        {% if task.requiresManager %}
+            <dt>{{ 'Gemeinsam mit'|trans }}</dt>
+            <dd>{{ with_manager() }}</dd>
+        {% endif %}
+        {% if task.postponedCount > 0 %}
+            <dt>{{ 'Verschoben'|trans }}</dt>
+            <dd>{{ task.postponedCount == 1 ? 'einmal'|trans : '%count%-mal'|trans({'%count%': task.postponedCount}) }}</dd>
+        {% endif %}
+        {# Who did what: only admins (konzept-12 §6) – the person, or "am Team-Tablet" #}
+        {% if admin and task.assignedAt %}
+            <dt>{{ 'Weitergegeben'|trans }}</dt>
+            <dd>
+                {{- task.assignedAt|format_datetime(pattern: "d. MMMM yyyy, HH:mm 'Uhr'", locale: 'de') }}
+                {% if task.assignedBy %}{{ 'von %name%'|trans({'%name%': task.assignedBy.displayName}) }}{% elseif task.assignedByDevice %}{{ 'am Team-Tablet'|trans }}{% endif -%}
+            </dd>
+        {% endif %}
+        {% if admin %}
+            <dt>{{ 'Angelegt'|trans }}</dt>
+            <dd>
+                {{- task.createdAt|format_datetime(pattern: "d. MMMM yyyy, HH:mm 'Uhr'", locale: 'de') }}
+                {% if task.createdBy %}{{ 'von %name%'|trans({'%name%': task.createdBy.displayName}) }}{% endif -%}
+            </dd>
+        {% endif %}
+        {% if completion %}
+            <dt>{{ completion.action.value == 'uebersprungen' ? 'Übersprungen'|trans : 'Erledigt'|trans }}</dt>
+            <dd>
+                {# For everybody only the date (konzept-12 §6) – time and person only for admins #}
+                {{- admin ? completion.doneAt|format_datetime(pattern: "d. MMMM yyyy, HH:mm 'Uhr'", locale: 'de') : completion.doneAt|format_date(pattern: 'd. MMMM yyyy', locale: 'de') }}
+                {% if admin %}{% if completion.user %}{{ 'von %name%'|trans({'%name%': completion.user.displayName}) }}{% elseif completion.device %}{{ 'am Team-Tablet'|trans }}{% endif %}{% endif -%}
+            </dd>
+        {% endif %}
+    </dl>
+
+    <div class="hc-button-row">
+        <twig:Button variant="secondary" icon="tabler:arrow-left" :href="path('app_home')">{{ 'Zurück zu Heute'|trans }}</twig:Button>
+    </div>
+{% endblock %}

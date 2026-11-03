@@ -1,0 +1,28 @@
+{# Small week calendar instead of a date field: every day is a submit button of the surrounding form and sends
+   its date as "name" (one tap). Days before "min" and the current day ("current") cannot be chosen.
+   weeks: App\Service\Household\WeekDays::weeks() – household dates without time zone. #}
+{% props name, weeks, today, current = null, min = null, label = 'Neuer Tag' %}
+<fieldset {{ attributes.defaults({class: 'hc-week-picker'}) }}>
+    <legend class="hc-field__label">{{ label|trans }}</legend>
+    {% for week in weeks %}
+        <p class="hc-week-picker__range">{{ week|first|format_date(pattern: 'd. MMMM', locale: 'de', timezone: false) }} – {{ week|last|format_date(pattern: 'd. MMMM yyyy', locale: 'de', timezone: false) }}</p>
+        <ul class="hc-week-picker__days">
+            {% for day in week %}
+                {% set value = day|date('Y-m-d', false) %}
+                {% set is_today = value == today %}
+                <li>
+                    {% if (min and value < min) or value == current %}
+                        <span class="hc-week-picker__day hc-week-picker__day--off{{ is_today ? ' hc-week-picker__day--today' }}"{% if is_today %} aria-current="date"{% endif %}>
+                    {% else %}
+                        <button class="hc-week-picker__day{{ is_today ? ' hc-week-picker__day--today' }}" type="submit" name="{{ name }}" value="{{ value }}"{% if is_today %} aria-current="date"{% endif %}>
+                    {% endif %}
+                        <span class="hc-week-picker__weekday">{{ day|format_date(pattern: 'EEEEEE', locale: 'de', timezone: false)|trim('.') }}</span>
+                        <span class="hc-week-picker__number">{{ day|date('j', false) }}.</span>
+                        <span class="hc-visually-hidden">{{ day|format_date(pattern: 'MMMM', locale: 'de', timezone: false) }}{% if is_today %}, {{ 'heute'|trans }}{% elseif value == current %}, {{ 'bisher fällig'|trans }}{% endif %}</span>
+                    {% if (min and value < min) or value == current %}</span>{% else %}</button>{% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
+    {% block content %}{% endblock %}
+</fieldset>

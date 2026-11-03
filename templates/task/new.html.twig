@@ -1,0 +1,8 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Neue Aufgabe'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Neue Aufgabe'|trans" />
+    {{ include('task/_form.html.twig', {submit_label: 'Aufgabe anlegen', cancel_path: path('app_home')}) }}
+{% endblock %}

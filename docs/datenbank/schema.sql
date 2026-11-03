@@ -1,7 +1,8 @@
 -- =====================================================================
 --  HomeCrew – Datenbankschema (fachliche Referenz)
 --  Ziel:   MariaDB 11.8 LTS, InnoDB, utf8mb4
---  Stand:  02.11.2026 · Umsetzung Stufe 1 (M4: emergency_contact.category VARCHAR(15))
+--  Stand:  03.11.2026 · Umsetzung Stufe 1 (M4: emergency_contact.category VARCHAR(15);
+--          M5: task.assigned_by_device_id – Weitergeben am Team-Tablet)
 --          Doctrine-Migrations erzeugen das Schema; diese Datei ist die
 --          Referenz, gegen die Entities und Migrations geprüft werden
 --          (composer schema:check, docs/konzept/konzept-6-datenbank.md §6).
@@ -1097,7 +1098,8 @@ CREATE TABLE task (
   proof_type           VARCHAR(10)       NOT NULL DEFAULT 'keiner',
   assignee_user_id     BIGINT UNSIGNED   NULL,          -- Person (bei Gesprächspunkt: mit wem) – hat Vorrang
   assignee_role        VARCHAR(12)       NULL,          -- sonst Rolle (admins/manager/assistenz/angehoerige); beides NULL = wer gerade da ist
-  assigned_by_user_id  BIGINT UNSIGNED   NULL,          -- wer zuletzt weitergegeben hat
+  assigned_by_user_id  BIGINT UNSIGNED   NULL,          -- wer zuletzt weitergegeben hat: Person …
+  assigned_by_device_id BIGINT UNSIGNED  NULL,          -- … oder das Team-Tablet
   assigned_at          DATETIME          NULL,
   visibility           VARCHAR(12)       NOT NULL DEFAULT 'alle',   -- alle / zustaendig (+Admins) / admins / privat (nur Ersteller)
   guide_id             BIGINT UNSIGNED   NULL,
@@ -1119,9 +1121,11 @@ CREATE TABLE task (
   KEY ix_task_today (status, due_date),
   KEY ix_task_assignee (assignee_user_id, status),
   KEY ix_task_assigned_by (assigned_by_user_id),
+  KEY ix_task_assigned_device (assigned_by_device_id),
   CONSTRAINT fk_task_template FOREIGN KEY (template_id)              REFERENCES task_template (id) ON DELETE SET NULL,
   CONSTRAINT fk_task_assignee FOREIGN KEY (assignee_user_id)   REFERENCES app_user (id)    ON DELETE SET NULL,
   CONSTRAINT fk_task_assigner FOREIGN KEY (assigned_by_user_id) REFERENCES app_user (id)   ON DELETE SET NULL,
+  CONSTRAINT fk_task_assigner_device FOREIGN KEY (assigned_by_device_id) REFERENCES device (id) ON DELETE SET NULL,
   CONSTRAINT fk_task_guide    FOREIGN KEY (guide_id)                 REFERENCES guide (id)         ON DELETE SET NULL,
   CONSTRAINT fk_task_asset    FOREIGN KEY (asset_id)                 REFERENCES asset (id)         ON DELETE SET NULL,
   CONSTRAINT fk_task_poi      FOREIGN KEY (poi_id)                   REFERENCES poi (id)           ON DELETE SET NULL,

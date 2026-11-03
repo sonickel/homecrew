@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App;
 
+use App\Message\AnonymizeTaskCompletions;
 use App\Message\PurgeAuditLog;
+use App\Message\PurgeDoneTasks;
 use App\Message\PurgeInvitations;
 use Symfony\Component\Scheduler\Attribute\AsSchedule;
 use Symfony\Component\Scheduler\RecurringMessage;
@@ -32,6 +34,8 @@ final class Schedule implements ScheduleProviderInterface
             // Retention jobs at night (household time)
             ->add(RecurringMessage::every('1 day', new PurgeAuditLog(), from: new \DateTimeImmutable('03:30', new \DateTimeZone('Europe/Berlin'))))
             ->add(RecurringMessage::every('1 day', new PurgeInvitations(), from: new \DateTimeImmutable('03:35', new \DateTimeZone('Europe/Berlin'))))
+            ->add(RecurringMessage::every('1 day', new AnonymizeTaskCompletions(), from: new \DateTimeImmutable('03:40', new \DateTimeZone('Europe/Berlin'))))
+            ->add(RecurringMessage::every('1 day', new PurgeDoneTasks(), from: new \DateTimeImmutable('03:45', new \DateTimeZone('Europe/Berlin'))))
         ;
     }
 }

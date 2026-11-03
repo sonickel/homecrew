@@ -1,6 +1,7 @@
+{# id + data-turbo-permanent: the regular reload of "Heute" (Turbo morph) leaves the layer as it is #}
 {# Screensaver of the team tablet (konzept-12 §5): covers the page after the idle time; emergency numbers stay reachable.
    Only contacts for everybody that are marked for the lock screen (lockscreen_contacts()). #}
-<div class="hc-screensaver" data-screensaver-target="overlay" data-action="click->screensaver#wake keydown->screensaver#wakeByKey" tabindex="-1" hidden
+<div id="bildschirmschoner" class="hc-screensaver" data-turbo-permanent data-screensaver-target="overlay" data-action="click->screensaver#wake keydown->screensaver#wakeByKey" tabindex="-1" hidden
      role="dialog" aria-modal="true" aria-label="{{ 'Bildschirmschoner'|trans }}">
     <p class="hc-screensaver__time" data-screensaver-target="clock"></p>
     <p class="hc-screensaver__date" data-screensaver-target="date"></p>

@@ -1,6 +1,6 @@
 # Konzept 12 – Team-Tablet (Gerätemodus ohne Personenanmeldung)
 
-Stand: 02.11.2026 (M4: Team-Tablet umgesetzt) · Status: Entwurf · **Ausbaustufe 1 – empfohlener Start**
+Stand: 03.11.2026 (M5: Aufgaben am Team-Tablet) · Status: Entwurf · **Ausbaustufe 1 – empfohlener Start**
 
 ## 1. Idee
 Das Assistenz-Tablet wird einmal von einem Admin gekoppelt und läuft dann im **Team-Modus**: Es zeigt alles, was für die **Rolle Assistenz** bestimmt ist – Aufgaben, Wartungen, Termine, Besuche, Listen, Anleitungen, Notfall-Infos –, **ohne dass sich jemand anmeldet**. Das Tablet kennt keine Person.
@@ -24,7 +24,7 @@ Wechsel jederzeit; es geht nichts verloren.
 | Bereich | Team-Tablet |
 |---|---|
 | **Heute** | Datum, wichtige Übergaben, „Neu seit gestern", **„Heute kommen"** (Physio, Caritas … mit Hinweis fürs Team), Termine für alle bzw. die Rolle Assistenz, Aufgaben für die Rolle Assistenz / „wer da ist" / alle |
-| Aufgaben erledigen | ✅ inkl. Checkliste, Messwerten, Nachweisfoto; „nicht möglich" → **Meldung** mit Folgeaktion (Konzept 13) |
+| Aufgaben erledigen | ✅ inkl. Checkliste, Messwerten, Nachweisfoto; „nicht möglich" → **Meldung** mit Folgeaktion (Konzept 13); überspringen, verschieben, **weitergeben, wofür das Tablet zuständig ist** (Rolle Assistenz, „wer da ist", einzelne Assistenzkräfte – gespeichert wird das Gerät); „Rückgängig" 30 Sekunden; einmalige Aufgaben anlegen (ohne „privat") |
 | **Melden** | ✅ großer Knopf: leer · kaputt · fehlt · sonstiges, mit Foto; „Auch bemerkt" bei bereits Gemeldetem |
 | Offene Meldungen | ✅ Titel, Datum, Status (ohne Person) – damit nichts doppelt gemeldet wird |
 | Routinen & Wartung | ✅ (zuletzt erledigt: nur Datum) |
@@ -56,7 +56,7 @@ Ohne persönliche Anmeldung erfasst niemand am Tablet seine Zeit – **der Admin
 - **Notfall-Button** immer sichtbar.
 - Tablet verloren → im Admin-Menü **entkoppeln**, sofort wirkungslos.
 - **Admin am Tablet**: Knopf „Admin-Anmeldung" → volle Anmeldung mit 2FA/Passkey → nach Abmelden oder 5 Minuten Inaktivität zurück in den Team-Modus.
-- Erledigungen, Meldungen, Übergaben, Listeneinträge und Fotos tragen nur das **Gerät** als Absender, keine Person.
+- Erledigungen, Weitergaben, Meldungen, Übergaben, Listeneinträge und Fotos tragen nur das **Gerät** als Absender, keine Person.
 
 ### 5.1 Umsetzung (M4, Entscheidungen 02.11.)
 - **Koppeln**: Admin gibt in Verwaltung → Geräte den Namen ein („Flur") und bekommt einen Kopplungscode (12 Zeichen, 10 Minuten, einmal) als QR-Code oder zum Abtippen unter `/koppeln`. Der Code steht nur nach dem „#" der Adresse (kein Server-Log). Das Tablet erhält ein Geräte-Token als Cookie (in der Datenbank nur als Hash); unbekannte oder entkoppelte Token werden gelöscht.
@@ -76,4 +76,4 @@ Ohne persönliche Anmeldung erfasst niemand am Tablet seine Zeit – **der Admin
 Bekommen Personen eine PIN, stellt der Admin das Tablet auf „Beides": Team-Ansicht bleibt, wer will, meldet sich zusätzlich an (eigene Dienste, Zeiten, Nachrichten). Die Arbeitszeit kann dann wieder selbst erfasst werden.
 
 ## 8. Datenbank
-`device.mode` (team / persoenlich / beides), `device.dim_after_seconds`; `device_id` an Erledigungen, Meldungen (`issue_report.created_by_device_id`), Übergaben, Listeneinträgen, Medien und im Protokoll; `time_entry.start_source = 'dienstplan'` für übernommene Dienste. (`device.unlock_code_hash` entfallen.)
+`device.mode` (team / persoenlich / beides), `device.dim_after_seconds`; `device_id` an Erledigungen, Weitergaben (`task.assigned_by_device_id`, M5), Meldungen (`issue_report.created_by_device_id`), Übergaben, Listeneinträgen, Medien und im Protokoll; `time_entry.start_source = 'dienstplan'` für übernommene Dienste. (`device.unlock_code_hash` entfallen.)

@@ -23,6 +23,7 @@
 
         .hc-topbar,
         .hc-skip-link,
+        .hc-toasts,
         .hc-no-print {
             display: none !important;
         }

@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Offene Aufgaben'|trans }}{% endblock %}
+
+{% block head_meta %}
+    <meta name="turbo-refresh-method" content="morph">
+    <meta name="turbo-refresh-scroll" content="preserve">
+{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Offene Aufgaben'|trans" :intro="'Alle offenen Aufgaben, die du sehen darfst – auch die von anderen und die, die erst später erscheinen.'|trans" />
+
+    <div class="hc-button-row">
+        <twig:Button icon="tabler:plus" :href="path('app_task_new')">{{ 'Neue Aufgabe'|trans }}</twig:Button>
+        <twig:Button variant="secondary" icon="tabler:arrow-left" :href="path('app_home')">{{ 'Zurück zu Heute'|trans }}</twig:Button>
+    </div>
+
+    {% if groups.count > 0 %}
+        {{ include('task/_groups.html.twig', {groups: groups, back: 'aufgaben', prefix: 'alle', level: 2}) }}
+    {% else %}
+        <twig:EmptyState icon="tabler:circle-check" :message="'Es gibt keine offenen Aufgaben.'|trans" />
+    {% endif %}
+{% endblock %}

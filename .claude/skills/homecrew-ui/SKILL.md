@@ -51,9 +51,9 @@ Team-Tablet quer (Hauptgerät):
 - Admin-Bereich darf dichter sein (Tabellen), bleibt aber in denselben Tokens.
 
 ## Komponenten (Twig Components in `src/Twig/Components/` + `templates/components/`)
-- `Button` (Varianten: primär, sekundär, gefährlich, signal), `StatusBadge` (Symbol + Text), `TaskRow`, `VisitRow`, `ReportButton`, `EmergencyButton`, `PageHeader`, `EmptyState`, `Toast`, `FormRow`.
+- `Button` (Varianten: primär, sekundär, gefährlich, signal), `StatusBadge` (Symbol + Text), `TaskRow`, `VisitRow`, `ReportButton`, `EmergencyButton`, `PageHeader`, `EmptyState`, `Toast`, `FormRow`, `WeekPicker` (kleiner Wochenkalender statt Datumsfeld zum Verschieben – ein Tipp je Tag).
 - Trefferflächen: mindestens 48 × 48 px, auf dem Team-Tablet 56 px; ganze Zeile antippbar, Haupt-Aktion („Erledigt") rechts als eigener großer Knopf.
-- **Rückgängig statt Nachfragen**: „Erledigt" sofort ausführen, 10 Sekunden „Rückgängig" anbieten. Bestätigungsdialoge nur für Löschen/Unumkehrbares.
+- **Rückgängig statt Nachfragen**: „Erledigt" sofort ausführen, 30 Sekunden „Rückgängig" anbieten (Hinweis unten, Komponente `Toast`; Entscheidung 03.11.). Bestätigungsdialoge nur für Löschen/Unumkehrbares.
 - Symbole lokal als SVG (z. B. symfony/ux-icons mit lokal importierten Icons), immer mit sichtbarem Text oder `aria-label`.
 
 ## Bewegung

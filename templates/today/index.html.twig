@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Heute'|trans }}{% endblock %}
+
+{# "Erledigt" leads back here: Turbo morphs the page instead of rebuilding it, the scroll position stays #}
+{% block head_meta %}
+    <meta name="turbo-refresh-method" content="morph">
+    <meta name="turbo-refresh-scroll" content="preserve">
+{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Heute'|trans"
+        :intro="device ? 'Team-Tablet „%name%“'|trans({'%name%': device.name}) : 'Hallo %name%'|trans({'%name%': person.displayName})" />
+
+    {% if person and person.admin and not person.hasTwoFactor %}
+        <twig:Alert :message="'Schütze deinen Admin-Zugang mit einem zweiten Schritt (Authenticator-App oder Passkey).'|trans">
+            <twig:Button variant="secondary" icon="tabler:shield-lock" :href="path('app_account_two_factor')">{{ 'Zweiten Schritt einrichten'|trans }}</twig:Button>
+        </twig:Alert>
+    {% endif %}
+
+    {# The team tablet reloads "Heute" regularly (no Mercure): new tasks appear without touching the screen #}
+    <div class="hc-today"{% if device %} data-controller="auto-refresh" data-auto-refresh-seconds-value="60"{% endif %}>
+        {# Actions first – on phones above the tasks, on tablets in the right column (same order for the keyboard) #}
+        <aside class="hc-today__side" aria-label="{{ 'Aktionen'|trans }}">
+            <twig:Button icon="tabler:plus" :href="path('app_task_new')" class="hc-today__new">{{ 'Neue Aufgabe'|trans }}</twig:Button>
+            <nav aria-label="{{ 'Bereiche'|trans }}">
+                <ul class="hc-tiles">
+                    <li><a class="hc-tile" href="{{ path('app_task_index') }}">{{ ux_icon('tabler:list-check', {'aria-hidden': 'true'}) }}<span>{{ 'Offene Aufgaben'|trans }}</span></a></li>
+                    <li><a class="hc-tile" href="{{ path('app_emergency') }}">{{ ux_icon('tabler:first-aid-kit', {'aria-hidden': 'true'}) }}<span>{{ 'Notfall'|trans }}</span></a></li>
+                </ul>
+            </nav>
+            {% if device %}
+                <div class="hc-today__logins">
+                    {% if device.mode.offersPinLogin %}
+                        <twig:Button variant="secondary" icon="tabler:user-circle" :href="path('app_tablet_people')">{{ 'Persönlich anmelden'|trans }}</twig:Button>
+                    {% endif %}
+                    <twig:Button variant="secondary" icon="tabler:login" :href="path('app_login')">{{ 'Admin-Anmeldung'|trans }}</twig:Button>
+                </div>
+            {% endif %}
+        </aside>
+
+        <div class="hc-today__main">
+            <section class="hc-today__block" aria-labelledby="aufgaben-mine">
+                <h2 id="aufgaben-mine">{{ device ? 'Aufgaben'|trans : 'Für dich'|trans }}</h2>
+                {% if mine.count > 0 %}
+                    {{ include('task/_groups.html.twig', {groups: mine, back: 'heute', prefix: 'mine'}) }}
+                {% else %}
+                    <twig:EmptyState icon="tabler:circle-check" :message="'Für heute ist alles erledigt.'|trans" />
+                {% endif %}
+            </section>
+
+            {% if assistants is not null %}
+                <section class="hc-today__block" aria-labelledby="aufgaben-assistenz">
+                    <h2 id="aufgaben-assistenz">{{ 'Aufgaben der Assistenz'|trans }}</h2>
+                    {% if assistants.count > 0 %}
+                        {{ include('task/_groups.html.twig', {groups: assistants, back: 'heute', prefix: 'assistenz'}) }}
+                    {% else %}
+                        <p>{{ 'Für die Assistenz steht heute nichts an.'|trans }}</p>
+                    {% endif %}
+                </section>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

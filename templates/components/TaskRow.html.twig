@@ -1,0 +1,27 @@
+{# One task: status (symbol + word), title linking to the details, short details, "Erledigt" on the right #}
+{% set status = task_status(task) %}
+{% set assignee = this.assignee %}
+<li {{ attributes.defaults({class: 'hc-task hc-task--' ~ status.modifier}) }}>
+    <div class="hc-task__main">
+        <p class="hc-task__when hc-status hc-status--{{ status.modifier }}">{{ ux_icon(status.icon, {'aria-hidden': 'true'}) }}<span>{{ status.text }}</span></p>
+        <a class="hc-task__title" href="{{ path('app_task_show', {id: task.id}) }}">{{ task.title }}</a>
+        {% if task.important or assignee or task.estimatedMinutes or task.requiresManager %}
+            <ul class="hc-task__details">
+                {% if task.important %}<li class="hc-task__important">{{ ux_icon('tabler:star', {'aria-hidden': 'true'}) }}<span>{{ 'Wichtig'|trans }}</span></li>{% endif %}
+                {% if assignee %}<li>{{ 'Zuständig: %name%'|trans({'%name%': assignee|trans}) }}</li>{% endif %}
+                {% if task.estimatedMinutes %}<li>{{ 'ca. %minutes% Min.'|trans({'%minutes%': task.estimatedMinutes}) }}</li>{% endif %}
+                {% if task.requiresManager %}<li>{{ 'Gemeinsam mit %name%'|trans({'%name%': with_manager()}) }}</li>{% endif %}
+            </ul>
+        {% endif %}
+    </div>
+    {% if is_granted('TASK_ACT', task) %}
+        <form class="hc-task__action" method="post" action="{{ path('app_task_complete', {id: task.id}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('submit') }}" data-controller="csrf-protection">
+            <input type="hidden" name="zurueck" value="{{ back }}">
+            <button class="hc-button hc-button--primary hc-task__done" type="submit">
+                {{- ux_icon('tabler:check', {'aria-hidden': 'true'}) -}}
+                <span>{{ 'Erledigt'|trans }}<span class="hc-visually-hidden">: {{ task.title }}</span></span>
+            </button>
+        </form>
+    {% endif %}
+</li>

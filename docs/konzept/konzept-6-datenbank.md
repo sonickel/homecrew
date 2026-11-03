@@ -1,11 +1,11 @@
 # Konzept 6 – Datenbank (MariaDB 11.8 LTS)
 
-Stand: 01.11.2026 (abends) · Referenzschema: `docs/datenbank/schema.sql` · Test: `docs/datenbank/smoke_test.sql` · App: **HomeCrew**
+Stand: 03.11.2026 (M5: task.assigned_by_device_id) · Referenzschema: `docs/datenbank/schema.sql` · Test: `docs/datenbank/smoke_test.sql` · App: **HomeCrew**
 
 ## 1. Rahmen
 - **MariaDB 11.8 LTS** (geklärt 01.11. abends, vorher 11.4 LTS), InnoDB, `utf8mb4_unicode_ci`. Lokal 11.8.6; der Pi nutzt dieselbe Version.
 - **Eine Datenbank = ein Haushalt** – keine Mandantenspalten (geklärt).
-- **78 Tabellen**, 154 Fremdschlüssel, 155 CHECK-Constraints (gegen MariaDB 11.8.6 geprüft). MariaDB legt für die drei JSON-Spalten zusätzlich je einen automatischen `json_valid`-CHECK an – `information_schema` zeigt deshalb 158.
+- **78 Tabellen**, 155 Fremdschlüssel, 155 CHECK-Constraints (gegen MariaDB 11.8.6 geprüft). MariaDB legt für die drei JSON-Spalten zusätzlich je einen automatischen `json_valid`-CHECK an – `information_schema` zeigt deshalb 158.
 - Doctrine-Migrations erzeugen das Schema (Strategie in §6); `schema.sql` bleibt die fachliche Referenz.
 
 ## 2. Konventionen
@@ -78,7 +78,7 @@ erDiagram
 2. **Rolle + Admin-Recht**: `role` (manager/assistenz/angehoerige), `is_admin`. CHECKs: Manager ist immer Admin, Assistenz nie Admin; **genau ein Manager** (generierte Spalte + eindeutiger Index). 2FA-Pflicht für Admins setzt die App beim Login durch.
 3. **PIN** pro Person, Standard aus; nur mit gesetzter PIN aktivierbar; Start-PIN muss geändert werden; `app_setting.pin_lan_only`.
 4. **Gerätemodus** (`device.mode`): `team` (Standard) · `persoenlich` · `beides`; Bildschirmschoner (`dim_after_seconds`); Schriftgröße am Gerät (`device.font_size`, Werte wie `app_user.font_size`, ergänzt 01.11. für M2). Kein eigener Entsperr-Code.
-5. **Absender Gerät statt Person**: `task_completion`, `issue_report`, `handover_note`, `shopping_item`, `media` und `audit_log` haben eine Geräte-Spalte (ON DELETE SET NULL).
+5. **Absender Gerät statt Person**: `task_completion`, `task` (Weitergeben: `assigned_by_device_id`, ergänzt in M5), `issue_report`, `handover_note`, `shopping_item`, `media` und `audit_log` haben eine Geräte-Spalte (ON DELETE SET NULL).
 6. **Erweiterungen in `app_setting`**: KI (`ai_enabled`, Anbieter, Modell, `ai_api_key_enc` + `ai_api_key_hint`, `ai_key_status` fehlt/ungeprueft/ok/fehler, Prüfzeitpunkt, Fehlermeldung, Funktionsschalter Assistent/Schreibhilfe/Übersetzung/Team-Tablet, Monatsbudget) und E-Mail (`mail_enabled`, SMTP-Server/Port/Verschlüsselung/Benutzer, `smtp_password_enc`, Absender, `mail_status`). CHECKs: **KI nur mit Schlüssel einschaltbar**; Status „fehlt" genau dann, wenn kein Schlüssel; **E-Mail nur mit Server, Port und Absender einschaltbar**. Ob eine Funktion sichtbar ist, entscheidet die App zur Laufzeit (`FeatureAvailability`: Schalter + Status ok + Budget + Personenrecht).
 7. **Besuche & Serien**: `appointment.kind` = `termin` · `besuch`. Besuche haben weder Begleitung noch Zuständigkeits-Rolle (CHECK, auch an der Serie); Standard-Sichtbarkeit `alle`. `appointment_series` erzeugt Vorkommen mit `occurrence_date` (eindeutig je Serie) und `is_modified`; `status = abgesagt` mit `cancel_note`. Serie löschen entfernt ihre Vorkommen (CASCADE).
 8. **Meldungen** (`issue_report`): genau eine je Aufgabe bei „nicht möglich" oder über „Melden"; Status mit Abschluss-CHECKs; Folgeaktion mit Verweis; automatischer Abschluss durch die App; „auch bemerkt".
@@ -146,4 +146,4 @@ mariadb homecrew_smoke < docs/datenbank/smoke_test.sql
 ```
 Erwartet: nur „OK", letzte Zeile **ALLE PRÜFUNGEN OK**. Geprüft werden Positivfälle (Team-Tablet, „Seife leer", Physio-/Caritas-Serien, eingerichtete Erweiterungen), **93 Regeln** (u. a. genau ein Manager, Manager immer Admin, Assistenz nie Admin, Admin-Korrektur nur mit Begründung, Gerätemodi und -schriftgröße, Zeitquellen, Meldungs-Status, Benachrichtigungsregeln, Besuche ohne Begleitung/Zuständigkeit, Serien-Vorkommen eindeutig, **KI nur mit Schlüssel, E-Mail nur mit vollständigem Zugang**) und das Löschverhalten.
 
-**Ergebnis 01.11.2026** (MariaDB 11.8.6, WSL2 Debian): **ALLE PRÜFUNGEN OK** – 7 Positivfälle (A), 92 Regeln (B), 13 Lösch- und Verweisfälle (C); die Referenz musste nicht geändert werden. **Nachtrag M2:** `device.font_size` ergänzt (Regel B93) – wieder ALLE PRÜFUNGEN OK (93 B). **Nachtrag M4:** `emergency_contact.category` von `VARCHAR(12)` auf `VARCHAR(15)` – der eigene CHECK erlaubt `'dienstleister'` (13 Zeichen), das ließ sich bisher nicht speichern; Positivfall im Smoke-Test ergänzt, wieder ALLE PRÜFUNGEN OK. Eine Prüfung aller Wertelisten gegen ihre Spaltenlänge fand nichts weiter. Die Regeln der migrierten Tabellen laufen zusätzlich als PHPUnit-Tests (`tests/Database/`).
+**Ergebnis 01.11.2026** (MariaDB 11.8.6, WSL2 Debian): **ALLE PRÜFUNGEN OK** – 7 Positivfälle (A), 92 Regeln (B), 13 Lösch- und Verweisfälle (C); die Referenz musste nicht geändert werden. **Nachtrag M2:** `device.font_size` ergänzt (Regel B93) – wieder ALLE PRÜFUNGEN OK (93 B). **Nachtrag M4:** `emergency_contact.category` von `VARCHAR(12)` auf `VARCHAR(15)` – der eigene CHECK erlaubt `'dienstleister'` (13 Zeichen), das ließ sich bisher nicht speichern; Positivfall im Smoke-Test ergänzt, wieder ALLE PRÜFUNGEN OK. Eine Prüfung aller Wertelisten gegen ihre Spaltenlänge fand nichts weiter. **Nachtrag M5:** `task.assigned_by_device_id` (Weitergeben am Team-Tablet: Gerät statt Person, Entscheidung 03.11.) mit Index und Fremdschlüssel; Positivfall „Weitergabe am Team-Tablet" und C11 „Gerät gelöscht → Erledigung und Weitergabe bleiben" ergänzt – wieder ALLE PRÜFUNGEN OK (8 A, 93 B, 14 C). Die Regeln der migrierten Tabellen laufen zusätzlich als PHPUnit-Tests (`tests/Database/`).

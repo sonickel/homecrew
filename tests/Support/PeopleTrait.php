@@ -101,6 +101,18 @@ trait PeopleTrait
         return TOTP::createFromSecret($secret)->now();
     }
 
+    /**
+     * The code at a fixed time – for tests that mock the clock (the app checks codes against its clock).
+     */
+    protected static function codeAt(string $secret, string $time): string
+    {
+        \assert('' !== $secret);
+        $timestamp = (new \DateTimeImmutable($time))->getTimestamp();
+        \assert($timestamp >= 0);
+
+        return TOTP::createFromSecret($secret)->at($timestamp);
+    }
+
     protected function loginWithPassword(KernelBrowser $client, string $username, string $password = self::PASSWORD): void
     {
         $client->request('GET', '/anmelden');

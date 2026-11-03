@@ -35,17 +35,25 @@
             {% set now = today() %}
             <p class="hc-topbar__date"><time datetime="{{ now|date('Y-m-d') }}">{{ now|format_date(pattern: 'EEEE, d. MMMM', locale: 'de') }}</time></p>
             <div class="hc-topbar__end">
-                {% if current_person() and is_granted('IS_AUTHENTICATED_FULLY') %}
-                    <nav class="hc-topbar__nav" aria-label="{{ 'Konto'|trans }}">
-                        <a class="hc-topbar__link" href="{{ path('app_account') }}">{{ ux_icon('tabler:user-circle', {'aria-hidden': 'true'}) }}<span>{{ 'Mein Konto'|trans }}</span></a>
-                        {% if is_granted('ADMIN') %}
-                            {# EasyAdmin brings its own layout and scripts: load it as a full page, not via Turbo #}
-                            <a class="hc-topbar__link" href="{{ path('admin') }}" data-turbo="false">{{ ux_icon('tabler:settings', {'aria-hidden': 'true'}) }}<span>{{ 'Verwaltung'|trans }}</span></a>
+                {# "Heute" leads home from every other page – for persons and the team tablet #}
+                {% set person_nav = current_person() and is_granted('IS_AUTHENTICATED_FULLY') %}
+                {% set today_link = app.current_route != 'app_home' and (person_nav or team_device()) %}
+                {% if person_nav or today_link %}
+                    <nav class="hc-topbar__nav" aria-label="{{ 'Navigation'|trans }}">
+                        {% if today_link %}
+                            <a class="hc-topbar__link" href="{{ path('app_home') }}">{{ ux_icon('tabler:home', {'aria-hidden': 'true'}) }}<span>{{ 'Heute'|trans }}</span></a>
                         {% endif %}
-                        <form class="hc-topbar__form" method="post" action="{{ path('app_logout') }}">
-                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}" data-controller="csrf-protection">
-                            <button class="hc-topbar__link" type="submit">{{ ux_icon('tabler:logout', {'aria-hidden': 'true'}) }}<span>{{ 'Abmelden'|trans }}</span></button>
-                        </form>
+                        {% if person_nav %}
+                            <a class="hc-topbar__link" href="{{ path('app_account') }}">{{ ux_icon('tabler:user-circle', {'aria-hidden': 'true'}) }}<span>{{ 'Mein Konto'|trans }}</span></a>
+                            {% if is_granted('ADMIN') %}
+                                {# EasyAdmin brings its own layout and scripts: load it as a full page, not via Turbo #}
+                                <a class="hc-topbar__link" href="{{ path('admin') }}" data-turbo="false">{{ ux_icon('tabler:settings', {'aria-hidden': 'true'}) }}<span>{{ 'Verwaltung'|trans }}</span></a>
+                            {% endif %}
+                            <form class="hc-topbar__form" method="post" action="{{ path('app_logout') }}">
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}" data-controller="csrf-protection">
+                                <button class="hc-topbar__link" type="submit">{{ ux_icon('tabler:logout', {'aria-hidden': 'true'}) }}<span>{{ 'Abmelden'|trans }}</span></button>
+                            </form>
+                        {% endif %}
                     </nav>
                 {% endif %}
                 {% if is_granted('EMERGENCY_VIEW') %}
@@ -61,6 +69,17 @@
             {% endfor %}
             {% block body %}{% endblock %}
         </main>
+        {# "Rückgängig" after "Erledigt"/"Überspringen" (App\Controller\Task\TaskController); a region of its own
+           that screen readers announce when Turbo morphs the hint in #}
+        <div class="hc-toasts" aria-live="polite">
+            {% for undo in app.flashes('undo') %}
+                <twig:Toast
+                    :message="(undo.action == 'uebersprungen' ? '„%title%“ ist übersprungen.' : '„%title%“ ist erledigt.')|trans({'%title%': undo.title})"
+                    :undoPath="path('app_task_undo', {id: undo.id})"
+                    :back="undo.back"
+                    :seconds="constant('App\\Service\\Task\\TaskActions::UNDO_VISIBLE_SECONDS')" />
+            {% endfor %}
+        </div>
         {% if screensaver %}
             {{ include('tablet/_screensaver.html.twig') }}
         {% endif %}

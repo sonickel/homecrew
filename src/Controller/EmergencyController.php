@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Enum\EmergencyCategory;
 use App\Repository\EmergencyContactRepository;
+use App\Security\Attribute\TeamTabletAllowed;
 use App\Security\Permission;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,6 +19,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  * the admin permission (so never by PIN or as team tablet). Emergency plans follow with the guides (M12).
  */
 #[IsGranted(Permission::EMERGENCY_VIEW)]
+#[TeamTabletAllowed]
 final class EmergencyController extends AbstractController
 {
     #[Route('/notfall', name: 'app_emergency', methods: ['GET'])]

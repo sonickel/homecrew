@@ -9,7 +9,7 @@ use App\Tests\Support\PeopleTrait;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
- * "Heute" – placeholder until M5 – with the person's display settings.
+ * "Heute" greets the person and uses the person's display settings.
  */
 final class HomePageTest extends WebTestCase
 {
@@ -26,7 +26,7 @@ final class HomePageTest extends WebTestCase
         self::assertSelectorTextSame('title', 'Heute – Mein Haushalt');
         self::assertSelectorTextSame('h1', 'Heute');
         self::assertSelectorTextSame('.hc-page-header__intro', 'Hallo Papa');
-        self::assertSelectorTextContains('.hc-empty-state', 'Bald siehst du hier, was heute zu tun ist.');
+        self::assertSelectorTextContains('.hc-empty-state', 'Für heute ist alles erledigt.');
         self::assertSelectorExists('.hc-topbar__nav form[action="/abmelden"] button');
     }
 

@@ -1,6 +1,6 @@
 # Konzept 1 – Rollen, Rechte, Personen anlegen, Anmeldung, E-Mail
 
-Stand: 02.11.2026 (M4: PIN-Anmeldung am Tablet) · Status: Entwurf · App-Name: **HomeCrew**
+Stand: 03.11.2026 (M5: Aufgaben weitergeben) · Status: Entwurf · App-Name: **HomeCrew**
 
 ## 1. Grundsätze
 - **Eine Installation = ein Haushalt** (keine Mandanten; weitere Haushalte = eigene Instanz).
@@ -33,8 +33,9 @@ Legende: ✅ ja · ⚙️ per Schalter (Standard aus) · 👁 nur eigene · – 
 | Eigene Zeiten sehen (3 Monate) / am selben Tag bearbeiten | – | – | 👁 | – |
 | Alle Zeiten pflegen (mit Begründung), „Dienstplan übernehmen" | ✅ | – | – | – |
 | Aufgaben erledigen | ✅ | ✅ | ✅ | ✅ |
-| Einmalige Aufgaben anlegen | ✅ | ✅ | ✅ | ✅ |
-| Aufgaben weitergeben | ✅ | 👁 | – | – |
+| Einmalige Aufgaben anlegen | ✅ | ✅ | ✅ | ✅ (ohne „privat") |
+| Aufgaben bearbeiten | ✅ alle sichtbaren | 👁 selbst angelegte | 👁 selbst angelegte | – |
+| Aufgaben weitergeben | ✅ alle sichtbaren | 👁 wofür zuständig | 👁 wofür zuständig | 👁 wofür zuständig (Rolle Assistenz, „wer da ist", einzelne Assistenz) |
 | Wiederkehrende Aufgaben / Wartungspläne | ✅ | ⚙️ | ⚙️ | – |
 | **Melden** (leer · kaputt · fehlt, „nicht möglich") | ✅ | ✅ | ✅ | ✅ |
 | **Offene Meldungen sehen** | ✅ alle, mit Absender | ✅ (ohne Absender) | ✅ (ohne Absender) | ✅ (ohne Absender) |

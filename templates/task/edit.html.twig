@@ -1,0 +1,8 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Aufgabe bearbeiten'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Aufgabe bearbeiten'|trans" :intro="task.title" />
+    {{ include('task/_form.html.twig', {submit_label: 'Speichern', cancel_path: path('app_task_show', {id: task.id})}) }}
+{% endblock %}

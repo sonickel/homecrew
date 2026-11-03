@@ -1,0 +1,32 @@
+{# Task form ("Neue Aufgabe", "Bearbeiten"): what – when – who – details #}
+{{ form_start(form, {attr: {class: 'hc-form', novalidate: 'novalidate'}}) }}
+    {{ form_row(form.title) }}
+    {{ form_row(form.description) }}
+
+    <fieldset class="hc-fieldset">
+        <legend>{{ 'Wann?'|trans }}</legend>
+        {{ form_row(form.dueDate) }}
+        {{ form_row(form.dueTime) }}
+        {{ form_row(form.showFrom) }}
+        {{ form_row(form.showFromDate) }}
+    </fieldset>
+
+    <fieldset class="hc-fieldset">
+        <legend>{{ 'Wer?'|trans }}</legend>
+        {{ form_row(form.assignee) }}
+        {{ form_row(form.visibility) }}
+    </fieldset>
+
+    <fieldset class="hc-fieldset">
+        <legend>{{ 'Einzelheiten'|trans }}</legend>
+        {{ form_row(form.category) }}
+        {{ form_row(form.estimatedMinutes) }}
+        {{ form_row(form.important) }}
+        {{ form_row(form.requiresManager) }}
+    </fieldset>
+
+    <div class="hc-button-row">
+        <twig:Button type="submit">{{ submit_label|trans }}</twig:Button>
+        <twig:Button variant="secondary" :href="cancel_path">{{ 'Abbrechen'|trans }}</twig:Button>
+    </div>
+{{ form_end(form) }}

@@ -291,6 +291,10 @@ INSERT INTO task (title, category, assignee_role, due_date) VALUES ('Blumen gie�
 SET @task_team = LAST_INSERT_ID();
 INSERT INTO task_completion (task_id, action, device_id, done_at) VALUES (@task_team, 'erledigt', @dev, '2026-11-05 11:00:00');
 UPDATE task SET status = 'erledigt' WHERE id = @task_team;
+-- … und gibt eine Aufgabe an die Admins weiter (Gerät statt Person)
+INSERT INTO task (title, category, assignee_role, due_date) VALUES ('Fenster putzen', 'haushalt', 'assistenz', '2026-11-06');
+SET @task_handover = LAST_INSERT_ID();
+UPDATE task SET assignee_role = 'admins', assigned_by_device_id = @dev, assigned_at = NOW() WHERE id = @task_handover;
 INSERT INTO handover_note (device_id, body, delete_after) VALUES (@dev, 'Post liegt auf dem Küchentisch.', '2026-12-05');
 
 -- Nachrichten: Team-Chat, Direktchat Manager ↔ Martin, Foto + Sprachnachricht
@@ -451,6 +455,8 @@ CALL _expect('A: Meldung „Seife leer" erreicht beide Admins', @ok);
 SET @ok = ((SELECT status = 'erledigt' AND closed_by_user_id IS NULL AND created_by_user_id IS NULL AND created_by_device_id = @dev
             FROM issue_report WHERE id = @rep_soap) = 1);
 CALL _expect('A: Meldung vom Team-Tablet automatisch erledigt (ohne Person)', @ok);
+SET @ok = ((SELECT assigned_by_user_id IS NULL AND assigned_by_device_id = @dev FROM task WHERE id = @task_handover) = 1);
+CALL _expect('A: Weitergabe am Team-Tablet speichert das Gerät, keine Person', @ok);
 SET @ok = ((SELECT COUNT(*) FROM appointment WHERE kind = 'besuch' AND visibility = 'alle') = 4
            AND (SELECT COUNT(*) FROM appointment WHERE kind = 'besuch' AND status = 'abgesagt') = 1);
 CALL _expect('A: Besuche für alle sichtbar, abgesagter Physio-Termin bleibt als „fällt aus" stehen', @ok);
@@ -716,6 +722,12 @@ DELETE FROM appointment_series WHERE id = @series_physio;
 SET @ok = ((SELECT COUNT(*) FROM appointment WHERE series_id = @series_physio) = 0
            AND (SELECT COUNT(*) FROM visitor WHERE id = @vis_physio) = 1);
 CALL _expect('C10 Serie gelöscht → ihre Vorkommen weg, externer Dienst bleibt', @ok);
+
+-- Gerät löschen (Geräte werden sonst nur entkoppelt): Erledigung und Weitergabe bleiben, Verweis genullt
+DELETE FROM device WHERE id = @dev;
+SET @ok = ((SELECT device_id IS NULL FROM task_completion WHERE task_id = @task_team) = 1
+           AND (SELECT assigned_by_device_id IS NULL AND assigned_at IS NOT NULL FROM task WHERE id = @task_handover) = 1);
+CALL _expect('C11 Gerät gelöscht → Erledigung und Weitergabe bleiben, Verweis genullt', @ok);
 
 -- ---------------------------------------------------------------------
 --  Ergebnis

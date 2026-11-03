@@ -1,0 +1,13 @@
+{# Tasks in the groups of "Heute" (App\Service\Task\TaskGroups); prefix keeps the heading ids unique per page,
+   level is the heading level of the groups (3 under a section heading, 2 directly under the page heading) #}
+{% set level = level|default(3) %}
+{% for entry in groups.nonEmpty %}
+    <section class="hc-task-group" aria-labelledby="{{ prefix }}-{{ entry.group.value }}">
+        <h{{ level }} class="hc-task-group__title" id="{{ prefix }}-{{ entry.group.value }}">{{ entry.group.label|trans }} <span class="hc-task-group__count">({{ entry.tasks|length }})</span></h{{ level }}>
+        <ul class="hc-task-list">
+            {% for task in entry.tasks %}
+                <twig:TaskRow :task="task" :back="back" />
+            {% endfor %}
+        </ul>
+    </section>
+{% endfor %}

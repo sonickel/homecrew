@@ -7,6 +7,7 @@ namespace App\Controller\Security;
 use App\Entity\AppUser;
 use App\Enum\InvitationStatus;
 use App\Form\Account\ChangePasswordType;
+use App\Security\Attribute\TeamTabletAllowed;
 use App\Service\Account\AccountSetup;
 use App\Service\Account\InvitationManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,6 +24,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * The QR code carries the code after "#", which never reaches the server; assets/controllers/fragment_code_controller.js
  * puts it into the form. The session only keeps the id of a checked invitation, never the code.
  */
+#[TeamTabletAllowed]
 final class InvitationController extends AbstractController
 {
     private const string SESSION_KEY = '_hc_invitation';

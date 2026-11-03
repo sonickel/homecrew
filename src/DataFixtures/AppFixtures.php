@@ -8,11 +8,15 @@ use App\Entity\AppSetting;
 use App\Entity\AppUser;
 use App\Entity\Device;
 use App\Entity\EmergencyContact;
+use App\Entity\Task;
+use App\Enum\AssigneeRole;
 use App\Enum\DeviceMode;
 use App\Enum\EmergencyCategory;
 use App\Enum\EmergencyVisibility;
 use App\Enum\PersonColor;
+use App\Enum\TaskCategory;
 use App\Enum\UserRole;
+use App\Enum\Visibility;
 use App\Service\Tablet\DeviceCookie;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
@@ -30,6 +34,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
  *
  * Team tablet "Flur" (mode "Beides"): pair a second browser profile via Verwaltung → Geräte → "Tablet koppeln",
  * or set the cookie "hc_device" to TABLET_TOKEN by hand (developer tools). Emergency contacts with fake numbers.
+ * Tasks around today: every group of "Heute", for the team, single persons, admins only and one private task.
  */
 final class AppFixtures extends Fixture
 {
@@ -87,7 +92,45 @@ final class AppFixtures extends Fixture
             $manager->persist($contact);
         }
 
+        $this->loadTasks($manager, $max, $sister, $ben);
+
         $manager->flush();
+    }
+
+    /**
+     * Tasks relative to today (household time), so that "Heute" shows every group.
+     */
+    private function loadTasks(ObjectManager $manager, AppUser $max, AppUser $sister, AppUser $ben): void
+    {
+        $manager->persist($this->task('Müll rausbringen', TaskCategory::Haushalt, null, -1, $max, minutes: 10));
+        $manager->persist($this->task('Bettwäsche wechseln', TaskCategory::Waesche, AssigneeRole::Assistenz, 0, $max, time: '10:00', minutes: 30, important: true));
+        $manager->persist($this->task('Blumen gießen', TaskCategory::Haushalt, AssigneeRole::Assistenz, 0, $sister, minutes: 10));
+        $manager->persist($this->task('Fahrrad aufpumpen', TaskCategory::Hilfsmittel, $ben, 0, $max, minutes: 15));
+        $manager->persist($this->task('Wäsche zusammenlegen', TaskCategory::Waesche, null, 2, $sister, from: -1, minutes: 20));
+        $manager->persist($this->task('Fenster putzen', TaskCategory::Haushalt, AssigneeRole::Assistenz, 5, $max, minutes: 60));
+        $manager->persist($this->task('Mit Max einkaufen gehen', TaskCategory::Einkauf, null, 1, $max, time: '15:00', onDueDate: true, minutes: 90, withManager: true));
+        $manager->persist($this->task('Rezept in der Apotheke abholen', TaskCategory::Sonstiges, $sister, 0, $max, visibility: Visibility::Zustaendig));
+        $manager->persist($this->task('Rechnung der Physio prüfen', TaskCategory::Sonstiges, AssigneeRole::Admins, 0, $max, visibility: Visibility::Admins, important: true));
+        $manager->persist($this->task('Geschenk für Papa besorgen', TaskCategory::Einkauf, $sister, 3, $sister, Visibility::Privat));
+    }
+
+    /**
+     * @param int      $due  days from today
+     * @param int|null $from "Heute möglich" from this day on (days from today)
+     */
+    private function task(string $title, TaskCategory $category, AppUser|AssigneeRole|null $assignee, int $due, AppUser $creator, Visibility $visibility = Visibility::Alle, ?string $time = null, ?int $from = null, bool $onDueDate = false, ?int $minutes = null, bool $important = false, bool $withManager = false): Task
+    {
+        $today = new \DateTimeImmutable((new \DateTimeImmutable('now', new \DateTimeZone('Europe/Berlin')))->format('Y-m-d'));
+        $dueDate = $today->modify(\sprintf('%+d days', $due));
+        $fromDate = null === $from ? null : $today->modify(\sprintf('%+d days', $from));
+
+        $task = new Task($title, $category, $dueDate, $creator);
+        $task->describe($title, null, $category, $minutes, $important, $withManager);
+        $task->schedule($dueDate, null === $time ? null : new \DateTimeImmutable($time), $fromDate, $onDueDate ? $dueDate : $fromDate);
+        $task->assign($assignee instanceof AppUser ? $assignee : null, $assignee instanceof AssigneeRole ? $assignee : null);
+        $task->setVisibility($visibility);
+
+        return $task;
     }
 
     private function setPassword(AppUser $person, bool $mustChange = false): void
