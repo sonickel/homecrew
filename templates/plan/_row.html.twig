@@ -7,6 +7,7 @@
         <p class="hc-task__when hc-status hc-status--{{ status.modifier }}">{{ ux_icon(status.icon, {'aria-hidden': 'true'}) }}<span>{{ status.text }}</span></p>
         <a class="hc-task__title" href="{{ path('app_plan_show', {id: plan.id}) }}">{{ plan.title }}</a>
         <ul class="hc-task__details">
+            {% if row.openReport %}<li class="hc-task__important">{{ ux_icon('tabler:speakerphone', {'aria-hidden': 'true'}) }}<span>{{ 'Meldung offen'|trans }}</span></li>{% endif %}
             <li>{{ plan_rhythm(plan) }}</li>
             <li>{{ 'Zuständig: %name%'|trans({'%name%': task_assignee(plan)|trans}) }}</li>
             <li>

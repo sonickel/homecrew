@@ -83,6 +83,17 @@
                 </ul>
             </dd>
         {% endif %}
+        {% if plan.unableList %}
+            <dt>{{ 'Wenn nicht möglich'|trans }}</dt>
+            <dd>
+                {{- '„%item%“ auf die Liste „%list%“'|trans({'%item%': plan.unableItemName, '%list%': plan.unableList.name}) -}}
+                {%- if not plan.unableList.active %} – {{ 'die Liste ist ausgeschaltet, der Vorschlag erscheint nicht'|trans }}{% endif -%}
+            </dd>
+        {% endif %}
+        {% if row.openReport %}
+            <dt>{{ 'Meldung'|trans }}</dt>
+            <dd>{{ 'Eine Meldung dazu ist offen.'|trans }}{% if is_granted('REPORT_MANAGE') %} <a href="{{ path('app_report_index') }}">{{ 'Zu den Meldungen'|trans }}</a>{% endif %}</dd>
+        {% endif %}
         <dt>{{ 'Zuletzt erledigt'|trans }}</dt>
         <dd>
             {%- if plan.lastDoneAt -%}
@@ -105,6 +116,8 @@
                         <strong>{{ admin ? completion.doneAt|format_datetime(pattern: "d. MMMM yyyy, HH:mm 'Uhr'", locale: 'de') : completion.doneAt|format_date(pattern: 'd. MMMM yyyy', locale: 'de') }}</strong>
                         {{ completion.action.label|trans }}
                         {%- if admin %} {{ include('plan/_by.html.twig', {completion: completion}) }}{% endif -%}
+                        {#- The reason of "nicht möglich" may belong to a report for admins only #}
+                        {%- if admin and completion.comment %}: {{ completion.comment }}{% endif -%}
                         {%- if points > 0 and completion.countChecked < points %} – {{ '%checked% von %count% Punkten'|trans({'%checked%': completion.countChecked, '%count%': points}) }}{% endif %}
                     </li>
                 {% endfor %}

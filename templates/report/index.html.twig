@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Meldungen'|trans }}{% endblock %}
+
+{# For everybody: what is reported and still open – so nobody reports it twice (konzept-13 §6), without senders #}
+{% block body %}
+    <twig:PageHeader :title="'Meldungen'|trans" :intro="'Was schon gemeldet und noch offen ist.'|trans" />
+
+    <div class="hc-button-row">
+        <twig:Button variant="signal" icon="tabler:speakerphone" :href="path('app_report_new')">{{ 'Melden'|trans }}</twig:Button>
+        <twig:Button variant="secondary" icon="tabler:arrow-left" :href="path('app_home')">{{ 'Zurück zu Heute'|trans }}</twig:Button>
+    </div>
+
+    {% if reports is not empty %}
+        <ul class="hc-task-list">
+            {% for report in reports %}
+                {{ include('report/_open_row.html.twig', {report: report, back: 'meldungen'}) }}
+            {% endfor %}
+        </ul>
+    {% else %}
+        <twig:EmptyState icon="tabler:circle-check" :message="'Zurzeit ist nichts gemeldet. Etwas fehlt oder ist kaputt? Melden.'|trans" />
+    {% endif %}
+{% endblock %}

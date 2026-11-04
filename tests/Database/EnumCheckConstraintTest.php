@@ -20,9 +20,16 @@ use App\Enum\ExtensionStatus;
 use App\Enum\FontSize;
 use App\Enum\GuidePublishMode;
 use App\Enum\GuideType;
+use App\Enum\HandoverNoteType;
 use App\Enum\MinijobProcedure;
+use App\Enum\NotificationKind;
 use App\Enum\ProofType;
 use App\Enum\RecurrenceType;
+use App\Enum\ReportFollowUp;
+use App\Enum\ReportKind;
+use App\Enum\ReportStatus;
+use App\Enum\ReportVisibility;
+use App\Enum\ShoppingSource;
 use App\Enum\SmtpEncryption;
 use App\Enum\SpeechRecognition;
 use App\Enum\StepFreeAccess;
@@ -80,6 +87,15 @@ final class EnumCheckConstraintTest extends DatabaseTestCase
         yield 'task.status' => ['task', 'ck_task_status', TaskStatus::class];
         yield 'task.created_via' => ['task', 'ck_task_via', CreatedVia::class];
         yield 'task_completion.action' => ['task_completion', 'ck_completion_action', CompletionAction::class];
+        yield 'handover_note.note_type' => ['handover_note', 'ck_handover_type', HandoverNoteType::class];
+        yield 'handover_note.created_via' => ['handover_note', 'ck_handover_via', CreatedVia::class];
+        yield 'shopping_item.source' => ['shopping_item', 'ck_shopping_source', ShoppingSource::class];
+        yield 'issue_report.kind' => ['issue_report', 'ck_report_kind', ReportKind::class];
+        yield 'issue_report.visibility' => ['issue_report', 'ck_report_visible', ReportVisibility::class];
+        yield 'issue_report.created_via' => ['issue_report', 'ck_report_via', CreatedVia::class];
+        yield 'issue_report.status' => ['issue_report', 'ck_report_status', ReportStatus::class];
+        yield 'issue_report.follow_up' => ['issue_report', 'ck_report_follow', ReportFollowUp::class];
+        yield 'notification.kind' => ['notification', 'ck_notification_kind', NotificationKind::class];
     }
 
     /**

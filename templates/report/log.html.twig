@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Meldungen'|trans }}{% endblock %}
+
+{# Report log of the admins (konzept-13 §6): filter, sender, follow-up – and what is reported often #}
+{% block body %}
+    <twig:PageHeader :title="'Meldungen'|trans" :intro="'Alle Meldungen mit Absender – nur Admins sehen diese Übersicht.'|trans" />
+
+    <div class="hc-button-row">
+        <twig:Button variant="signal" icon="tabler:speakerphone" :href="path('app_report_new')">{{ 'Melden'|trans }}</twig:Button>
+        <twig:Button variant="secondary" icon="tabler:arrow-left" :href="path('app_home')">{{ 'Zurück zu Heute'|trans }}</twig:Button>
+    </div>
+
+    <form class="hc-form hc-form--wide hc-filter" method="get" action="{{ path('app_report_index') }}" data-turbo-action="replace">
+        <div class="hc-form-row">
+            <div class="hc-field">
+                <label class="hc-field__label" for="filter-status">{{ 'Status'|trans }}</label>
+                <select class="hc-input" id="filter-status" name="status">
+                    {% for value, label in {offen: 'Offen', abgeschlossen: 'Abgeschlossen', alle: 'Alle'} %}
+                        <option value="{{ value }}"{% if filter.status == value %} selected{% endif %}>{{ label|trans }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="hc-field">
+                <label class="hc-field__label" for="filter-art">{{ 'Art'|trans }}</label>
+                <select class="hc-input" id="filter-art" name="art">
+                    <option value="">{{ 'Alle Arten'|trans }}</option>
+                    {% for kind in kinds %}
+                        <option value="{{ kind.value }}"{% if filter.art == kind.value %} selected{% endif %}>{{ kind.label|trans }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="hc-field">
+                <label class="hc-field__label" for="filter-zeitraum">{{ 'Gemeldet'|trans }}</label>
+                <select class="hc-input" id="filter-zeitraum" name="zeitraum">
+                    {% for value, label in {'30': 'In den letzten 30 Tagen', '90': 'In den letzten 90 Tagen', '365': 'Im letzten Jahr', alle: 'Jederzeit'} %}
+                        <option value="{{ value }}"{% if filter.zeitraum == value %} selected{% endif %}>{{ label|trans }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="hc-button-row">
+            <twig:Button type="submit" variant="secondary">{{ 'Anzeigen'|trans }}</twig:Button>
+        </div>
+    </form>
+
+    {% if reports is not empty %}
+        <ul class="hc-task-list">
+            {% for report in reports %}
+                {{ include('report/_log_row.html.twig') }}
+            {% endfor %}
+        </ul>
+    {% else %}
+        <twig:EmptyState icon="tabler:circle-check" :message="'Keine Meldungen für diese Auswahl.'|trans" />
+    {% endif %}
+
+    {% if frequent is not empty %}
+        <section class="hc-section" aria-labelledby="was-fehlt-oft">
+            <h2 id="was-fehlt-oft">{{ 'Was fehlt oft?'|trans }}</h2>
+            <p>{{ 'Im letzten Jahr mehrmals gemeldet – vielleicht ein Vorrat oder ein Lieblingsartikel?'|trans }}</p>
+            <ul class="hc-history">
+                {% for row in frequent %}
+                    <li><strong>{{ row.title }}</strong>: {{ report_frequency(row) }}</li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+{% endblock %}

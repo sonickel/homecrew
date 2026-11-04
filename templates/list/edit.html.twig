@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Eintrag bearbeiten'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Eintrag bearbeiten'|trans" :intro="'Auf der Liste „%list%“'|trans({'%list%': item.list.name})" />
+
+    {{ form_start(form, {attr: {class: 'hc-form hc-form--wide', novalidate: 'novalidate'}}) }}
+        <div class="hc-form-row">
+            {{ form_row(form.name) }}
+            {{ form_row(form.quantity) }}
+        </div>
+        <div class="hc-form-row">
+            {{ form_row(form.note) }}
+            {{ form_row(form.link) }}
+        </div>
+        <div class="hc-button-row">
+            <twig:Button type="submit">{{ 'Speichern'|trans }}</twig:Button>
+            <twig:Button variant="secondary" :href="path('app_list_show', {id: item.list.id})">{{ 'Abbrechen'|trans }}</twig:Button>
+        </div>
+    {{ form_end(form) }}
+
+    {# Removing is the only way to lose an entry by mistake – this page is the confirmation #}
+    <section class="hc-section" aria-labelledby="entfernen">
+        <h2 id="entfernen">{{ 'Von der Liste entfernen'|trans }}</h2>
+        <p>{{ waiting_report
+            ? 'Wird doch nichts gebraucht? Die Meldung dazu ist danach wieder offen, die Admins kümmern sich.'|trans
+            : 'Wird doch nichts gebraucht? Dann entferne den Eintrag. Gekauft? Dann lieber abhaken.'|trans }}</p>
+        <form method="post" action="{{ path('app_list_item_remove', {id: item.id}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('submit') }}" data-controller="csrf-protection">
+            <twig:Button type="submit" variant="danger" icon="tabler:trash">{{ 'Entfernen'|trans }}</twig:Button>
+        </form>
+    </section>
+{% endblock %}

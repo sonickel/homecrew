@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App;
 
+use App\Message\AnonymizeIssueReports;
 use App\Message\AnonymizeTaskCompletions;
 use App\Message\GenerateTaskOccurrences;
 use App\Message\PurgeAuditLog;
+use App\Message\PurgeCheckedShoppingItems;
 use App\Message\PurgeDoneTasks;
 use App\Message\PurgeInvitations;
+use App\Message\PurgeIssueReports;
+use App\Message\PurgeNotifications;
 use Symfony\Component\Scheduler\Attribute\AsSchedule;
 use Symfony\Component\Scheduler\RecurringMessage;
 use Symfony\Component\Scheduler\Schedule as SymfonySchedule;
@@ -40,6 +44,10 @@ final class Schedule implements ScheduleProviderInterface
             ->add(RecurringMessage::every('1 day', new PurgeInvitations(), from: new \DateTimeImmutable('03:35', new \DateTimeZone('Europe/Berlin'))))
             ->add(RecurringMessage::every('1 day', new AnonymizeTaskCompletions(), from: new \DateTimeImmutable('03:40', new \DateTimeZone('Europe/Berlin'))))
             ->add(RecurringMessage::every('1 day', new PurgeDoneTasks(), from: new \DateTimeImmutable('03:45', new \DateTimeZone('Europe/Berlin'))))
+            ->add(RecurringMessage::every('1 day', new AnonymizeIssueReports(), from: new \DateTimeImmutable('03:50', new \DateTimeZone('Europe/Berlin'))))
+            ->add(RecurringMessage::every('1 day', new PurgeIssueReports(), from: new \DateTimeImmutable('03:55', new \DateTimeZone('Europe/Berlin'))))
+            ->add(RecurringMessage::every('1 day', new PurgeNotifications(), from: new \DateTimeImmutable('04:00', new \DateTimeZone('Europe/Berlin'))))
+            ->add(RecurringMessage::every('1 day', new PurgeCheckedShoppingItems(), from: new \DateTimeImmutable('04:05', new \DateTimeZone('Europe/Berlin'))))
         ;
     }
 }

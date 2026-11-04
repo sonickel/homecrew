@@ -8,13 +8,25 @@ use App\Entity\AppUser;
 use App\Entity\AuditLog;
 use App\Entity\Device;
 use App\Entity\EmergencyContact;
+use App\Entity\IssueReport;
+use App\Entity\Notification;
 use App\Entity\Poi;
+use App\Entity\ShoppingFavorite;
+use App\Entity\ShoppingItem;
+use App\Entity\ShoppingList;
 use App\Entity\WebauthnCredential;
+use App\Enum\AssigneeRole;
 use App\Enum\AuditVia;
 use App\Enum\DeviceMode;
 use App\Enum\EmergencyCategory;
 use App\Enum\EmergencyVisibility;
 use App\Enum\FontSize;
+use App\Enum\NotificationKind;
+use App\Enum\ReportFollowUp;
+use App\Enum\ReportKind;
+use App\Enum\ReportStatus;
+use App\Enum\ReportVisibility;
+use App\Enum\ShoppingSource;
 use App\Enum\TwoFactorMethod;
 use App\Enum\UserRole;
 use App\Repository\AppSettingRepository;
@@ -142,6 +154,52 @@ final class MappingTest extends DatabaseTestCase
         self::assertNotNull($loadedPlace);
         self::assertTrue($place->getPublicId()->equals($loadedPlace->getPublicId()));
         self::assertSame('arzt', $loadedPlace->getCategory());
+    }
+
+    public function testListEntryReportAndNotificationSurviveTheRoundTrip(): void
+    {
+        $entityManager = $this->entityManager();
+        $anna = new AppUser(UserRole::Assistenz, 'anna', 'Anna', new \DateTimeImmutable('2026-10-01'));
+        $list = new ShoppingList('Besorgt die Familie');
+        $list->setAssigneeRole(AssigneeRole::Angehoerige);
+        $favorite = new ShoppingFavorite('Flüssigseife');
+        $favorite->setList($list);
+        $favorite->setLink(' https://shop.example/seife ');
+        $item = new ShoppingItem($list, 'Flüssigseife', $anna, ShoppingSource::Meldung);
+        $item->describe('Flüssigseife', '2 Flaschen', null, 'https://shop.example/seife');
+        $item->check(new \DateTimeImmutable('2026-11-05 17:00:00'));
+        $report = new IssueReport(ReportKind::Leer, 'Seife leer', $anna);
+        $report->describe('Keine Nachfüllseife mehr da', true, ReportVisibility::Admins);
+        $report->confirm(new \DateTimeImmutable('2026-11-05 18:00:00'));
+        $report->followUpWith($item);
+        $notification = new Notification($anna, NotificationKind::Meldung, 'Neue Meldung: Seife leer', '/meldungen/x', true, new \DateTimeImmutable('2026-12-05'));
+        foreach ([$anna, $list, $favorite, $item, $report, $notification] as $entity) {
+            $entityManager->persist($entity);
+        }
+        $entityManager->flush();
+        $entityManager->clear();
+
+        $loadedItem = $entityManager->find(ShoppingItem::class, $item->getId());
+        self::assertNotNull($loadedItem);
+        self::assertSame(['Flüssigseife', '2 Flaschen', 'https://shop.example/seife', true, ShoppingSource::Meldung], [
+            $loadedItem->getName(), $loadedItem->getQuantity(), $loadedItem->getLink(), $loadedItem->isDone(), $loadedItem->getSource(),
+        ]);
+        self::assertSame('Anna', $loadedItem->getCreatedBy()?->getDisplayName());
+        self::assertSame(AssigneeRole::Angehoerige, $loadedItem->getList()->getAssigneeRole());
+        self::assertSame('https://shop.example/seife', $entityManager->find(ShoppingFavorite::class, $favorite->getId())?->getLink());
+
+        $loadedReport = $entityManager->find(IssueReport::class, $report->getId());
+        self::assertNotNull($loadedReport);
+        self::assertTrue($report->getPublicId()->equals($loadedReport->getPublicId()));
+        self::assertSame([ReportKind::Leer, ReportStatus::InArbeit, ReportFollowUp::Liste, 1, true, true], [
+            $loadedReport->getKind(), $loadedReport->getStatus(), $loadedReport->getFollowUp(), $loadedReport->getConfirmCount(),
+            $loadedReport->isUrgent(), $loadedReport->isForAdminsOnly(),
+        ]);
+        self::assertSame($loadedItem->getId(), $loadedReport->getFollowUpItem()?->getId());
+
+        $loadedNotification = $entityManager->find(Notification::class, $notification->getId());
+        self::assertNotNull($loadedNotification);
+        self::assertSame([NotificationKind::Meldung, false, true], [$loadedNotification->getKind(), $loadedNotification->isRead(), $loadedNotification->isUrgent()]);
     }
 
     public function testSettingsRowIsAvailable(): void

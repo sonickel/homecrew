@@ -24,6 +24,7 @@
                     <twig:Button type="submit" variant="secondary" icon="tabler:player-skip-forward">{{ 'Überspringen'|trans }}</twig:Button>
                 </form>
                 <twig:Button variant="secondary" icon="tabler:calendar-event" :href="path('app_task_postpone', {id: task.id})">{{ 'Verschieben'|trans }}</twig:Button>
+                <twig:Button variant="secondary" icon="tabler:circle-x" :href="path('app_task_unable', {id: task.id})">{{ 'Nicht möglich'|trans }}</twig:Button>
             {% endif %}
             {% if is_granted('TASK_HANDOVER', task) %}
                 <twig:Button variant="secondary" icon="tabler:arrow-forward-up" :href="path('app_task_handover', {id: task.id})">{{ 'Weitergeben'|trans }}</twig:Button>
@@ -116,8 +117,18 @@
                 {% if task.createdBy %}{{ 'von %name%'|trans({'%name%': task.createdBy.displayName}) }}{% endif -%}
             </dd>
         {% endif %}
+        {% if report and is_granted('REPORT_VIEW', report) %}
+            <dt>{{ 'Gemeldet'|trans }}</dt>
+            <dd>
+                {%- if is_granted('REPORT_MANAGE', report) -%}
+                    <a href="{{ path('app_report_show', {publicId: report.publicId.toRfc4122}) }}">{{ report.title }}</a>
+                {%- else -%}
+                    {{ report.title }}
+                {%- endif %} ({{ report_status(report).text }})
+            </dd>
+        {% endif %}
         {% if completion %}
-            <dt>{{ completion.action.value == 'uebersprungen' ? 'Übersprungen'|trans : 'Erledigt'|trans }}</dt>
+            <dt>{{ completion.action.label|capitalize|trans }}</dt>
             <dd>
                 {# For everybody only the date (konzept-12 §6) – time and person only for admins #}
                 {{- admin ? completion.doneAt|format_datetime(pattern: "d. MMMM yyyy, HH:mm 'Uhr'", locale: 'de') : completion.doneAt|format_date(pattern: 'd. MMMM yyyy', locale: 'de') }}

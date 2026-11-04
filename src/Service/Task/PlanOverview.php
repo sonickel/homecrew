@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\Task;
 
 use App\Entity\TaskTemplate;
+use App\Repository\IssueReportRepository;
 use App\Repository\TaskCompletionRepository;
 use App\Repository\TaskRepository;
 use App\Repository\TaskTemplateRepository;
@@ -21,6 +22,7 @@ final readonly class PlanOverview
         private TaskTemplateRepository $planRepository,
         private TaskRepository $taskRepository,
         private TaskCompletionRepository $completionRepository,
+        private IssueReportRepository $reportRepository,
         private HouseholdContext $household,
     ) {
     }
@@ -64,11 +66,12 @@ final readonly class PlanOverview
         $today = $this->today();
         $next = $this->taskRepository->findFirstOpenOccurrences($plans);
         $lastDone = $viewer->isAdmin() ? $this->completionRepository->findLastDoneOfPlans($plans) : [];
+        $reported = $this->reportRepository->findPlansWithOpenReports($plans, $viewer);
 
-        return array_map(static function (TaskTemplate $plan) use ($next, $lastDone, $today): PlanRow {
+        return array_map(static function (TaskTemplate $plan) use ($next, $lastDone, $reported, $today): PlanRow {
             $id = (int) $plan->getId();
 
-            return new PlanRow($plan, $next[$id] ?? null, PlanState::of($plan, $next[$id] ?? null, $today), $lastDone[$id] ?? null);
+            return new PlanRow($plan, $next[$id] ?? null, PlanState::of($plan, $next[$id] ?? null, $today), $lastDone[$id] ?? null, \in_array($id, $reported, true));
         }, $plans);
     }
 

@@ -29,8 +29,8 @@ final class RetentionSettingsCrudController extends AbstractSettingsCrudControll
     public function configureFields(string $pageName): iterable
     {
         yield IntegerField::new('retentionHandoverDays', 'Übergaben löschen nach (Tagen)');
-        yield IntegerField::new('retentionCompletionDays', 'Bei Erledigungen den Namen entfernen nach (Tagen)')
-            ->setHelp('Danach steht bei einer erledigten Aufgabe nur noch das Datum.');
+        yield IntegerField::new('retentionCompletionDays', 'Bei Erledigungen und Meldungen den Namen entfernen nach (Tagen)')
+            ->setHelp('Danach steht bei einer erledigten Aufgabe nur noch das Datum; bei einer Meldung fehlt, wer sie geschickt hat.');
         yield IntegerField::new('retentionDoneTaskDays', 'Erledigte Aufgaben löschen nach (Tagen)');
         yield IntegerField::new('completionKeepLast', 'Je Wartungsplan immer behalten (letzte Erledigungen)');
         yield IntegerField::new('retentionReportDays', 'Abgeschlossene Meldungen löschen nach (Tagen)');

@@ -42,6 +42,22 @@
             break-before: page;
         }
 
+        /* List: the sheet without frame, black lines and boxes */
+        .hc-print-sheet {
+            max-width: none;
+            padding: 0;
+            background: none;
+            border: 0;
+        }
+
+        .hc-print-checklist li {
+            border-bottom: 0.5pt solid #000000;
+        }
+
+        .hc-print-checklist__box {
+            border: 1pt solid #000000;
+        }
+
         /* Access card: black frame, no background */
         .hc-access-card {
             max-width: 16cm;

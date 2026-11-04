@@ -1,0 +1,24 @@
+{# An open report as everybody sees it: status, title, kind, how long it is open – never who sent it (konzept-13 §6) #}
+{% set status = report_status(report) %}
+<li class="hc-task">
+    <div class="hc-task__main">
+        <p class="hc-task__when hc-status hc-status--{{ status.modifier }}">{{ ux_icon(status.icon, {'aria-hidden': 'true'}) }}<span>{{ status.text }}</span></p>
+        <p class="hc-report-row__title">{{ report.title }}</p>
+        <ul class="hc-task__details">
+            <li>{{ report.kind.label|trans }}</li>
+            <li>{{ report_age(report) }}</li>
+            {% if report.urgent %}<li class="hc-task__important">{{ ux_icon('tabler:alert-triangle', {'aria-hidden': 'true'}) }}<span>{{ 'Dringend'|trans }}</span></li>{% endif %}
+            {% if report.confirmCount > 0 %}<li>{{ report.confirmCount == 1 ? 'Einmal auch bemerkt'|trans : '%times%-mal auch bemerkt'|trans({'%times%': report.confirmCount}) }}</li>{% endif %}
+        </ul>
+    </div>
+    {% if is_granted('REPORT_CONFIRM', report) %}
+        <form class="hc-task__action" method="post" action="{{ path('app_report_confirm', {publicId: report.publicId.toRfc4122}) }}" data-turbo-frame="_top">
+            <input type="hidden" name="_token" value="{{ csrf_token('submit') }}" data-controller="csrf-protection">
+            <input type="hidden" name="zurueck" value="{{ back }}">
+            <button class="hc-button hc-button--secondary hc-task__done" type="submit">
+                {{- ux_icon('tabler:eye-check', {'aria-hidden': 'true'}) -}}
+                <span>{{ 'Auch bemerkt'|trans }}<span class="hc-visually-hidden">: {{ report.title }}</span></span>
+            </button>
+        </form>
+    {% endif %}
+</li>

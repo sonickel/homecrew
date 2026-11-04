@@ -84,10 +84,10 @@ final class AdminAreaTest extends WebTestCase
 
         self::assertResponseIsSuccessful();
         $menu = $crawler->filter('#main-menu')->text();
-        foreach (['Personen', 'Geräte', 'Allgemein', 'Löschfristen', 'Notfall-Infos', 'Protokoll'] as $entry) {
+        foreach (['Personen', 'Geräte', 'Allgemein', 'Löschfristen', 'Meldungen', 'Wartungspläne', 'Listen', 'Lieblingsartikel', 'Notfall-Infos', 'Protokoll'] as $entry) {
             self::assertStringContainsString($entry, $menu);
         }
-        foreach (['Erweiterungen', 'Meldungen'] as $notYet) {
+        foreach (['Erweiterungen', 'Dienstplan', 'Externe Dienste'] as $notYet) {
             self::assertStringNotContainsString($notYet, $menu);
         }
         // Strict CSP also in the administration: EasyAdmin's scripts carry the nonce

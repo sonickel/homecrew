@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Listen'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Listen'|trans" :intro="'Was fehlt, kommt auf die passende Liste.'|trans" />
+
+    {% if lists is not empty %}
+        <ul class="hc-task-list">
+            {% for list in lists %}
+                {% set count = open[list.id] ?? 0 %}
+                <li class="hc-task">
+                    <div class="hc-task__main">
+                        <a class="hc-task__title" href="{{ path('app_list_show', {id: list.id}) }}">{{ list.name }}</a>
+                        <ul class="hc-task__details">
+                            <li>{{ count == 0 ? 'Leer'|trans : (count == 1 ? '1 Eintrag'|trans : '%entries% Einträge'|trans({'%entries%': count})) }}</li>
+                            {% if list.hasAssignee %}
+                                <li>{{ 'Zuständig: %name%'|trans({'%name%': (list.assigneeUser ? list.assigneeUser.displayName : list.assigneeRole.label)|trans}) }}</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <twig:EmptyState icon="tabler:shopping-cart" :message="'Es gibt noch keine Listen. Admins legen sie unter Verwaltung → Listen an.'|trans" />
+    {% endif %}
+
+    <div class="hc-button-row hc-section">
+        <twig:Button variant="secondary" icon="tabler:arrow-left" :href="path('app_home')">{{ 'Zurück zu Heute'|trans }}</twig:Button>
+    </div>
+{% endblock %}

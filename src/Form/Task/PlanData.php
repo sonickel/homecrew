@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Form\Task;
 
+use App\Entity\ShoppingItem;
+use App\Entity\ShoppingList;
 use App\Entity\Task;
 use App\Entity\TaskTemplate;
 use App\Entity\TaskTemplateItem;
@@ -77,6 +79,12 @@ final class PlanData
     /** One point per line. */
     public ?string $checklist = null;
 
+    /** Suggestion for "nicht möglich" (konzept-13 §3): this item on this list – both or neither. */
+    public ?ShoppingList $unableList = null;
+
+    #[Assert\Length(max: ShoppingItem::NAME_MAX, maxMessage: 'Höchstens {{ limit }} Zeichen.')]
+    public ?string $unableItemName = null;
+
     public ?\DateTimeImmutable $pausedFrom = null;
 
     public ?\DateTimeImmutable $pausedUntil = null;
@@ -104,6 +112,8 @@ final class PlanData
         $data->assignee = Assignment::of($plan);
         $data->visibility = $plan->getVisibility();
         $data->checklist = implode("\n", array_map(static fn (TaskTemplateItem $item): string => $item->getLabel(), [...$plan->getItems()]));
+        $data->unableList = $plan->getUnableList();
+        $data->unableItemName = $plan->getUnableItemName();
         $data->pausedFrom = $plan->getPausedFrom();
         $data->pausedUntil = $plan->getPausedUntil();
         $data->windowDays = $plan->getWindowDays();
@@ -155,6 +165,16 @@ final class PlanData
     }
 
     /**
+     * The suggested item, trimmed; null when empty.
+     */
+    public function unableItem(): ?string
+    {
+        $item = trim((string) $this->unableItemName);
+
+        return '' === $item ? null : $item;
+    }
+
+    /**
      * @return list<string>
      */
     public function checklistLabels(): array
@@ -198,6 +218,13 @@ final class PlanData
         }
         if (null !== $this->pausedFrom && null !== $this->pausedUntil && $this->pausedUntil->format('Y-m-d') < $this->pausedFrom->format('Y-m-d')) {
             $context->buildViolation('Die Pause endet vor ihrem Beginn.')->atPath('pausedUntil')->addViolation();
+        }
+
+        if (null !== $this->unableList && null === $this->unableItem()) {
+            $context->buildViolation('Bitte schreib, was auf die Liste soll.')->atPath('unableItemName')->addViolation();
+        }
+        if (null === $this->unableList && null !== $this->unableItem()) {
+            $context->buildViolation('Bitte wähle die Liste dazu.')->atPath('unableList')->addViolation();
         }
 
         $labels = $this->checklistLabels();

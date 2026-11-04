@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Melden'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Melden'|trans" :intro="'Was ist los?'|trans" />
+
+    {% set hints = {
+        leer: 'Etwas ist aufgebraucht, z. B. Seife oder Waschmittel.',
+        kaputt: 'Etwas geht nicht mehr, z. B. eine Glühbirne.',
+        fehlt: 'Etwas ist nicht da oder nicht zu finden.',
+        sonstiges: 'Etwas anderes, das die Admins wissen sollten.',
+    } %}
+    <ul class="hc-report-kinds">
+        {% for kind in kinds %}
+            <li>
+                <a class="hc-report-kind" href="{{ path('app_report_form', {art: kind.value}) }}">
+                    {{- ux_icon(kind.icon, {'aria-hidden': 'true'}) -}}
+                    <span class="hc-report-kind__text">
+                        <strong>{{ kind.label|trans }}</strong>
+                        <span>{{ hints[kind.value]|trans }}</span>
+                    </span>
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <p>{{ 'Im Notfall bitte anrufen oder 112 wählen.'|trans }}</p>
+
+    <div class="hc-button-row hc-section">
+        <twig:Button variant="secondary" icon="tabler:list-check" :href="path('app_report_index')">{{ 'Schon gemeldet?'|trans }}</twig:Button>
+        <twig:Button variant="secondary" icon="tabler:arrow-left" :href="path('app_home')">{{ 'Zurück zu Heute'|trans }}</twig:Button>
+    </div>
+{% endblock %}

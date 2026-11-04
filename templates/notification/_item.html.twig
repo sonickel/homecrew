@@ -1,0 +1,18 @@
+{# One notification: opening it marks it read (POST) and leads to what it is about; "Neu" and "Dringend" as words #}
+<li class="hc-notification{% if not notification.read %} hc-notification--new{% endif %}">
+    <form method="post" action="{{ path('app_notification_open', {id: notification.id}) }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('submit') }}" data-controller="csrf-protection">
+        <button class="hc-notification__open" type="submit">
+            {{- ux_icon(notification.kind.icon, {'aria-hidden': 'true', class: 'hc-notification__icon'}) -}}
+            <span class="hc-notification__text">
+                <span class="hc-notification__meta">
+                    {%- if not notification.read %}<strong class="hc-notification__flag">{{ 'Neu'|trans }}</strong>{% endif -%}
+                    {%- if notification.urgent %}<strong class="hc-status hc-status--late">{{ ux_icon('tabler:alert-triangle', {'aria-hidden': 'true'}) }}<span>{{ 'Dringend'|trans }}</span></strong>{% endif -%}
+                    <span>{{ notification.createdAt|format_datetime(pattern: "d. MMMM, HH:mm 'Uhr'", locale: 'de') }}</span>
+                </span>
+                <strong class="hc-notification__title">{{ notification.title }}</strong>
+                {% if notification.body %}<span>{{ notification.body }}</span>{% endif %}
+            </span>
+        </button>
+    </form>
+</li>

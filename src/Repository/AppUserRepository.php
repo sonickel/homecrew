@@ -34,6 +34,27 @@ final class AppUserRepository extends ServiceEntityRepository
     }
 
     /**
+     * Persons who can read notifications: not locked, not left and with a way to log in (password, PIN login or
+     * passkey). Nobody else gets notifications – they would never be read.
+     *
+     * @return list<AppUser>
+     */
+    public function findReachable(\DateTimeImmutable $today): array
+    {
+        /** @var list<AppUser> $persons */
+        $persons = $this->createQueryBuilder('u')
+            ->andWhere('u.disabledAt IS NULL')
+            ->andWhere('u.activeUntil IS NULL OR u.activeUntil >= :today')
+            ->andWhere('u.passwordHash IS NOT NULL OR u.pinLoginEnabled = true OR EXISTS (SELECT w.id FROM App\Entity\WebauthnCredential w WHERE w.user = u)')
+            ->setParameter('today', $today->format('Y-m-d'))
+            ->orderBy('u.displayName')
+            ->getQuery()
+            ->getResult();
+
+        return $persons;
+    }
+
+    /**
      * Name tiles at the tablet: persons with PIN login switched on who may log in today, by name.
      *
      * @return list<AppUser>

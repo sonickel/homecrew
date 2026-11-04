@@ -4,19 +4,26 @@ declare(strict_types=1);
 
 namespace App\Controller\Task;
 
+use App\Entity\ShoppingList;
 use App\Entity\Task;
 use App\Enum\AssigneeRole;
 use App\Enum\CompletionAction;
 use App\Enum\UserRole;
+use App\Enum\Visibility;
+use App\Form\Report\ReportData;
+use App\Form\Report\ReportType;
 use App\Form\Task\HandOverType;
 use App\Form\Task\PostponeType;
 use App\Form\Task\TaskData;
 use App\Form\Task\TaskType;
+use App\Repository\IssueReportRepository;
+use App\Repository\ShoppingListRepository;
 use App\Repository\TaskCompletionRepository;
 use App\Security\Attribute\TeamTabletAllowed;
 use App\Security\Permission;
 use App\Service\Household\HouseholdContext;
 use App\Service\Household\WeekDays;
+use App\Service\Report\IssueReports;
 use App\Service\Task\AssigneeOptions;
 use App\Service\Task\Assignment;
 use App\Service\Task\TaskActions;
@@ -34,7 +41,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * One-off tasks (konzept-2 §5, decisions M5): list of open tasks, detail, create, change, complete, skip,
- * "Rückgängig", postpone and hand on – for every person and the team tablet; the rights are in TaskVoter.
+ * "Rückgängig", postpone, hand on and "nicht möglich" (M7) – for every person and the team tablet; the rights are in TaskVoter.
  */
 #[TeamTabletAllowed]
 final class TaskController extends AbstractController
@@ -90,11 +97,12 @@ final class TaskController extends AbstractController
 
     #[Route('/aufgaben/{id}', name: 'app_task_show', requirements: ['id' => '\d+'], methods: ['GET'])]
     #[IsGranted(Permission::TASK_VIEW, 'task')]
-    public function show(Task $task, TaskCompletionRepository $completionRepository): Response
+    public function show(Task $task, TaskCompletionRepository $completionRepository, IssueReportRepository $reportRepository): Response
     {
         return $this->render('task/show.html.twig', [
             'task' => $task,
             'completion' => $task->isOpen() ? null : $completionRepository->findForTask($task),
+            'report' => $task->isOpen() ? null : $reportRepository->findForTask($task),
             'admin' => $this->viewer()->isAdmin(),
         ]);
     }
@@ -140,6 +148,46 @@ final class TaskController extends AbstractController
     public function skip(Task $task, Request $request): Response
     {
         return $this->close($task, CompletionAction::Uebersprungen, $request);
+    }
+
+    /**
+     * "Nicht möglich" (konzept-2 §5.5): reason and follow-up – the plan's suggestion is chosen already, one tap reports.
+     * Exactly one report per task, also when sent twice (IssueReports::reportUnable).
+     */
+    #[Route('/aufgaben/{id}/nicht-moeglich', name: 'app_task_unable', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    #[IsGranted(Permission::TASK_VIEW, 'task')]
+    public function unable(Task $task, Request $request, IssueReports $reports, ShoppingListRepository $listRepository, AssigneeOptions $assigneeOptions): Response
+    {
+        if (!$task->isOpen()) {
+            return $this->alreadyClosed($task);
+        }
+        $this->denyAccessUnlessGranted(Permission::TASK_ACT, $task);
+        $data = new ReportData($this->todayTasks->today());
+        // What only admins or one person see is reported for admins only – unless changed
+        $data->adminsOnly = \in_array($task->getVisibility(), [Visibility::Admins, Visibility::Privat], true);
+        $suggestion = $this->suggestion($task);
+        if (null !== $suggestion) {
+            $data->title = $this->translator->trans('%item% fehlt', ['%item%' => $suggestion['item']]);
+            $data->followUp = ReportData::FOLLOW_LIST;
+            $data->list = $suggestion['list'];
+            $data->itemName = $suggestion['item'];
+        }
+        $form = $this->createForm(ReportType::class, $data, [
+            'mode' => ReportType::MODE_UNABLE,
+            'lists' => $listRepository->findActive(),
+            'assignees' => $assigneeOptions->choices(),
+        ]);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            if (null === $reports->reportUnable($task, $data, $this->viewer())) {
+                return $this->alreadyClosed($task);
+            }
+            $this->addFlash('ok', 'Gemeldet. Die Admins wissen Bescheid.');
+
+            return $this->back($request, $task);
+        }
+
+        return $this->renderForm('task/unable.html.twig', $form, ['task' => $task, 'suggestion' => $suggestion]);
     }
 
     #[Route('/aufgaben/{id}/rueckgaengig', name: 'app_task_undo', requirements: ['id' => '\d+'], methods: ['POST'])]
@@ -233,6 +281,19 @@ final class TaskController extends AbstractController
         }
 
         return $this->back($request, $task);
+    }
+
+    /**
+     * The plan's suggestion for "nicht möglich" – only while its list is in use.
+     *
+     * @return array{list: ShoppingList, item: string}|null
+     */
+    private function suggestion(Task $task): ?array
+    {
+        $list = $task->getTemplate()?->getUnableList();
+        $item = $task->getTemplate()?->getUnableItemName();
+
+        return null !== $list && null !== $item && $list->isActive() ? ['list' => $list, 'item' => $item] : null;
     }
 
     /**

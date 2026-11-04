@@ -34,9 +34,11 @@ final readonly class TaskPresenter
     public function status(Task $task): array
     {
         if (!$task->isOpen()) {
-            return TaskStatus::Uebersprungen === $task->getStatus()
-                ? ['modifier' => 'later', 'icon' => 'tabler:player-skip-forward', 'text' => $this->translator->trans('Übersprungen')]
-                : ['modifier' => 'ok', 'icon' => 'tabler:circle-check', 'text' => $this->translator->trans('Erledigt')];
+            return match ($task->getStatus()) {
+                TaskStatus::Uebersprungen => ['modifier' => 'later', 'icon' => 'tabler:player-skip-forward', 'text' => $this->translator->trans('Übersprungen')],
+                TaskStatus::NichtMoeglich => ['modifier' => 'late', 'icon' => 'tabler:circle-x', 'text' => $this->translator->trans('Nicht möglich')],
+                default => ['modifier' => 'ok', 'icon' => 'tabler:circle-check', 'text' => $this->translator->trans('Erledigt')],
+            };
         }
 
         $today = $this->today();

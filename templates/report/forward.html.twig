@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Weitergeben'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Weitergeben'|trans" :intro="report.title" />
+    {% if report.followUp %}
+        <p>{{ 'Das ersetzt, was bisher passieren sollte. Ein Eintrag auf einer Liste oder eine Aufgabe dazu bleibt bestehen.'|trans }}</p>
+    {% endif %}
+
+    {{ form_start(form, {attr: {class: 'hc-form hc-form--wide', novalidate: 'novalidate'}}) }}
+        {{ include('report/_form_fields.html.twig') }}
+        <div class="hc-button-row">
+            <twig:Button type="submit" icon="tabler:arrow-forward-up">{{ 'Weitergeben'|trans }}</twig:Button>
+            <twig:Button variant="secondary" :href="path('app_report_show', {publicId: report.publicId.toRfc4122})">{{ 'Abbrechen'|trans }}</twig:Button>
+        </div>
+    {{ form_end(form) }}
+{% endblock %}

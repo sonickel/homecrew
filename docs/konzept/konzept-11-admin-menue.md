@@ -1,6 +1,6 @@
 # Konzept 11 – Admin-Menü und Pflegemasken
 
-Stand: 03.11.2026 (M6: Wartungspläne) · Status: Entwurf · App: **HomeCrew**
+Stand: 04.11.2026 (M7: Listen, Lieblingsartikel, Meldungen) · Status: Entwurf · App: **HomeCrew**
 Antwort auf die Frage „Sind für alles Pflegemasken vorgesehen?": **Ja.** Alles, was in der Datenbank steht, kann ein Admin in der App pflegen – ohne Datenbank-Werkzeug.
 
 ## 1. Aufbau
@@ -23,12 +23,12 @@ Antwort auf die Frage „Sind für alles Pflegemasken vorgesehen?": **Ja.** Alle
 | | **Spracherkennung** | lokal (whisper.cpp) / aus, Status des Dienstes, Testaufnahme | 2 |
 | | **E-Mail** | SMTP-Server, Port, Verschlüsselung (STARTTLS/SMTPS), Benutzer, Passwort (verschlüsselt, danach nicht mehr sichtbar), Absenderadresse/-name, **Testmail senden**, an/aus | 1 |
 | | Push | an/aus; Schlüssel erzeugt die App selbst | 4 |
-| **Alltag** | **Meldungen** | Log aller Meldungen (Filter offen/erledigt, Art, Zeitraum, Hilfsmittel), weitergeben (Liste/Aufgabe/Person), schließen, verwerfen, Verlauf; wer gemeldet hat (Person/„Team-Tablet"); „Was fehlt oft?" | 1 |
+| **Alltag** | **Meldungen** | Log aller Meldungen (Filter offen/abgeschlossen/alle, Art, Zeitraum; Hilfsmittel ab Stufe 2), weitergeben (Liste/Aufgabe für Person/Rolle), schließen, verwerfen, Verlauf; wer gemeldet hat (Person/„Team-Tablet"); „Was fehlt oft?" – eigene Seite `/meldungen`, der Menüeintrag führt dorthin (M7) | 1 |
 | | Dienstplan | feste Tage je Person, Einzeldienste, Absagen („trotzdem bezahlt?") | 1 |
 | | **Externe Dienste** | Physio, Caritas, Pflegedienst …: Name (ohne Klarnamen), Art, dienstliche Telefonnummer, **Hinweis fürs Team**, Farbe, aktiv | 1 |
 | | **Termine & Besuche (Serien)** | Serie anlegen (Besuch oder Termin, Wochentage/Rhythmus, Uhrzeit, Dauer, Beginn/Ende, Pause, Sichtbarkeit; bei Terminen Zuständigkeit/Begleitung), einzelne Vorkommen absagen/verschieben, Serie beenden | 1 |
 | | Wartungspläne / wiederkehrende Aufgaben | anlegen, Zuständigkeit, Sichtbarkeit, Pausieren, Fotos/Videos, **Vorschlag bei „nicht möglich"** (Liste + Artikel); Verlauf mit Person bzw. „Team-Tablet" – als eigene Seiten unter `/routinen` (auch für Personen mit Schalter, die keine Verwaltung haben; Menüeintrag führt dorthin, M6) | 1 |
-| | Listen | Listen anlegen (Name, zuständige Rolle/Person), Lieblingsartikel | 1 |
+| | Listen | Listen anlegen (Name, zuständige Rolle/Person – nicht beides), aktiv/ausgeschaltet (nie löschen), Reihenfolge; **Lieblingsartikel** (Name, Liste oder alle, Menge, Link nur `https://`, Reihenfolge) – zwei EasyAdmin-Masken (M7) | 1 |
 | | Abwesenheit des Managers | Zeitraum, Aufgaben pausieren, Dienste, Besuche absagen | 1 |
 | **Wissen** | Anleitungen | Freigaben (auch Vorschläge vom Team-Tablet), Archiv, „nicht übersetzen" | 1 |
 | | Wer kennt was | Übersicht, Einweisung bestätigen | 1 |

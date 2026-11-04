@@ -1,0 +1,33 @@
+{# One open entry: name and amount, note, origin and link; "Abhaken" as large button on the right #}
+<li class="hc-task hc-list-item">
+    <div class="hc-task__main">
+        <p class="hc-list-item__name">
+            <strong>{{ item.name }}</strong>
+            {%- if item.quantity %} <span class="hc-list-item__quantity">{{ item.quantity }}</span>{% endif %}
+        </p>
+        {% if item.note or item.link or item.source.value == 'meldung' or is_granted('LIST_ITEM_EDIT', item) %}
+            <ul class="hc-task__details">
+                {% if item.note %}<li>{{ item.note }}</li>{% endif %}
+                {% if item.source.value == 'meldung' %}<li>{{ 'Aus einer Meldung'|trans }}</li>{% endif %}
+                {% if item.link %}
+                    <li>
+                        <a class="hc-external-link" href="{{ item.link }}" rel="noopener noreferrer external" target="_blank" referrerpolicy="no-referrer">
+                            {{- ux_icon('tabler:external-link', {'aria-hidden': 'true'}) -}}
+                            <span>{{ 'Link öffnen (fremde Seite)'|trans }}</span>
+                        </a>
+                    </li>
+                {% endif %}
+                {% if is_granted('LIST_ITEM_EDIT', item) %}
+                    <li><a href="{{ path('app_list_item_edit', {id: item.id}) }}">{{ 'Bearbeiten'|trans }}<span class="hc-visually-hidden">: {{ item.name }}</span></a></li>
+                {% endif %}
+            </ul>
+        {% endif %}
+    </div>
+    <form class="hc-task__action" method="post" action="{{ path('app_list_item_check', {id: item.id}) }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('submit') }}" data-controller="csrf-protection">
+        <button class="hc-button hc-button--primary hc-task__done" type="submit">
+            {{- ux_icon('tabler:check', {'aria-hidden': 'true'}) -}}
+            <span>{{ 'Abhaken'|trans }}<span class="hc-visually-hidden">: {{ item.name }}</span></span>
+        </button>
+    </form>
+</li>

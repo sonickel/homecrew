@@ -1,0 +1,19 @@
+{# A report in the log of the admins: with sender, follow-up and how often it was noticed as well #}
+{% set status = report_status(report) %}
+<li class="hc-task hc-task--{{ report.urgent and report.open ? 'late' : status.modifier }}">
+    <div class="hc-task__main">
+        <p class="hc-task__when hc-status hc-status--{{ status.modifier }}">{{ ux_icon(status.icon, {'aria-hidden': 'true'}) }}<span>{{ status.text }}</span></p>
+        <a class="hc-task__title" href="{{ path('app_report_show', {publicId: report.publicId.toRfc4122}) }}">{{ report.title }}</a>
+        <ul class="hc-task__details">
+            {% if report.urgent %}<li class="hc-task__important">{{ ux_icon('tabler:alert-triangle', {'aria-hidden': 'true'}) }}<span>{{ 'Dringend'|trans }}</span></li>{% endif %}
+            <li>{{ report.kind.label|trans }}</li>
+            <li>{{ report.createdAt|format_datetime(pattern: "d. MMMM yyyy, HH:mm 'Uhr'", locale: 'de') }}</li>
+            <li>{{ 'Von: %sender%'|trans({'%sender%': report_sender(report)}) }}</li>
+            {% if report.open %}<li>{{ report_age(report) }}</li>{% endif %}
+            {% if report.forAdminsOnly %}<li>{{ 'Nur für Admins'|trans }}</li>{% endif %}
+            {% if report.confirmCount > 0 %}<li>{{ report.confirmCount == 1 ? 'Einmal auch bemerkt'|trans : '%times%-mal auch bemerkt'|trans({'%times%': report.confirmCount}) }}</li>{% endif %}
+            {% if report.followUpItem %}<li>{{ 'Auf der Liste „%list%“'|trans({'%list%': report.followUpItem.list.name}) }}</li>{% endif %}
+            {% if report.followUpTask %}<li>{{ 'Aufgabe für: %name%'|trans({'%name%': task_assignee(report.followUpTask)|trans}) }}</li>{% endif %}
+        </ul>
+    </div>
+</li>

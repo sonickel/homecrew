@@ -22,11 +22,15 @@
     <div class="hc-today"{% if device %} data-controller="auto-refresh" data-auto-refresh-seconds-value="60"{% endif %}>
         {# Actions first – on phones above the tasks, on tablets in the right column (same order for the keyboard) #}
         <aside class="hc-today__side" aria-label="{{ 'Aktionen'|trans }}">
+            {# "Melden" for everybody, also at the team tablet (konzept-2 §2.9) #}
+            <twig:Button variant="signal" icon="tabler:speakerphone" :href="path('app_report_new')" class="hc-today__new hc-today__report">{{ 'Melden'|trans }}</twig:Button>
             <twig:Button icon="tabler:plus" :href="path('app_task_new')" class="hc-today__new">{{ 'Neue Aufgabe'|trans }}</twig:Button>
             <nav aria-label="{{ 'Bereiche'|trans }}">
                 <ul class="hc-tiles">
                     <li><a class="hc-tile" href="{{ path('app_task_index') }}">{{ ux_icon('tabler:list-check', {'aria-hidden': 'true'}) }}<span>{{ 'Offene Aufgaben'|trans }}</span></a></li>
                     <li><a class="hc-tile" href="{{ path('app_plan_index') }}">{{ ux_icon('tabler:repeat', {'aria-hidden': 'true'}) }}<span>{{ 'Routinen & Wartung'|trans }}</span></a></li>
+                    <li><a class="hc-tile" href="{{ path('app_list_index') }}">{{ ux_icon('tabler:shopping-cart', {'aria-hidden': 'true'}) }}<span>{{ 'Listen'|trans }}</span></a></li>
+                    <li><a class="hc-tile" href="{{ path('app_report_index') }}">{{ ux_icon('tabler:speakerphone', {'aria-hidden': 'true'}) }}<span>{{ 'Meldungen'|trans }}</span></a></li>
                     <li><a class="hc-tile" href="{{ path('app_emergency') }}">{{ ux_icon('tabler:first-aid-kit', {'aria-hidden': 'true'}) }}<span>{{ 'Notfall'|trans }}</span></a></li>
                 </ul>
             </nav>
@@ -41,6 +45,19 @@
         </aside>
 
         <div class="hc-today__main">
+            {# Only admins, only when reports are open (konzept-2 §2.2) – urgent ones with symbol and word #}
+            {% if open_reports and open_reports.open > 0 %}
+                <p class="hc-today__notice hc-today__reports">
+                    <a class="hc-status hc-status--due" href="{{ path('app_report_index') }}">
+                        {{- ux_icon('tabler:speakerphone', {'aria-hidden': 'true'}) -}}
+                        <span>{{ 'Meldungen: %reports% offen'|trans({'%reports%': open_reports.open}) }}</span>
+                    </a>
+                    {% if open_reports.urgent > 0 %}
+                        <span class="hc-status hc-status--late">{{ ux_icon('tabler:alert-triangle', {'aria-hidden': 'true'}) }}<span>{{ open_reports.urgent == 1 ? 'davon 1 dringend'|trans : 'davon %urgent% dringend'|trans({'%urgent%': open_reports.urgent}) }}</span></span>
+                    {% endif %}
+                </p>
+            {% endif %}
+
             {# Only admins, only when something is overdue (konzept-2 §2.6) #}
             {% if overdue_plans > 0 %}
                 <p class="hc-today__notice">
@@ -49,6 +66,39 @@
                         <span>{{ 'Routinen & Wartung: %plans% überfällig'|trans({'%plans%': overdue_plans}) }}</span>
                     </a>
                 </p>
+            {% endif %}
+
+            {# Persons: unread notifications; the team tablet: what is new since yesterday (konzept-2 §2.3) #}
+            {% if news is not empty %}
+                <section class="hc-today__block" aria-labelledby="neu">
+                    <h2 id="neu">{{ 'Neu seit deinem letzten Besuch'|trans }}</h2>
+                    <ul class="hc-notifications">
+                        {% for notification in news %}
+                            {{ include('notification/_item.html.twig') }}
+                        {% endfor %}
+                    </ul>
+                    <div class="hc-button-row">
+                        <form method="post" action="{{ path('app_notification_read_all') }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('submit') }}" data-controller="csrf-protection">
+                            <input type="hidden" name="zurueck" value="heute">
+                            <twig:Button type="submit" variant="secondary" icon="tabler:check">{{ 'Als gelesen markieren'|trans }}</twig:Button>
+                        </form>
+                        <twig:Button variant="secondary" icon="tabler:bell" :href="path('app_notification_index')">{{ 'Alle Benachrichtigungen'|trans }}</twig:Button>
+                    </div>
+                </section>
+            {% endif %}
+            {% if team_news and (team_news.reports is not empty or team_news.lists is not empty) %}
+                <section class="hc-today__block" aria-labelledby="neu">
+                    <h2 id="neu">{{ 'Neu seit gestern'|trans }}</h2>
+                    <ul class="hc-history">
+                        {% for report in team_news.reports %}
+                            <li>{{ 'Gemeldet: %title% (%kind%)'|trans({'%title%': report.title, '%kind%': report.kind.label|trans}) }}</li>
+                        {% endfor %}
+                        {% for entry in team_news.lists %}
+                            <li><a href="{{ path('app_list_show', {id: entry.list.id}) }}">{{ entry.list.name }}</a>: {{ entry.items|join(', ') }}</li>
+                        {% endfor %}
+                    </ul>
+                </section>
             {% endif %}
 
             <section class="hc-today__block" aria-labelledby="aufgaben-mine">

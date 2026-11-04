@@ -1,0 +1,12 @@
+{# "Schon gemeldet?": open reports with a similar title – "Auch bemerkt" counts instead of a second report #}
+{% if similar is not empty %}
+    <section class="hc-similar" aria-labelledby="schon-gemeldet">
+        <h2 id="schon-gemeldet">{{ 'Schon gemeldet?'|trans }}</h2>
+        <p>{{ 'Ist es eins davon? Dann tippe auf „Auch bemerkt“ – das zählt mit, statt es doppelt zu melden.'|trans }}</p>
+        <ul class="hc-task-list">
+            {% for report in similar %}
+                {{ include('report/_open_row.html.twig', {report: report, back: 'heute'}) }}
+            {% endfor %}
+        </ul>
+    </section>
+{% endif %}

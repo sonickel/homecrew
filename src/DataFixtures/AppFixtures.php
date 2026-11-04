@@ -8,6 +8,11 @@ use App\Entity\AppSetting;
 use App\Entity\AppUser;
 use App\Entity\Device;
 use App\Entity\EmergencyContact;
+use App\Entity\IssueReport;
+use App\Entity\Notification;
+use App\Entity\ShoppingFavorite;
+use App\Entity\ShoppingItem;
+use App\Entity\ShoppingList;
 use App\Entity\Task;
 use App\Entity\TaskCompletion;
 use App\Entity\TaskTemplate;
@@ -16,15 +21,22 @@ use App\Enum\CompletionAction;
 use App\Enum\DeviceMode;
 use App\Enum\EmergencyCategory;
 use App\Enum\EmergencyVisibility;
+use App\Enum\NotificationKind;
 use App\Enum\PersonColor;
 use App\Enum\RecurrenceType;
+use App\Enum\ReportKind;
+use App\Enum\ReportStatus;
+use App\Enum\ReportVisibility;
+use App\Enum\ShoppingSource;
 use App\Enum\TaskCategory;
 use App\Enum\UserRole;
 use App\Enum\Visibility;
+use App\Service\Report\ReportClosing;
 use App\Service\Series\Rhythm;
 use App\Service\Tablet\DeviceCookie;
 use App\Service\Task\PlanSync;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\DBAL\Connection;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -42,7 +54,11 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
  * or set the cookie "hc_device" to TABLET_TOKEN by hand (developer tools). Emergency contacts with fake numbers.
  * Tasks around today: every group of "Heute", for the team, single persons, admins only and one private task.
  * Plans ("Routinen & Wartung"): weekly with checklist, twice a week with a missed one, every 14 days after
- * completion (overdue), monthly with a window, yearly for admins only, one paused.
+ * completion (overdue), monthly with a window, yearly for admins only, one paused; "Seifenspender auffüllen" daily with
+ * the suggestion "Flüssigseife" on "Besorgt die Familie" for "Nicht möglich" (scenario A4).
+ * Lists "Einkauf", "Drogerie" (assistants) and "Besorgt die Familie" (Schwester) with favourites and entries;
+ * reports open, in progress, urgent for admins only, closed and discarded – toilet paper three times for
+ * "Was fehlt oft?"; notifications for Max and Schwester.
  */
 final class AppFixtures extends Fixture
 {
@@ -53,6 +69,7 @@ final class AppFixtures extends Fixture
     public function __construct(
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly PlanSync $planSync,
+        private readonly Connection $connection,
     ) {
     }
 
@@ -103,10 +120,12 @@ final class AppFixtures extends Fixture
         }
 
         $this->loadTasks($manager, $max, $sister, $ben);
+        $lists = $this->loadLists($manager, $sister);
 
         $manager->flush();
 
-        $this->loadPlans($manager, $max, $sister, $anna, $tablet);
+        $this->loadPlans($manager, $max, $sister, $anna, $tablet, $lists['family']);
+        $this->loadEntriesAndReports($manager, $max, $sister, $father, $anna, $tablet, $lists);
     }
 
     /**
@@ -128,7 +147,7 @@ final class AppFixtures extends Fixture
      * Plans with their history: done last by Anna or at the tablet, one overdue, one paused, one for admins only.
      * The generator (PlanSync) creates the occurrences from today on.
      */
-    private function loadPlans(ObjectManager $manager, AppUser $max, AppUser $sister, AppUser $anna, Device $tablet): void
+    private function loadPlans(ObjectManager $manager, AppUser $max, AppUser $sister, AppUser $anna, Device $tablet, ShoppingList $family): void
     {
         $today = self::today();
         $weekday = (int) $today->format('N');
@@ -140,7 +159,9 @@ final class AppFixtures extends Fixture
         $smoke = $this->plan('Rauchmelder testen', TaskCategory::Haushalt, Rhythm::yearly(1, 3), $sister, assignee: AssigneeRole::Admins, visibility: Visibility::Admins, startsOn: new \DateTimeImmutable('2026-03-01'));
         $oven = $this->plan('Backofen reinigen', TaskCategory::Kueche, Rhythm::monthly(15), $max, minutes: 45);
         $oven->pause($today, $today->modify('+14 days'));
-        foreach ([$bedding, $rubbish, $tyres, $fridge, $smoke, $oven] as $plan) {
+        $soap = $this->plan('Seifenspender auffüllen', TaskCategory::Haushalt, Rhythm::daily(1), $max, minutes: 5);
+        $soap->suggestWhenUnable($family, 'Flüssigseife');
+        foreach ([$bedding, $rubbish, $tyres, $fridge, $smoke, $oven, $soap] as $plan) {
             $manager->persist($plan);
         }
 
@@ -173,9 +194,122 @@ final class AppFixtures extends Fixture
         }
         $manager->flush();
 
-        foreach ([$bedding, $rubbish, $tyres, $fridge, $smoke, $oven] as $plan) {
+        foreach ([$bedding, $rubbish, $tyres, $fridge, $smoke, $oven, $soap] as $plan) {
             $this->planSync->sync($plan);
         }
+    }
+
+    /**
+     * @return array{shop: ShoppingList, drugstore: ShoppingList, family: ShoppingList}
+     */
+    private function loadLists(ObjectManager $manager, AppUser $sister): array
+    {
+        $lists = [
+            'shop' => $this->list('Einkauf', 1, AssigneeRole::Assistenz),
+            'drugstore' => $this->list('Drogerie', 2, AssigneeRole::Assistenz),
+            'family' => $this->list('Besorgt die Familie', 3, $sister),
+        ];
+        $favorites = [
+            ['Milch', $lists['shop'], '2 Liter', null],
+            ['Brot', $lists['shop'], null, null],
+            ['Bananen', $lists['shop'], null, null],
+            ['Flüssigseife', $lists['drugstore'], '1 Flasche', null],
+            ['Toilettenpapier', $lists['drugstore'], null, null],
+            ['Glühbirne E27', $lists['family'], '2 Stück', 'https://shop.example/gluehbirne-e27'],
+        ];
+        foreach ($favorites as $sort => [$name, $list, $quantity, $link]) {
+            $favorite = new ShoppingFavorite($name);
+            $favorite->setList($list);
+            $favorite->setDefaultQuantity($quantity);
+            $favorite->setLink($link);
+            $favorite->setSort($sort);
+            $manager->persist($favorite);
+        }
+        foreach ($lists as $list) {
+            $manager->persist($list);
+        }
+
+        return $lists;
+    }
+
+    /**
+     * List entries by Anna, by the tablet and from a report; reports in every state with notifications for the admins.
+     * Points in time the database sets (created_at) are moved back afterwards.
+     *
+     * @param array{shop: ShoppingList, drugstore: ShoppingList, family: ShoppingList} $lists
+     */
+    private function loadEntriesAndReports(ObjectManager $manager, AppUser $max, AppUser $sister, AppUser $father, AppUser $anna, Device $tablet, array $lists): void
+    {
+        $now = new \DateTimeImmutable();
+        $entries = [
+            ['Milch', $lists['shop'], $anna, '2 Liter', null],
+            ['Haferflocken', $lists['shop'], $tablet, null, null],
+            ['Äpfel', $lists['shop'], $max, '1 kg', 'Gern Elstar'],
+            ['Batterien AA', $lists['family'], $tablet, '4 Stück', 'Für die Fernbedienung'],
+        ];
+        foreach ($entries as [$name, $list, $by, $quantity, $note]) {
+            $item = new ShoppingItem($list, $name, $by);
+            $item->describe($name, $quantity, $note, null);
+            $manager->persist($item);
+        }
+        $bread = new ShoppingItem($lists['shop'], 'Brot', $tablet);
+        $bread->check($now->modify('-1 hour'));
+        $manager->persist($bread);
+        $detergent = new ShoppingItem($lists['drugstore'], 'Waschmittel', $anna, ShoppingSource::Meldung);
+        $manager->persist($detergent);
+
+        // [title, kind, by, days ago, status, closed by, close note, urgent, admins only]
+        $reports = [
+            ['Glühbirne Flur', ReportKind::Kaputt, $tablet, 1, ReportStatus::Offen, null, null, false, false],
+            ['Waschmittel fast leer', ReportKind::Leer, $anna, 2, ReportStatus::InArbeit, null, null, false, false],
+            ['Ladegerät Rollstuhl lädt nicht', ReportKind::Kaputt, $father, 0, ReportStatus::Offen, null, null, true, true],
+            ['Milch leer', ReportKind::Leer, $tablet, 5, ReportStatus::Erledigt, null, ReportClosing::NOTE_ITEM_CHECKED, false, false],
+            ['Fernbedienung fehlt', ReportKind::Fehlt, $anna, 10, ReportStatus::Verworfen, $sister, 'Lag unter dem Sofa', false, false],
+            ['Toilettenpapier leer', ReportKind::Leer, $tablet, 60, ReportStatus::Erledigt, $max, null, false, false],
+            ['Toilettenpapier leer', ReportKind::Leer, $anna, 39, ReportStatus::Erledigt, $max, null, false, false],
+            ['Toilettenpapier leer', ReportKind::Leer, $tablet, 18, ReportStatus::Erledigt, $max, null, false, false],
+        ];
+        $created = [];
+        foreach ($reports as [$title, $kind, $by, $daysAgo, $status, $closedBy, $closeNote, $urgent, $adminsOnly]) {
+            $report = new IssueReport($kind, $title, $by);
+            $report->describe(null, $urgent, $adminsOnly ? ReportVisibility::Admins : ReportVisibility::Alle);
+            $at = $now->modify(\sprintf('-%d days', $daysAgo));
+            if (!$status->isOpen()) {
+                $report->close($status, $at->modify('+1 day'), $closedBy, $closeNote, self::today()->modify('+365 days'));
+            }
+            $manager->persist($report);
+            $created[] = [$report, $at];
+        }
+        $created[1][0]->followUpWith($detergent);
+        $created[1][0]->confirm($now->modify('-1 day'));
+        $manager->flush();
+        foreach ($created as [$report, $at]) {
+            $this->connection->update('issue_report', ['created_at' => $at->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s')], ['id' => $report->getId()]);
+        }
+
+        $link = static fn (IssueReport $report): string => '/meldungen/'.$report->getPublicId()->toRfc4122();
+        $deleteAfter = self::today()->modify('+30 days');
+        foreach ([$max, $sister] as $admin) {
+            $read = new Notification($admin, NotificationKind::Meldung, 'Neue Meldung: Waschmittel fast leer', $link($created[1][0]), false, $deleteAfter);
+            $read->markRead($now);
+            $manager->persist($read);
+            $manager->persist(new Notification($admin, NotificationKind::Meldung, 'Neue Meldung: Glühbirne Flur', $link($created[0][0]), false, $deleteAfter));
+            $manager->persist(new Notification($admin, NotificationKind::Meldung, 'Dringende Meldung (nur für Admins)', $link($created[2][0]), true, $deleteAfter));
+        }
+        $entry = new Notification($sister, NotificationKind::Aufgabe, 'Neu auf deiner Liste „Besorgt die Familie“', '/listen/'.$lists['family']->getId(), false, $deleteAfter);
+        $entry->setBody('Batterien AA');
+        $manager->persist($entry);
+        $manager->flush();
+    }
+
+    private function list(string $name, int $sort, AppUser|AssigneeRole $assignee): ShoppingList
+    {
+        $list = new ShoppingList($name);
+        $list->setSort($sort);
+        $list->setAssigneeUser($assignee instanceof AppUser ? $assignee : null);
+        $list->setAssigneeRole($assignee instanceof AssigneeRole ? $assignee : null);
+
+        return $list;
     }
 
     /**

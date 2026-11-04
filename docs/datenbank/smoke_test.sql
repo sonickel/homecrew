@@ -373,6 +373,9 @@ INSERT INTO shopping_item (list_id, name, source, source_task_id) VALUES (@list_
 INSERT INTO shopping_item (list_id, name, is_done, done_at) VALUES (@list_shop, 'Brot', 1, NOW());
 INSERT INTO shopping_favorite (list_id, name, poi_id) VALUES (@list_shop, 'Dinkelbrot', @poi);
 INSERT INTO shopping_item (list_id, name, created_by_device_id) VALUES (@list_shop, 'Spülmittel', @dev);
+-- Lieblingsartikel mit Link zum Shop: der Link geht an den Listeneintrag über
+INSERT INTO shopping_favorite (list_id, name, link) VALUES (@list_family, 'Glühbirne E27', 'https://shop.example/gluehbirne-e27');
+INSERT INTO shopping_item (list_id, name, link) VALUES (@list_family, 'Glühbirne E27', 'https://shop.example/gluehbirne-e27');
 
 -- Meldungen: „Seifenspender auffüllen" ist am Team-Tablet nicht möglich → Vorschlag aus dem Wartungsplan
 -- („Flüssigseife" auf „Besorgt die Familie"); Meldung geht an die Admins und schließt sich, sobald abgehakt
@@ -631,6 +634,10 @@ CALL _expect_fail('B93 Tablet mit unbekannter Schriftgröße',
   'UPDATE device SET font_size = ''riesig'' WHERE id = @dev', 4025);
 CALL _expect_fail('B94 Einmalige Aufgabe als „einzeln geändertes" Vorkommen',
   'INSERT INTO task (title, category, due_date, is_modified) VALUES (''x'', ''haushalt'', ''2026-11-05'', 1)', 4025);
+CALL _expect_fail('B95 Listeneintrag mit Link ohne https',
+  'INSERT INTO shopping_item (list_id, name, link) VALUES (@list_shop, ''x'', ''http://shop.example/x'')', 4025);
+CALL _expect_fail('B96 Lieblingsartikel mit Link ohne https',
+  'INSERT INTO shopping_favorite (name, link) VALUES (''x'', ''javascript:alert(1)'')', 4025);
 CALL _expect_fail('B47 Zweite Übersetzung derselben Version in dieselbe Sprache',
   'INSERT INTO guide_translation (version_id, language, title) VALUES (@gv1, ''pl'', ''x'')', 1062);
 CALL _expect_fail('B48 „Übersetzung" nach Deutsch',

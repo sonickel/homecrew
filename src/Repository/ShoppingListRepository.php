@@ -17,4 +17,14 @@ final class ShoppingListRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, ShoppingList::class);
     }
+
+    /**
+     * The lists everybody uses, in the order the admins chose.
+     *
+     * @return list<ShoppingList>
+     */
+    public function findActive(): array
+    {
+        return $this->findBy(['isActive' => true], ['sort' => 'ASC', 'name' => 'ASC']);
+    }
 }

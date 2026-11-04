@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Melden: %kind%'|trans({'%kind%': kind.label|trans}) }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Melden: %kind%'|trans({'%kind%': kind.label|trans})" />
+
+    {# Similar open reports show above the form while typing (Turbo frame) and again when sending #}
+    <div data-controller="similar-reports" data-similar-reports-url-value="{{ path('app_report_similar') }}">
+        <turbo-frame id="aehnliche-meldungen" data-similar-reports-target="frame" aria-live="polite">
+            {{ include('report/_similar.html.twig') }}
+        </turbo-frame>
+
+        {{ form_start(form, {attr: {class: 'hc-form hc-form--wide', novalidate: 'novalidate'}}) }}
+            {{ form_row(form.title) }}
+            <datalist id="meldung-vorschlaege">
+                {% for suggestion in suggestions %}<option value="{{ suggestion }}"></option>{% endfor %}
+            </datalist>
+
+            <details class="hc-more"{% if form.note.vars.errors|length > 0 %} open{% endif %}>
+                <summary>{{ 'Notiz, dringend, nur für Admins'|trans }}</summary>
+                {{ form_row(form.note) }}
+                <div class="hc-form-row">
+                    {{ form_row(form.urgent) }}
+                    {{ form_row(form.adminsOnly) }}
+                </div>
+            </details>
+
+            {{ include('report/_form_fields.html.twig') }}
+
+            <div class="hc-button-row">
+                {% if similar is not empty %}
+                    <button class="hc-button hc-button--signal" type="submit" name="trotzdem" value="1">
+                        {{- ux_icon('tabler:speakerphone', {'aria-hidden': 'true'}) -}}<span>{{ 'Trotzdem neu melden'|trans }}</span>
+                    </button>
+                {% else %}
+                    <twig:Button type="submit" variant="signal" icon="tabler:speakerphone">{{ 'Melden'|trans }}</twig:Button>
+                {% endif %}
+                <twig:Button variant="secondary" :href="path('app_report_new')">{{ 'Abbrechen'|trans }}</twig:Button>
+            </div>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}

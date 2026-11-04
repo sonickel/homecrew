@@ -1,0 +1,12 @@
+{# "Was soll passieren?" (its own legend) – the fields of a follow-up show only while it is chosen (reveal_controller.js) #}
+<div class="hc-fieldset" data-controller="reveal" data-action="change->reveal#update">
+    {{ form_row(form.followUp) }}
+    <div class="hc-form-row">
+        {{ form_row(form.list) }}
+        {{ form_row(form.itemName) }}
+    </div>
+    <div class="hc-form-row">
+        {{ form_row(form.assignee) }}
+        {{ form_row(form.dueDate) }}
+    </div>
+</div>

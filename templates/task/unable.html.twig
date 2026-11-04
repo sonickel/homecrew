@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Nicht möglich'|trans }}{% endblock %}
+
+{# "Nicht möglich" always becomes a report for the admins (konzept-2 §5.5); the plan's suggestion is chosen already #}
+{% block body %}
+    <twig:PageHeader :title="'Nicht möglich'|trans" :intro="task.title" />
+
+    {% if suggestion %}
+        <p>{{ 'Vorschlag: „%item%“ auf die Liste „%list%“ – schon ausgewählt. Tippe auf „Melden“ oder ändere es.'|trans({'%item%': suggestion.item, '%list%': suggestion.list.name}) }}</p>
+    {% endif %}
+
+    {{ form_start(form, {attr: {class: 'hc-form hc-form--wide', novalidate: 'novalidate'}}) }}
+        <input type="hidden" name="zurueck" value="{{ app.request.query.get('zurueck', app.request.payload.get('zurueck', 'heute')) }}">
+        {{ form_row(form.title) }}
+
+        <details class="hc-more"{% if form.note.vars.errors|length > 0 or form.adminsOnly.vars.data %} open{% endif %}>
+            <summary>{{ 'Notiz, dringend, nur für Admins'|trans }}</summary>
+            {{ form_row(form.note) }}
+            <div class="hc-form-row">
+                {{ form_row(form.urgent) }}
+                {{ form_row(form.adminsOnly) }}
+            </div>
+        </details>
+
+        {{ include('report/_form_fields.html.twig') }}
+
+        <div class="hc-button-row">
+            <twig:Button type="submit" variant="signal" icon="tabler:speakerphone">{{ 'Melden'|trans }}</twig:Button>
+            <twig:Button variant="secondary" :href="path('app_task_show', {id: task.id})">{{ 'Abbrechen'|trans }}</twig:Button>
+        </div>
+    {{ form_end(form) }}
+{% endblock %}

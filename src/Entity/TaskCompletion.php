@@ -135,6 +135,14 @@ class TaskCompletion
         return $this->comment;
     }
 
+    /**
+     * Why it was not possible ("Seife leer") – the report carries the same title.
+     */
+    public function explain(?string $comment): void
+    {
+        $this->comment = null === $comment ? null : mb_substr($comment, 0, self::COMMENT_MAX);
+    }
+
     public function getAnonymizedAt(): ?\DateTimeImmutable
     {
         return $this->anonymizedAt;

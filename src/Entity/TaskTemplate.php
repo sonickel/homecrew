@@ -469,6 +469,25 @@ class TaskTemplate implements Assignable
         $this->lastDoneAt = $lastDoneAt;
     }
 
+    public function getUnableList(): ?ShoppingList
+    {
+        return $this->unableList;
+    }
+
+    public function getUnableItemName(): ?string
+    {
+        return $this->unableItemName;
+    }
+
+    /**
+     * Suggestion for "nicht möglich" (konzept-13 §3): this item on this list – both or neither.
+     */
+    public function suggestWhenUnable(?ShoppingList $list, ?string $itemName): void
+    {
+        $this->unableList = null === $itemName ? null : $list;
+        $this->unableItemName = null === $list ? null : $itemName;
+    }
+
     public function getCreatedBy(): ?AppUser
     {
         return $this->createdBy;

@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Druckansicht „%list%“'|trans({'%list%': list.name}) }}{% endblock %}
+
+{# Print view (konzept-2 §10): A4, black and white, a box per entry to tick off; on screen the same sheet as preview #}
+{% block body %}
+    <div class="hc-button-row hc-no-print" data-controller="print">
+        <twig:Button icon="tabler:printer" data-action="print#print">{{ 'Drucken'|trans }}</twig:Button>
+        <twig:Button variant="secondary" icon="tabler:arrow-left" :href="path('app_list_show', {id: list.id})">{{ 'Zurück zur Liste'|trans }}</twig:Button>
+    </div>
+
+    <article class="hc-print-sheet">
+        <header class="hc-print-sheet__head">
+            <p>{{ household_name() }}</p>
+            <p>{{ 'Stand: %day%'|trans({'%day%': today()|format_date(pattern: 'EEEE, d. MMMM yyyy', locale: 'de')}) }}</p>
+        </header>
+        <h1>{{ list.name }}</h1>
+        {% if items is not empty %}
+            <ul class="hc-print-checklist">
+                {% for item in items %}
+                    <li>
+                        <span class="hc-print-checklist__box" aria-hidden="true"></span>
+                        <span class="hc-print-checklist__text">
+                            <strong>{{ item.name }}</strong>{% if item.quantity %} – {{ item.quantity }}{% endif %}
+                            {%- if item.note %}<br><span class="hc-print-checklist__note">{{ item.note }}</span>{% endif %}
+                        </span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>{{ 'Die Liste ist leer.'|trans }}</p>
+        {% endif %}
+    </article>
+{% endblock %}

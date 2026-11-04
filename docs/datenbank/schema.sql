@@ -1,8 +1,9 @@
 -- =====================================================================
 --  HomeCrew – Datenbankschema (fachliche Referenz)
 --  Ziel:   MariaDB 11.8 LTS, InnoDB, utf8mb4
---  Stand:  03.11.2026 · Umsetzung Stufe 1 (M4: emergency_contact.category VARCHAR(15);
---          M5: task.assigned_by_device_id – Weitergeben am Team-Tablet)
+--  Stand:  04.11.2026 · Umsetzung Stufe 1 (M4: emergency_contact.category VARCHAR(15);
+--          M5: task.assigned_by_device_id – Weitergeben am Team-Tablet;
+--          M6: task.is_modified; M7: shopping_item.link, shopping_favorite.link)
 --          Doctrine-Migrations erzeugen das Schema; diese Datei ist die
 --          Referenz, gegen die Entities und Migrations geprüft werden
 --          (composer schema:check, docs/konzept/konzept-6-datenbank.md §6).
@@ -1391,6 +1392,7 @@ CREATE TABLE shopping_favorite (
   list_id           BIGINT UNSIGNED   NULL,
   name              VARCHAR(100)      NOT NULL,
   default_quantity  VARCHAR(30)       NULL,
+  link              VARCHAR(500)      NULL,              -- z. B. Produkt im Shop (nur https://), geht an den Listeneintrag über
   poi_id            BIGINT UNSIGNED   NULL,
   category          VARCHAR(30)       NULL,
   sort              SMALLINT UNSIGNED NOT NULL DEFAULT 0,
@@ -1398,7 +1400,8 @@ CREATE TABLE shopping_favorite (
   KEY ix_favorite (sort),
   KEY ix_favorite_list (list_id),
   CONSTRAINT fk_favorite_poi    FOREIGN KEY (poi_id)    REFERENCES poi (id)    ON DELETE SET NULL,
-  CONSTRAINT fk_favorite_list   FOREIGN KEY (list_id)   REFERENCES shopping_list (id) ON DELETE SET NULL
+  CONSTRAINT fk_favorite_list   FOREIGN KEY (list_id)   REFERENCES shopping_list (id) ON DELETE SET NULL,
+  CONSTRAINT ck_favorite_link   CHECK (link IS NULL OR link LIKE 'https://%')
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Lieblingsartikel zum schnellen Hinzufügen';
 
@@ -1410,6 +1413,7 @@ CREATE TABLE shopping_item (
   poi_id                BIGINT UNSIGNED NULL,
   category              VARCHAR(30)     NULL,
   note                  VARCHAR(255)    NULL,
+  link                  VARCHAR(500)    NULL,           -- z. B. Produkt im Shop (nur https://); Foto ab M11 über media
   is_done               TINYINT(1)      NOT NULL DEFAULT 0,
   done_at               DATETIME        NULL,
   source                VARCHAR(10)     NOT NULL DEFAULT 'manuell',
@@ -1426,7 +1430,8 @@ CREATE TABLE shopping_item (
   CONSTRAINT fk_shopping_task    FOREIGN KEY (source_task_id)           REFERENCES task (id)       ON DELETE SET NULL,
   CONSTRAINT fk_shopping_creator FOREIGN KEY (created_by_user_id) REFERENCES app_user (id) ON DELETE SET NULL,
   CONSTRAINT ck_shopping_source  CHECK (source IN ('manuell','aufgabe','rezept','ki','meldung')),
-  CONSTRAINT ck_shopping_done    CHECK ((is_done = 0 AND done_at IS NULL) OR (is_done = 1 AND done_at IS NOT NULL))
+  CONSTRAINT ck_shopping_done    CHECK ((is_done = 0 AND done_at IS NULL) OR (is_done = 1 AND done_at IS NOT NULL)),
+  CONSTRAINT ck_shopping_link    CHECK (link IS NULL OR link LIKE 'https://%')
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Einkaufsliste (Warnungen über profile_keyword)';
 

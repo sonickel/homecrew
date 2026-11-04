@@ -1,0 +1,97 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ list.name }}{% endblock %}
+
+{# Ticking off leads back here: Turbo morphs the page, the scroll position stays #}
+{% block head_meta %}
+    <meta name="turbo-refresh-method" content="morph">
+    <meta name="turbo-refresh-scroll" content="preserve">
+{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="list.name"
+        :intro="list.hasAssignee ? 'Zuständig: %name%'|trans({'%name%': (list.assigneeUser ? list.assigneeUser.displayName : list.assigneeRole.label)|trans}) : null" />
+
+    {# "Auf die Liste": what and how much in one row, note and link folded away #}
+    {{ form_start(form, {attr: {class: 'hc-form hc-form--wide', novalidate: 'novalidate'}}) }}
+        <div class="hc-form-row">
+            {{ form_row(form.name) }}
+            {{ form_row(form.quantity) }}
+        </div>
+        <details class="hc-more"{% if form.note.vars.errors|length > 0 or form.link.vars.errors|length > 0 %} open{% endif %}>
+            <summary>{{ 'Notiz oder Link'|trans }}</summary>
+            <div class="hc-form-row">
+                {{ form_row(form.note) }}
+                {{ form_row(form.link) }}
+            </div>
+        </details>
+        <div class="hc-button-row">
+            <twig:Button type="submit" icon="tabler:plus">{{ 'Auf die Liste'|trans }}</twig:Button>
+        </div>
+    {{ form_end(form) }}
+
+    {% set open_names = items|map(item => item.name|lower) %}
+    {% set offered = favorites|filter(favorite => favorite.name|lower not in open_names) %}
+    {% if offered is not empty %}
+        <section class="hc-section" aria-labelledby="lieblingsartikel">
+            <h2 id="lieblingsartikel">{{ 'Mit einem Tipp auf die Liste'|trans }}</h2>
+            <ul class="hc-favorites">
+                {% for favorite in offered %}
+                    <li>
+                        <form method="post" action="{{ path('app_list_favorite_add', {id: list.id, favorite: favorite.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('submit') }}" data-controller="csrf-protection">
+                            <button class="hc-button hc-button--secondary" type="submit">
+                                {{- ux_icon('tabler:plus', {'aria-hidden': 'true'}) -}}
+                                <span>{{ favorite.name }}{% if favorite.defaultQuantity %} ({{ favorite.defaultQuantity }}){% endif %}</span>
+                            </button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+
+    <section class="hc-section" aria-labelledby="auf-der-liste">
+        <h2 id="auf-der-liste">{{ 'Auf der Liste'|trans }} <span class="hc-task-group__count">({{ items|length }})</span></h2>
+        {% if items is not empty %}
+            <ul class="hc-task-list">
+                {% for item in items %}
+                    {{ include('list/_item.html.twig') }}
+                {% endfor %}
+            </ul>
+        {% else %}
+            <twig:EmptyState icon="tabler:shopping-cart" :message="'Die Liste ist leer.'|trans" />
+        {% endif %}
+    </section>
+
+    {% if checked is not empty %}
+        <section class="hc-section" aria-labelledby="abgehakt">
+            <h2 id="abgehakt">{{ 'Heute abgehakt'|trans }}</h2>
+            <ul class="hc-task-list">
+                {% for item in checked %}
+                    <li class="hc-task hc-list-item hc-list-item--done">
+                        <div class="hc-task__main">
+                            <p class="hc-list-item__name">
+                                <span class="hc-visually-hidden">{{ 'Abgehakt:'|trans }} </span><s>{{ item.name }}</s>
+                                {%- if item.quantity %} <span class="hc-list-item__quantity">{{ item.quantity }}</span>{% endif %}
+                            </p>
+                        </div>
+                        <form class="hc-task__action" method="post" action="{{ path('app_list_item_uncheck', {id: item.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('submit') }}" data-controller="csrf-protection">
+                            <button class="hc-button hc-button--secondary" type="submit">
+                                {{- ux_icon('tabler:arrow-back-up', {'aria-hidden': 'true'}) -}}
+                                <span>{{ 'Zurückholen'|trans }}<span class="hc-visually-hidden">: {{ item.name }}</span></span>
+                            </button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+
+    <div class="hc-button-row hc-section">
+        <twig:Button variant="secondary" icon="tabler:printer" :href="path('app_list_print', {id: list.id})">{{ 'Druckansicht'|trans }}</twig:Button>
+        <twig:Button variant="secondary" icon="tabler:shopping-cart" :href="path('app_list_index')">{{ 'Alle Listen'|trans }}</twig:Button>
+        <twig:Button variant="secondary" icon="tabler:arrow-left" :href="path('app_home')">{{ 'Zurück zu Heute'|trans }}</twig:Button>
+    </div>
+{% endblock %}

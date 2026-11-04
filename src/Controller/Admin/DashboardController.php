@@ -89,9 +89,12 @@ final class DashboardController extends AbstractDashboardController
         yield MenuItem::linkTo(RetentionSettingsCrudController::class, 'Löschfristen', 'fa fa-calendar-xmark')
             ->setAction(Action::EDIT)->setEntityId(AppSetting::ID);
 
-        // Plans have their own pages (also for persons with the switch, who have no access here)
+        // Plans and the report log have their own pages (plans also for persons with the switch, who have no access here)
         yield MenuItem::section('Alltag');
+        yield MenuItem::linkToRoute('Meldungen', 'fa fa-bullhorn', 'app_report_index');
         yield MenuItem::linkToRoute('Wartungspläne', 'fa fa-repeat', 'app_plan_index');
+        yield MenuItem::linkTo(ShoppingListCrudController::class, 'Listen', 'fa fa-cart-shopping');
+        yield MenuItem::linkTo(ShoppingFavoriteCrudController::class, 'Lieblingsartikel', 'fa fa-star');
 
         yield MenuItem::section('Wissen');
         yield MenuItem::linkTo(EmergencyContactCrudController::class, 'Notfall-Infos', 'fa fa-kit-medical');

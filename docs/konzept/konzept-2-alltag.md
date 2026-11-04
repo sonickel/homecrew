@@ -1,6 +1,6 @@
 # Konzept 2 – Alltag: Heute, Dienstplan, Dienst, Aufgaben & Wartung, Übergabe, Termine, Listen, Druck
 
-Stand: 03.11.2026 (M6: Wartungspläne und „Routinen & Wartung") · Status: Entwurf · Ausbaustufe 1 · Kalender & Besuche: Konzept 8 · Team-Tablet: Konzept 12 · Meldungen: Konzept 13
+Stand: 04.11.2026 (M7: Listen, Melden, „nicht möglich") · Status: Entwurf · Ausbaustufe 1 · Kalender & Besuche: Konzept 8 · Team-Tablet: Konzept 12 · Meldungen: Konzept 13
 
 ## 1. Szenarien
 | # | Szenario | Erwartung |
@@ -62,6 +62,7 @@ Stichtag, Zeitfenster oder „beim nächsten Dienst von …"; bei einmaligen Auf
 ### 5.5 Status & „nicht möglich"
 erledigt · übersprungen · **nicht möglich** · verschoben. „Erledigt" und „Überspringen" sofort, **30 Sekunden „Rückgängig"** (nur dieselbe Person bzw. dasselbe Tablet); Verschieben per Tipp in einem kleinen Wochenkalender (Entscheidung 03.11.).
 „Nicht möglich" erzeugt immer eine **Meldung** (Konzept 13): Grund kurz eingeben („Seife leer"), Folgeaktion wählen oder den Vorschlag des Wartungsplans bestätigen – auf eine Liste · Aufgabe für Person/Rolle · Übergabe · nur melden. Die Admins werden benachrichtigt; die Meldung schließt sich, sobald der Listeneintrag abgehakt oder die Aufgabe erledigt ist.
+Umsetzung M7 (Entscheidung 04.11.): eigene Seite „Nicht möglich" mit vorausgewähltem Vorschlag des Plans (ein Tipp auf „Melden"), **kein „Rückgängig"** (Admins verwerfen bei Bedarf); für den Plan zählt es wie „übersprungen"; den Grund im Verlauf sehen nur Admins. „Übergabe" als Folgeaktion kommt mit M10.
 
 ### 5.6 Übersicht „Routinen & Wartung"
 Liste aller Wartungspläne nach Dringlichkeit: Status (Symbol + Text), Zuständig, Rhythmus, **zuletzt erledigt – nur Datum** (geklärt), letzter Messwert, nächste Fälligkeit, offene Meldung (falls vorhanden); Detail mit Verlauf, Messwert-Kurve, „Jetzt erledigt". **Admins sehen zusätzlich, wer es war** (bei persönlicher Anmeldung bis 90 Tage) bzw. „am Team-Tablet". Die letzten 5 Erledigungen je Plan bleiben erhalten.
@@ -79,6 +80,7 @@ Info / Wichtig / Frage an Admins; Foto; angeheftet mit Lesebestätigung (am Team
 
 ## 9. Listen
 Mehrere Listen mit zuständiger Rolle/Person (z. B. „Einkauf", „Besorgt die Familie"); Lieblingsartikel; Warnung bei Unverträglichkeiten; befüllt von Hand, aus Rezepten, per KI, **aus Meldungen**; am Team-Tablet nutzbar. Abhaken eines Eintrags aus einer Meldung schließt die Meldung.
+Umsetzung M7 (Entscheidungen 04.11.): Pflege unter Verwaltung → Listen und Lieblingsartikel; Listen werden nur ausgeschaltet, nie gelöscht. Je Eintrag Menge, Notiz und ein **Link** (nur `https://`, „fremde Seite"; Foto mit M11). Lieblingsartikel als Knöpfe – ein Tipp setzt sie auf die Liste (samt Link). Gleichnamiger offener Eintrag wird nicht doppelt angelegt. Bearbeiten/Entfernen: Admins und wer den Eintrag angelegt hat (Person bzw. dasselbe Tablet). Abgehakte stehen bis Tagesende unter „Heute abgehakt" (Zurückholen), dann löscht sie der Nachtlauf. Wer zuständig ist (Person oder Rolle), bekommt neue Einträge anderer als Benachrichtigung („Neu auf deiner Liste", ergänzt solange ungelesen). Unverträglichkeiten mit dem Profil (M12).
 
 ## 10. Druckansichten
-Tages-ToDo für einen wählbaren Tag (Standard morgen) inkl. „Es kommen …" (Besuche), Einkaufsliste je Liste, Rezepte; A4, große Schrift, schwarz-weiß, Kästchen zum Abhaken.
+Tages-ToDo für einen wählbaren Tag (Standard morgen) inkl. „Es kommen …" (Besuche), Einkaufsliste je Liste, Rezepte; A4, große Schrift, schwarz-weiß, Kästchen zum Abhaken. Umsetzung M7: Druckansicht je Liste (`/listen/{id}/drucken`) mit Haushalt, Datum und den offenen Einträgen.

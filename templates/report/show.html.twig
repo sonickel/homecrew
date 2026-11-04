@@ -1,0 +1,98 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ report.title }}{% endblock %}
+
+{# A report for the admins: everything incl. sender, the follow-up with link and the course; hand on or close #}
+{% block body %}
+    {% set status = report_status(report) %}
+    <twig:PageHeader :title="report.title">
+        <p class="hc-status hc-status--{{ status.modifier }} hc-text-1">{{ ux_icon(status.icon, {'aria-hidden': 'true'}) }}<span>{{ status.text }}</span></p>
+    </twig:PageHeader>
+
+    {% if report.open %}
+        <div class="hc-button-row">
+            <twig:Button variant="secondary" icon="tabler:arrow-forward-up" :href="path('app_report_forward', {publicId: report.publicId.toRfc4122})">{{ 'Weitergeben'|trans }}</twig:Button>
+        </div>
+    {% endif %}
+
+    <dl class="hc-facts">
+        <dt>{{ 'Art'|trans }}</dt>
+        <dd>{{ report.kind.label|trans }}</dd>
+        {% if report.urgent %}
+            <dt>{{ 'Dringend'|trans }}</dt>
+            <dd class="hc-status hc-status--late">{{ ux_icon('tabler:alert-triangle', {'aria-hidden': 'true'}) }}<span>{{ 'Ja'|trans }}</span></dd>
+        {% endif %}
+        {% if report.note %}
+            <dt>{{ 'Notiz'|trans }}</dt>
+            <dd>{{ report.note|nl2br }}</dd>
+        {% endif %}
+        {% if report.task %}
+            <dt>{{ 'Nicht möglich war'|trans }}</dt>
+            {# A private task stays private – also for admins (konzept-2 §5.3) #}
+            <dd>{% if is_granted('TASK_VIEW', report.task) %}<a href="{{ path('app_task_show', {id: report.task.id}) }}">{{ report.task.title }}</a>{% else %}{{ 'eine private Aufgabe'|trans }}{% endif %}</dd>
+        {% endif %}
+        <dt>{{ 'Sichtbar für'|trans }}</dt>
+        <dd>{{ report.forAdminsOnly ? 'Nur Admins'|trans : 'Alle, auch am Team-Tablet (ohne Absender)'|trans }}</dd>
+        <dt>{{ 'Was passiert'|trans }}</dt>
+        <dd>
+            {%- if report.followUpItem -%}
+                {{ 'Auf der Liste „%list%“: %item%'|trans({'%list%': report.followUpItem.list.name, '%item%': report.followUpItem.name}) }}
+                {%- if report.followUpItem.list.active %} – <a href="{{ path('app_list_show', {id: report.followUpItem.list.id}) }}">{{ 'Liste öffnen'|trans }}</a>{% endif -%}
+            {%- elseif report.followUpTask -%}
+                <a href="{{ path('app_task_show', {id: report.followUpTask.id}) }}">{{ report.followUpTask.title }}</a>
+                {{ '(Aufgabe für: %name%)'|trans({'%name%': task_assignee(report.followUpTask)|trans}) }}
+                {%- if not report.followUpTask.open %} – {{ task_status(report.followUpTask).text }}{% endif -%}
+            {%- elseif report.followUp -%}
+                {{ report.followUp.value == 'liste' ? 'Ein Eintrag auf einer Liste – nicht mehr vorhanden.'|trans : 'Eine Aufgabe – nicht mehr vorhanden.'|trans }}
+            {%- elseif not report.open -%}
+                {{ 'Nur gemeldet.'|trans }}
+            {%- else -%}
+                {{ 'Nur gemeldet – schließe die Meldung, wenn sie erledigt ist.'|trans }}
+            {%- endif -%}
+        </dd>
+    </dl>
+
+    <section class="hc-section" aria-labelledby="verlauf">
+        <h2 id="verlauf">{{ 'Verlauf'|trans }}</h2>
+        <ul class="hc-history">
+            <li>{{ report.createdAt|format_datetime(pattern: "d. MMMM yyyy, HH:mm 'Uhr'", locale: 'de') }}: {{ 'gemeldet von %sender%'|trans({'%sender%': report_sender(report)}) }}</li>
+            {% if report.confirmCount > 0 and report.lastConfirmedAt %}
+                <li>{{ report.lastConfirmedAt|format_datetime(pattern: "d. MMMM yyyy, HH:mm 'Uhr'", locale: 'de') }}: {{ report.confirmCount == 1 ? 'auch bemerkt'|trans : 'zuletzt auch bemerkt – insgesamt %times%-mal'|trans({'%times%': report.confirmCount}) }}</li>
+            {% endif %}
+            {% if report.followUpItem %}
+                <li>{{ report.followUpItem.createdAt|format_datetime(pattern: "d. MMMM yyyy, HH:mm 'Uhr'", locale: 'de') }}: {{ 'auf die Liste „%list%“ gesetzt'|trans({'%list%': report.followUpItem.list.name}) }}</li>
+            {% elseif report.followUpTask %}
+                <li>{{ report.followUpTask.createdAt|format_datetime(pattern: "d. MMMM yyyy, HH:mm 'Uhr'", locale: 'de') }}: {{ 'als Aufgabe weitergegeben'|trans }}</li>
+            {% endif %}
+            {% if report.closedAt %}
+                <li>
+                    {{- report.closedAt|format_datetime(pattern: "d. MMMM yyyy, HH:mm 'Uhr'", locale: 'de') }}:
+                    {{ report.status.value == 'verworfen' ? 'verworfen'|trans : 'erledigt'|trans }}
+                    {%- if report.closedBy %} {{ 'von %name%'|trans({'%name%': report.closedBy.displayName}) }}{% endif -%}
+                    {%- if report.closeNote %} – {{ report.closeNote }}{% endif -%}
+                </li>
+            {% endif %}
+        </ul>
+    </section>
+
+    {% if report.open %}
+        <section class="hc-section" aria-labelledby="schliessen">
+            <h2 id="schliessen">{{ 'Abschließen'|trans }}</h2>
+            <form class="hc-form hc-form--wide" method="post" action="{{ path('app_report_close', {publicId: report.publicId.toRfc4122}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('submit') }}" data-controller="csrf-protection">
+                <div class="hc-field">
+                    <label class="hc-field__label" for="abschluss-notiz">{{ 'Notiz (freiwillig)'|trans }}</label>
+                    <input class="hc-input" type="text" id="abschluss-notiz" name="notiz" maxlength="255" autocomplete="off">
+                </div>
+                <div class="hc-button-row">
+                    <button class="hc-button hc-button--primary" type="submit" name="status" value="erledigt">{{ ux_icon('tabler:check', {'aria-hidden': 'true'}) }}<span>{{ 'Erledigt'|trans }}</span></button>
+                    <button class="hc-button hc-button--secondary" type="submit" name="status" value="verworfen">{{ ux_icon('tabler:circle-off', {'aria-hidden': 'true'}) }}<span>{{ 'Verwerfen'|trans }}</span></button>
+                </div>
+            </form>
+        </section>
+    {% endif %}
+
+    <div class="hc-button-row hc-section">
+        <twig:Button variant="secondary" icon="tabler:arrow-left" :href="path('app_report_index')">{{ 'Alle Meldungen'|trans }}</twig:Button>
+    </div>
+{% endblock %}

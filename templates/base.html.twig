@@ -44,6 +44,13 @@
                             <a class="hc-topbar__link" href="{{ path('app_home') }}">{{ ux_icon('tabler:home', {'aria-hidden': 'true'}) }}<span>{{ 'Heute'|trans }}</span></a>
                         {% endif %}
                         {% if person_nav %}
+                            {# The bell: unread notifications (konzept-9 §5) – symbol and number only, the words for screen readers #}
+                            {% set unread = unread_notifications() %}
+                            <a class="hc-topbar__link" href="{{ path('app_notification_index') }}">
+                                {{- ux_icon('tabler:bell', {'aria-hidden': 'true'}) -}}
+                                <span class="hc-visually-hidden">{{ 'Benachrichtigungen'|trans }}</span>
+                                {%- if unread > 0 %}<span class="hc-badge">{{ unread }}<span class="hc-visually-hidden"> {{ 'neu'|trans }}</span></span>{% endif -%}
+                            </a>
                             <a class="hc-topbar__link" href="{{ path('app_account') }}">{{ ux_icon('tabler:user-circle', {'aria-hidden': 'true'}) }}<span>{{ 'Mein Konto'|trans }}</span></a>
                             {% if is_granted('ADMIN') %}
                                 {# EasyAdmin brings its own layout and scripts: load it as a full page, not via Turbo #}

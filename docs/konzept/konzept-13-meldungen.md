@@ -1,6 +1,6 @@
 # Konzept 13 – Meldungen („nicht möglich", leer, kaputt) und Benachrichtigungsregeln
 
-Stand: 01.11.2026 (nachmittags) · Status: Entwurf · **Ausbaustufe 1** (Messwert-Meldungen und KI ab Stufe 2, Push ab Stufe 4)
+Stand: 04.11.2026 (M7: Umsetzung, §10) · Status: Entwurf · **Ausbaustufe 1** (Messwert-Meldungen und KI ab Stufe 2, Push ab Stufe 4)
 
 ## 1. Ziel
 Der Manager und die anderen Admins bekommen **sicher mit, wenn etwas nicht geht oder fehlt** – auch wenn es am Team-Tablet gemeldet wurde und niemand angemeldet war. Jede Meldung
@@ -95,3 +95,15 @@ Empfehlung für dich als Manager: **„Neue Meldung" zusätzlich per E-Mail, sof
 - `notification_preference` – Regeln je Person und Ereignis (App/E-Mail/Push).
 - `app_user.notify_mail_details` (Titel in E-Mails), `app_setting.retention_report_days` (365), `app_setting.daily_digest_time` (18:00).
 - Entfallen: `task_completion.follow_up` – die Folgeaktion steht jetzt in der Meldung.
+
+## 10. Umsetzung M7 (Entscheidungen 04.11.)
+- **Melden** in zwei Schritten: `/melden` (leer · kaputt · fehlt · sonstiges) → Titel mit Vorschlägen (Lieblingsartikel, sichtbare offene Meldungen), eingeklappt Notiz · dringend · „nur für Admins", dann „Was soll passieren?" (nur melden · auf eine Liste · Aufgabe für …). Foto und Bezug zu Hilfsmittel/Ort folgen mit M11/M12, „Übergabe" als Folgeaktion mit M10.
+- **„Schon gemeldet?"** beim Tippen und beim Absenden, bis „Trotzdem neu melden"; ähnlich = gemeinsames Wort (ohne Füllwörter und „leer/kaputt/fehlt"), eines im anderen („Seife" in „Flüssigseife") oder ein Buchstabe Unterschied. „Auch bemerkt" zählt ohne Person mit.
+- **„Nicht möglich"**: eigene Seite, Vorschlag des Plans vorausgewählt („Flüssigseife fehlt" auf „Besorgt die Familie") – ein Tipp; genau eine Meldung je Aufgabe (Sperre + `uq_report_task`); kein „Rückgängig". Für den Plan zählt es wie „übersprungen".
+- **Folgeaktion:** Eintrag auf einer Liste (steht der Artikel schon offen darauf, wird verknüpft) oder Aufgabe (Titel der Meldung, „Bis wann?"); bei „nur für Admins" sieht die Aufgabe nur, wer zuständig ist (+ Admins). Admins geben weiter (ersetzt die Folgeaktion), schließen oder verwerfen mit Notiz.
+- **Automatischer Abschluss** ohne Person; „Zurückholen" bzw. „Rückgängig" öffnet wieder; entfernter Eintrag → Meldung wieder „offen".
+- **Sichtbarkeit:** offene Meldungen für alle ohne Absender (`/meldungen`, Kachel auf „Heute"); „nur für Admins" sehen nur Admins – auch nicht die meldende Person. Meldungs-Log mit Filter Offen/Abgeschlossen/Alle, Art, Zeitraum, Absender, Verlauf und „Was fehlt oft?" nur für Admins (nie per PIN oder am Tablet).
+- **Benachrichtigungen (App):** Standards je Rolle aus §7 in `App\Service\Notification\NotificationDefaults` (nur dort). Empfänger: neue Meldung → Admins; „Aufgabe für dich" und „Neu auf deiner Liste" → wer zuständig ist: Person, alle mit der Rolle, „wer gerade da ist" = Assistenz (bis zum Dienstplan); nur Personen mit eigenem Zugang, nie wer es ausgelöst hat. „Neu auf deiner Liste" gehört zum Ereignis „Aufgabe" und wird ergänzt, solange ungelesen.
+- **Scheitert die Folgeaktion** (Aufgabe übersprungen oder nicht möglich, Liste ausgeschaltet, Eintrag entfernt), ist die Meldung wieder „offen" (Review M7).
+- **Benachrichtigungen zu Meldungen „nur für Admins"** tragen keinen Titel; in Sitzungen ohne Admin-Recht (PIN am Tablet) sehen Admins keine Benachrichtigungen zu Meldungen. Bei „nur für Admins" muss ein Listeneintrag ausdrücklich benannt werden – den Eintrag sehen alle. „Nicht möglich" bei Aufgaben für Admins oder privaten ist vorab „nur für Admins"; den Titel einer privaten Aufgabe sehen auch Admins nicht (Review M7).
+- **Löschen:** Person nach `retention_completion_days` (90), abgeschlossene Meldungen nach `retention_report_days` ab Abschluss (`delete_after`).

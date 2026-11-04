@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Benachrichtigungen'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Benachrichtigungen'|trans" :intro="'Was für dich neu ist – die letzten Wochen.'|trans" />
+
+    <div class="hc-button-row">
+        {% if notifications|filter(notification => not notification.read) is not empty %}
+            <form method="post" action="{{ path('app_notification_read_all') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('submit') }}" data-controller="csrf-protection">
+                <input type="hidden" name="zurueck" value="benachrichtigungen">
+                <twig:Button type="submit" variant="secondary" icon="tabler:check">{{ 'Alle als gelesen markieren'|trans }}</twig:Button>
+            </form>
+        {% endif %}
+        <twig:Button variant="secondary" icon="tabler:arrow-left" :href="path('app_home')">{{ 'Zurück zu Heute'|trans }}</twig:Button>
+    </div>
+
+    {% if notifications is not empty %}
+        <ul class="hc-notifications">
+            {% for notification in notifications %}
+                {{ include('notification/_item.html.twig') }}
+            {% endfor %}
+        </ul>
+    {% else %}
+        <twig:EmptyState icon="tabler:bell" :message="'Keine Benachrichtigungen.'|trans" />
+    {% endif %}
+{% endblock %}

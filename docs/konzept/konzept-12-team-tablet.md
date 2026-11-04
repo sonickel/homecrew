@@ -1,6 +1,6 @@
 # Konzept 12 – Team-Tablet (Gerätemodus ohne Personenanmeldung)
 
-Stand: 03.11.2026 (M5: Aufgaben am Team-Tablet) · Status: Entwurf · **Ausbaustufe 1 – empfohlener Start**
+Stand: 04.11.2026 (M7: Melden, Listen, „Neu seit gestern“) · Status: Entwurf · **Ausbaustufe 1 – empfohlener Start**
 
 ## 1. Idee
 Das Assistenz-Tablet wird einmal von einem Admin gekoppelt und läuft dann im **Team-Modus**: Es zeigt alles, was für die **Rolle Assistenz** bestimmt ist – Aufgaben, Wartungen, Termine, Besuche, Listen, Anleitungen, Notfall-Infos –, **ohne dass sich jemand anmeldet**. Das Tablet kennt keine Person.
@@ -26,9 +26,9 @@ Wechsel jederzeit; es geht nichts verloren.
 | **Heute** | Datum, wichtige Übergaben, „Neu seit gestern", **„Heute kommen"** (Physio, Caritas … mit Hinweis fürs Team), Termine für alle bzw. die Rolle Assistenz, Aufgaben für die Rolle Assistenz / „wer da ist" / alle |
 | Aufgaben erledigen | ✅ inkl. Checkliste, Messwerten, Nachweisfoto; „nicht möglich" → **Meldung** mit Folgeaktion (Konzept 13); überspringen, verschieben, **weitergeben, wofür das Tablet zuständig ist** (Rolle Assistenz, „wer da ist", einzelne Assistenzkräfte – gespeichert wird das Gerät); „Rückgängig" 30 Sekunden; einmalige Aufgaben anlegen (ohne „privat") |
 | **Melden** | ✅ großer Knopf: leer · kaputt · fehlt · sonstiges, mit Foto; „Auch bemerkt" bei bereits Gemeldetem |
-| Offene Meldungen | ✅ Titel, Datum, Status (ohne Person) – damit nichts doppelt gemeldet wird |
+| Offene Meldungen | ✅ Titel, Datum, Status (ohne Person) – damit nichts doppelt gemeldet wird; „Neu seit gestern" auf „Heute" zeigt neue Meldungen für alle und neue Listeneinträge (M7). Keine Glocke – das Tablet bekommt keine Benachrichtigungen |
 | Routinen & Wartung | ✅ (zuletzt erledigt: nur Datum) |
-| Listen | ✅ lesen, ergänzen, abhaken |
+| Listen | ✅ lesen, ergänzen, abhaken, drucken; eigene Einträge (dieses Tablets) bearbeiten und entfernen (M7) |
 | Übergabebuch | ✅ lesen und schreiben (Absender: „Team-Tablet") |
 | Wissen | ✅ lesen, „Stimmt nicht mehr" melden, **Anleitung vorschlagen** (immer als Entwurf → Admin gibt frei) |
 | Notfall-Infos, Orte | ✅ |

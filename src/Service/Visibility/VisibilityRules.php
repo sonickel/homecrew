@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service\Visibility;
 
+use App\Entity\AppUser;
 use App\Enum\AssigneeRole;
 use App\Enum\UserRole;
 use App\Enum\Visibility;
@@ -40,12 +41,19 @@ final class VisibilityRules
 
     public function isResponsible(Viewer $viewer, Assignable $item): bool
     {
-        $person = $item->getAssigneeUser();
+        return $this->isAssigned($viewer, $item->getAssigneeUser(), $item->getAssigneeRole());
+    }
+
+    /**
+     * The same rule for a person or role alone, e.g. who takes care of a list (App\Service\Notification\NotificationRecipients).
+     */
+    public function isAssigned(Viewer $viewer, ?AppUser $person, ?AssigneeRole $role): bool
+    {
         if (null !== $person) {
             return $viewer->isPerson($person);
         }
 
-        return match ($item->getAssigneeRole()) {
+        return match ($role) {
             null, AssigneeRole::Assistenz => $viewer->isTeamTablet() || $viewer->hasRole(UserRole::Assistenz),
             AssigneeRole::Admins => $viewer->isAdmin(),
             AssigneeRole::Manager => $viewer->hasRole(UserRole::Manager),

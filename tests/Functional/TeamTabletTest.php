@@ -152,6 +152,9 @@ final class TeamTabletTest extends WebTestCase
         yield 'Zweiter Schritt' => ['/konto/zwei-faktor'];
         yield 'Datenschutz' => ['/konto/datenschutz'];
         yield 'PIN ändern' => ['/konto/pin'];
+        yield 'Benachrichtigungen' => ['/benachrichtigungen'];
+        yield 'Verwaltung der Listen' => ['/verwaltung/listen'];
+        yield 'Lieblingsartikel' => ['/verwaltung/lieblingsartikel'];
     }
 
     #[DataProvider('personalPages')]

@@ -87,5 +87,6 @@ final readonly class PlanActions
         $assignee = null !== $privateOwner ? Assignment::person($privateOwner) : $data->assignee;
         $plan->assign($assignee->person, $assignee->role);
         $plan->replaceChecklist($data->checklistLabels());
+        $plan->suggestWhenUnable($data->unableList, $data->unableItem());
     }
 }

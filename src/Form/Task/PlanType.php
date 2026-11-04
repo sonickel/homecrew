@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Form\Task;
 
+use App\Entity\ShoppingItem;
+use App\Entity\ShoppingList;
 use App\Enum\TaskCategory;
 use App\Enum\Visibility;
 use App\Service\Series\Rhythm;
 use App\Service\Task\Assignment;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -152,6 +155,20 @@ final class PlanType extends AbstractType
                 'help' => 'Ein Punkt pro Zeile, z. B. „Reifen vorne links“ – höchstens 20. Bitte keine Gesundheitsangaben.',
                 'attr' => ['rows' => 3],
             ])
+            ->add('unableList', EntityType::class, [
+                'class' => ShoppingList::class,
+                'choices' => $options['lists'],
+                'choice_label' => static fn (ShoppingList $list): string => $list->getName(),
+                'label' => 'Auf welche Liste?',
+                'placeholder' => 'Kein Vorschlag',
+                'required' => false,
+            ])
+            ->add('unableItemName', TextType::class, [
+                'label' => 'Was soll auf die Liste?',
+                'help' => 'Z. B. „Flüssigseife“ – wer „Nicht möglich“ tippt, bestätigt es mit einem Tipp.',
+                'required' => false,
+                'attr' => ['maxlength' => ShoppingItem::NAME_MAX, 'autocomplete' => 'off'],
+            ])
             ->add('category', EnumType::class, [
                 'class' => TaskCategory::class,
                 'label' => 'Kategorie',
@@ -197,7 +214,9 @@ final class PlanType extends AbstractType
             'allow_private' => false,
             'with_pause' => false,
             'manager_name' => 'dem Manager',
+            'lists' => [],
         ]);
+        $resolver->setAllowedTypes('lists', 'array');
         $resolver->setRequired('assignees');
         $resolver->setAllowedTypes('assignees', 'array');
         $resolver->setAllowedTypes('allow_private', 'bool');

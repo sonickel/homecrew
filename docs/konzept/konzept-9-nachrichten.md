@@ -1,6 +1,6 @@
 # Konzept 9 – Nachrichten (Chat) und Benachrichtigungen
 
-Stand: 01.11.2026 (nachmittags) · Stufen: Benachrichtigungen in der App und **per E-Mail 1** · Chat **2** · Push **4** (optional) · Regeln je Ereignis und Meldungen: Konzept 13
+Stand: 04.11.2026 (M7: Benachrichtigungen in der App) · Stufen: Benachrichtigungen in der App und **per E-Mail 1** · Chat **2** · Push **4** (optional) · Regeln je Ereignis und Meldungen: Konzept 13
 
 ## 1. Ziel
 Direkt schreiben ohne private Telefonnummern und WhatsApp; Daten bleiben auf dem Pi.
@@ -23,6 +23,7 @@ Direkt schreiben ohne private Telefonnummern und WhatsApp; Daten bleiben auf dem
 
 ## 5. Benachrichtigungen
 - **In der App** (Stufe 1, immer): Glocke + „Seit deinem letzten Besuch" beim Anmelden; Live-Aktualisierung.
+  Umsetzung M7 (04.11.): Glocke (Symbol + Zahl) in der Kopfleiste nur für Personen; „Neu seit deinem letzten Besuch" = ungelesene auf „Heute"; gelesen nur durch „Öffnen" oder „Als gelesen markieren" (nie beim bloßen Laden); am Team-Tablet stattdessen „Neu seit gestern" (Meldungen für alle, neue Listeneinträge). Live-Aktualisierung erst mit Mercure auf dem Pi, lokal beim nächsten Seitenaufruf (das Tablet lädt „Heute" jede Minute). Ereignisse bisher: neue Meldung, Meldung erledigt, Aufgabe für dich (inkl. „Neu auf deiner Liste").
 - **E-Mail** (jetzt **Stufe 1**, weil SMTP für 2FA ohnehin eingerichtet ist): pro Person aus/sofort/täglich (Tageszusammenfassung um 18 Uhr, einstellbar), Standard aus; Inhalt standardmäßig ohne Details, pro Person „mit Titel" einschaltbar.
 - **Push** (Stufe 4): pro Person einschaltbar, Standard aus, vom Admin global sperrbar.
 - **Regeln je Ereignis** (App · E-Mail · Push) unter „Mein Konto → Benachrichtigungen", Standards je Rolle – Tabelle in Konzept 13 §7.

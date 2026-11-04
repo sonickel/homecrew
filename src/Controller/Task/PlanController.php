@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Controller\Task;
 
+use App\Entity\ShoppingList;
 use App\Entity\TaskTemplate;
 use App\Enum\AssigneeRole;
 use App\Enum\CompletionAction;
 use App\Form\Task\PlanData;
 use App\Form\Task\PlanType;
+use App\Repository\ShoppingListRepository;
 use App\Repository\TaskCompletionRepository;
 use App\Repository\TaskRepository;
 use App\Security\Attribute\TeamTabletAllowed;
@@ -42,6 +44,7 @@ final class PlanController extends AbstractController
         private readonly PlanActions $actions,
         private readonly HouseholdContext $household,
         private readonly TranslatorInterface $translator,
+        private readonly ShoppingListRepository $listRepository,
     ) {
     }
 
@@ -71,6 +74,7 @@ final class PlanController extends AbstractController
             'assignees' => $assigneeOptions->choices(),
             'allow_private' => $rules->mayKeepPrivate($viewer),
             'manager_name' => $this->household->managerName(),
+            'lists' => $this->lists(null),
         ]);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -110,6 +114,7 @@ final class PlanController extends AbstractController
             'allow_private' => $rules->mayKeepPrivate($viewer) && null !== $creator && $viewer->isPerson($creator),
             'manager_name' => $this->household->managerName(),
             'with_pause' => true,
+            'lists' => $this->lists($plan),
         ]);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -161,6 +166,22 @@ final class PlanController extends AbstractController
         $this->addFlash('ok', $this->translator->trans('„%title%“ läuft wieder.', ['%title%' => $plan->getTitle()]));
 
         return $this->redirectToRoute('app_plan_show', ['id' => $plan->getId()], Response::HTTP_SEE_OTHER);
+    }
+
+    /**
+     * Lists for the suggestion at "nicht möglich": the active ones – and the plan's own even if it was switched off.
+     *
+     * @return list<ShoppingList>
+     */
+    private function lists(?TaskTemplate $plan): array
+    {
+        $lists = $this->listRepository->findActive();
+        $current = $plan?->getUnableList();
+        if (null !== $current && !\in_array($current, $lists, true)) {
+            $lists[] = $current;
+        }
+
+        return $lists;
     }
 
     private function viewer(): Viewer

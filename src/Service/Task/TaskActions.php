@@ -10,6 +10,7 @@ use App\Enum\CompletionAction;
 use App\Enum\Visibility;
 use App\Form\Task\TaskData;
 use App\Repository\TaskCompletionRepository;
+use App\Service\Report\ReportClosing;
 use App\Service\Viewer\Viewer;
 use App\Service\Visibility\VisibilityRules;
 use Doctrine\DBAL\LockMode;
@@ -23,6 +24,9 @@ use Symfony\Component\Clock\ClockInterface;
  * Occurrences of a plan (M6): a change one by one marks them (is_modified); afterwards App\Service\Task\PlanSync
  * brings the plan up to date (next occurrence, "zuletzt erledigt") – under a lock on the plan, taken before the
  * lock on the task as in PlanSync.
+ *
+ * Reports (M7): whoever becomes responsible is told (TaskNotifier); a task that follows up a report closes it when
+ * done (ReportClosing); "nicht möglich" goes through App\Service\Report\IssueReports and cannot be undone.
  */
 final readonly class TaskActions
 {
@@ -35,6 +39,8 @@ final readonly class TaskActions
         private TaskCompletionRepository $completionRepository,
         private VisibilityRules $rules,
         private PlanSync $planSync,
+        private TaskNotifier $taskNotifier,
+        private ReportClosing $reportClosing,
         private ClockInterface $clock,
     ) {
     }
@@ -50,6 +56,7 @@ final readonly class TaskActions
 
         $this->entityManager->persist($task);
         $this->entityManager->flush();
+        $this->taskNotifier->assigned($task, $viewer->actor());
 
         return $task;
     }
@@ -61,36 +68,70 @@ final readonly class TaskActions
     {
         $this->assertMayChooseVisibility($task, $data, $viewer);
 
-        return $this->whileOpen($task, function () use ($task, $data, $viewer): void {
+        $handedOver = false;
+        $updated = $this->whileOpen($task, function () use ($task, $data, $viewer, &$handedOver): void {
             $this->apply($task, $data);
             $assignee = $this->assigneeFor($task, $data);
             if (!$assignee->equals(Assignment::of($task))) {
                 $task->handOver($assignee->person, $assignee->role, $viewer->actor(), $this->clock->now());
+                $handedOver = true;
             }
             $task->markModified();
         });
+        if ($handedOver) {
+            $this->taskNotifier->assigned($task, $viewer->actor());
+        }
+
+        return $updated;
     }
 
     /**
      * Completes or skips the task; false when it was closed already (e.g. at the same time at another device).
      * The checklist: null = every point ticked off (one tap on "Erledigt"), else the ids of the ticked points.
+     * "Nicht möglich" needs a report: closeUnable().
      *
      * @param list<int>|null $checkedItemIds
      */
     public function close(Task $task, CompletionAction $action, Viewer $viewer, ?array $checkedItemIds = null): bool
     {
+        if (CompletionAction::NichtMoeglich === $action) {
+            throw new \LogicException('"Nicht möglich" always creates a report, see closeUnable().');
+        }
+
         return $this->whileOpen($task, function () use ($task, $action, $viewer, $checkedItemIds): void {
             $task->close($action);
             $completion = new TaskCompletion($task, $action, $viewer->actor(), $this->clock->now());
             if (CompletionAction::Erledigt === $action) {
                 $completion->tickOff($checkedItemIds);
+                $this->reportClosing->taskDone($task);
+            } else {
+                $this->reportClosing->taskDropped($task);
             }
             $this->entityManager->persist($completion);
         });
     }
 
     /**
+     * "Nicht möglich" (konzept-2 §5.5): closes the task with the reason and lets $report create its report in the same
+     * transaction, under the lock – a second request finds the task closed (false), so there is exactly one report.
+     *
+     * @param \Closure(): void $report
+     */
+    public function closeUnable(Task $task, Viewer $viewer, string $reason, \Closure $report): bool
+    {
+        return $this->whileOpen($task, function () use ($task, $viewer, $reason, $report): void {
+            $task->close(CompletionAction::NichtMoeglich);
+            $completion = new TaskCompletion($task, CompletionAction::NichtMoeglich, $viewer->actor(), $this->clock->now());
+            $completion->explain($reason);
+            $this->entityManager->persist($completion);
+            $this->reportClosing->taskDropped($task);
+            $report();
+        });
+    }
+
+    /**
      * "Rückgängig": only shortly after closing and only by the same person or tablet; false otherwise.
+     * Not for "nicht möglich" – its report stays (admins discard it if needed).
      */
     public function undo(Task $task, Viewer $viewer): bool
     {
@@ -98,6 +139,7 @@ final readonly class TaskActions
             $this->lock($task);
             $completion = $this->completionRepository->findForTask($task);
             if (null === $completion
+                || CompletionAction::NichtMoeglich === $completion->getAction()
                 || $completion->getAction()->status() !== $task->getStatus()
                 || !$completion->isBy($viewer->actor())
                 || $this->clock->now()->getTimestamp() - $completion->getDoneAt()->getTimestamp() > self::UNDO_ACCEPTED_SECONDS) {
@@ -106,6 +148,7 @@ final readonly class TaskActions
 
             $this->entityManager->remove($completion);
             $task->reopen();
+            $this->reportClosing->taskReopened($task);
             $this->planChanged($task);
 
             return true;
@@ -129,7 +172,12 @@ final readonly class TaskActions
             throw new \DomainException('A private task always belongs to its creator.');
         }
 
-        return $this->whileOpen($task, fn () => $task->handOver($to->person, $to->role, $viewer->actor(), $this->clock->now()));
+        $handedOver = $this->whileOpen($task, fn () => $task->handOver($to->person, $to->role, $viewer->actor(), $this->clock->now()));
+        if ($handedOver) {
+            $this->taskNotifier->assigned($task, $viewer->actor());
+        }
+
+        return $handedOver;
     }
 
     /**

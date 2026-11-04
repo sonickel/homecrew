@@ -41,6 +41,14 @@
     {{ form_row(form.checklist) }}
 
     <fieldset class="hc-fieldset">
+        <legend>{{ 'Wenn es nicht möglich ist'|trans }}</legend>
+        <div class="hc-form-row">
+            {{ form_row(form.unableList) }}
+            {{ form_row(form.unableItemName) }}
+        </div>
+    </fieldset>
+
+    <fieldset class="hc-fieldset">
         <legend>{{ 'Einzelheiten'|trans }}</legend>
         <div class="hc-form-row">
             {{ form_row(form.category) }}
