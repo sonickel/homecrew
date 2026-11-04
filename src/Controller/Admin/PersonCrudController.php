@@ -155,6 +155,12 @@ final class PersonCrudController extends AbstractCrudController
         yield DateField::new('activeFrom', 'Eintritt')
             ->onlyOnForms()
             ->setFormTypeOption('input', 'datetime_immutable');
+        // Switches come with their function (decision M3): recurring tasks with M6
+        yield FormField::addFieldset('Schalter')->onlyOnForms();
+        yield BooleanField::new('canManageRecurringTasks', 'Wiederkehrende Aufgaben')
+            ->onlyOnForms()
+            ->renderAsSwitch(false)
+            ->setHelp('Darf Wartungspläne und wiederkehrende Aufgaben anlegen und ändern. Admins dürfen das immer.');
         yield $this->textColumn('access', 'Zugang', $this->accessOverview->summary(...));
         yield $this->textColumn('status', 'Status', $this->accessOverview->status(...));
     }

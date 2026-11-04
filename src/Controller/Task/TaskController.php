@@ -39,8 +39,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 #[TeamTabletAllowed]
 final class TaskController extends AbstractController
 {
-    /** Where the small action forms lead back to – a fixed list, never a URL from the request. */
-    private const array BACK = ['heute' => 'app_home', 'aufgaben' => 'app_task_index'];
+    /** Where the small action forms lead back to – a fixed list, never a URL from the request ("plan": the task's plan). */
+    private const array BACK = ['heute' => 'app_home', 'aufgaben' => 'app_task_index', 'plan' => 'app_plan_index'];
 
     public function __construct(
         private readonly ViewerProvider $viewerProvider,
@@ -153,7 +153,7 @@ final class TaskController extends AbstractController
             $this->addFlash('error', 'Rückgängig geht nur kurz nach dem Antippen – und nur dort, wo es angetippt wurde.');
         }
 
-        return $this->back($request);
+        return $this->back($request, $task);
     }
 
     #[Route('/aufgaben/{id}/verschieben', name: 'app_task_postpone', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
@@ -218,16 +218,21 @@ final class TaskController extends AbstractController
         return $this->renderForm('task/handover.html.twig', $form, ['task' => $task, 'current' => $current]);
     }
 
+    /**
+     * The checklist form of the details sends the ticked points ("checkliste"); one tap elsewhere ticks off all.
+     */
     private function close(Task $task, CompletionAction $action, Request $request): Response
     {
         $this->checkToken($request);
-        if ($this->actions->close($task, $action, $this->viewer())) {
+        $payload = $request->getPayload();
+        $checked = $payload->has('checkliste') ? array_values(array_map(intval(...), $payload->all('punkte'))) : null;
+        if ($this->actions->close($task, $action, $this->viewer(), $checked)) {
             $this->addFlash('undo', ['id' => $task->getId(), 'title' => $task->getTitle(), 'action' => $action->value, 'back' => $this->backKey($request)]);
         } else {
             $this->addFlash('info', $this->translator->trans('„%title%“ ist schon abgeschlossen.', ['%title%' => $task->getTitle()]));
         }
 
-        return $this->back($request);
+        return $this->back($request, $task);
     }
 
     /**
@@ -259,9 +264,15 @@ final class TaskController extends AbstractController
         return \array_key_exists($back, self::BACK) ? $back : 'heute';
     }
 
-    private function back(Request $request): Response
+    private function back(Request $request, Task $task): Response
     {
-        return $this->redirectToRoute(self::BACK[$this->backKey($request)], status: Response::HTTP_SEE_OTHER);
+        $key = $this->backKey($request);
+        $plan = $task->getTemplate();
+        if ('plan' === $key && null !== $plan) {
+            return $this->redirectToRoute('app_plan_show', ['id' => $plan->getId()], Response::HTTP_SEE_OTHER);
+        }
+
+        return $this->redirectToRoute(self::BACK[$key], status: Response::HTTP_SEE_OTHER);
     }
 
     /**

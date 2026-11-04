@@ -6,6 +6,8 @@ namespace App\Entity;
 
 use App\Enum\CompletionAction;
 use App\Repository\TaskCompletionRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -54,6 +56,10 @@ class TaskCompletion
     #[ORM\Column(name: 'anonymized_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $anonymizedAt = null;
 
+    /** @var Collection<int, TaskItemResult> one per checklist point, only when the task was completed */
+    #[ORM\OneToMany(targetEntity: TaskItemResult::class, mappedBy: 'completion', cascade: ['persist'])]
+    private Collection $results;
+
     public function __construct(Task $task, CompletionAction $action, AppUser|Device $by, \DateTimeImmutable $doneAt)
     {
         $this->task = $task;
@@ -61,6 +67,37 @@ class TaskCompletion
         $this->user = $by instanceof AppUser ? $by : null;
         $this->device = $by instanceof Device ? $by : null;
         $this->doneAt = $doneAt;
+        $this->results = new ArrayCollection();
+    }
+
+    /**
+     * Ticks off the task's checklist: null = every point (one tap on "Erledigt"), else the points with these ids.
+     *
+     * @param list<int>|null $checkedItemIds
+     */
+    public function tickOff(?array $checkedItemIds): void
+    {
+        foreach ($this->task->getItems() as $item) {
+            $this->results->add(new TaskItemResult($this, $item, null === $checkedItemIds || \in_array($item->getId(), $checkedItemIds, true)));
+        }
+    }
+
+    /**
+     * @return Collection<int, TaskItemResult>
+     */
+    public function getResults(): Collection
+    {
+        return $this->results;
+    }
+
+    public function countChecked(): int
+    {
+        return $this->results->filter(static fn (TaskItemResult $result): bool => $result->isChecked())->count();
+    }
+
+    public function isChecked(TaskItem $item): bool
+    {
+        return $this->results->exists(static fn (int $key, TaskItemResult $result): bool => $result->getTaskItem() === $item && $result->isChecked());
     }
 
     public function getId(): ?int

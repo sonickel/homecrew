@@ -1,0 +1,120 @@
+{% extends 'base.html.twig' %}
+
+{% set plan = row.plan %}
+
+{% block page_title %}{{ plan.title }}{% endblock %}
+
+{% block body %}
+    {% set status = plan_status(row) %}
+    <twig:PageHeader :title="plan.title">
+        <p class="hc-status hc-status--{{ status.modifier }} hc-text-1">{{ ux_icon(status.icon, {'aria-hidden': 'true'}) }}<span>{{ status.text }}</span></p>
+    </twig:PageHeader>
+
+    <div class="hc-button-row">
+        {% if row.next and is_granted('TASK_ACT', row.next) %}
+            <form method="post" action="{{ path('app_plan_complete', {id: plan.id}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('submit') }}" data-controller="csrf-protection">
+                <twig:Button type="submit" icon="tabler:check">{{ 'Jetzt erledigt'|trans }}</twig:Button>
+            </form>
+        {% endif %}
+        {% if row.next and is_granted('TASK_VIEW', row.next) %}
+            <twig:Button variant="secondary" icon="tabler:list-check" :href="path('app_task_show', {id: row.next.id})">{{ 'Zur Aufgabe'|trans }}</twig:Button>
+        {% endif %}
+        {% if is_granted('PLAN_MANAGE', plan) %}
+            <twig:Button variant="secondary" icon="tabler:pencil" :href="path('app_plan_edit', {id: plan.id})">{{ 'Bearbeiten'|trans }}</twig:Button>
+            {# Ended by its end date: only "Bearbeiten" (a new end date) brings it back #}
+            {% if not plan.active or row.state.value != 'beendet' %}
+                <form method="post" action="{{ path(plan.active ? 'app_plan_end' : 'app_plan_resume', {id: plan.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('submit') }}" data-controller="csrf-protection">
+                    {% if plan.active %}
+                        <twig:Button type="submit" variant="secondary" icon="tabler:circle-off">{{ 'Beenden'|trans }}</twig:Button>
+                    {% else %}
+                        <twig:Button type="submit" variant="secondary" icon="tabler:player-play">{{ 'Wieder aufnehmen'|trans }}</twig:Button>
+                    {% endif %}
+                </form>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    {% if plan.description %}
+        <div class="hc-prose hc-task-description">{{ plan.description|nl2br }}</div>
+    {% endif %}
+
+    <dl class="hc-facts">
+        <dt>{{ 'Wie oft'|trans }}</dt>
+        <dd>{{ plan_rhythm(plan) }}{% if plan.dueTime %}, {{ '%time% Uhr'|trans({'%time%': plan.dueTime|date('H:i', false)}) }}{% endif %}</dd>
+        {% set window = plan_window(plan) %}
+        {% if window %}
+            <dt>{{ 'Möglich'|trans }}</dt>
+            <dd>{{ window }}</dd>
+        {% endif %}
+        <dt>{{ 'Gilt'|trans }}</dt>
+        <dd>
+            {%- if plan.endsOn -%}
+                {{ 'Vom %from% bis %until%'|trans({'%from%': plan.startsOn|format_date(pattern: 'd. MMMM yyyy', locale: 'de', timezone: 'UTC'), '%until%': plan.endsOn|format_date(pattern: 'd. MMMM yyyy', locale: 'de', timezone: 'UTC')}) }}
+            {%- else -%}
+                {{ 'Ab %from%'|trans({'%from%': plan.startsOn|format_date(pattern: 'd. MMMM yyyy', locale: 'de', timezone: 'UTC')}) }}
+            {%- endif -%}
+        </dd>
+        {% set pause = plan_pause(plan) %}
+        {% if pause %}
+            <dt>{{ 'Pause'|trans }}</dt>
+            <dd>{{ pause }}</dd>
+        {% endif %}
+        <dt>{{ 'Zuständig'|trans }}</dt>
+        <dd>{{ task_assignee(plan)|trans }}</dd>
+        <dt>{{ 'Wer sieht ihn'|trans }}</dt>
+        <dd>{{ plan.visibility.label|trans }}</dd>
+        <dt>{{ 'Kategorie'|trans }}</dt>
+        <dd>{{ plan.category.label|trans }}</dd>
+        {% if plan.estimatedMinutes %}
+            <dt>{{ 'Dauer'|trans }}</dt>
+            <dd>{{ 'ca. %minutes% Minuten'|trans({'%minutes%': plan.estimatedMinutes}) }}</dd>
+        {% endif %}
+        {% if plan.requiresManager %}
+            <dt>{{ 'Gemeinsam mit'|trans }}</dt>
+            <dd>{{ with_manager() }}</dd>
+        {% endif %}
+        {% if plan.items is not empty %}
+            <dt>{{ 'Checkliste'|trans }}</dt>
+            <dd>
+                <ul class="hc-checklist">
+                    {% for item in plan.items %}<li>{{ item.label }}</li>{% endfor %}
+                </ul>
+            </dd>
+        {% endif %}
+        <dt>{{ 'Zuletzt erledigt'|trans }}</dt>
+        <dd>
+            {%- if plan.lastDoneAt -%}
+                {{ plan.lastDoneAt|format_date(pattern: 'd. MMMM yyyy', locale: 'de') }}
+                {%- if row.lastDone %} {{ include('plan/_by.html.twig', {completion: row.lastDone}) }}{% endif -%}
+            {%- else -%}
+                {{ 'Noch nie'|trans }}
+            {%- endif -%}
+        </dd>
+    </dl>
+
+    <section class="hc-section" aria-labelledby="verlauf">
+        <h2 id="verlauf">{{ 'Verlauf'|trans }}</h2>
+        {% if history is not empty %}
+            <ul class="hc-history">
+                {% for completion in history %}
+                    {% set points = completion.results|length %}
+                    <li>
+                        {# For everybody only the day (konzept-12 §6) – time and person only for admins #}
+                        <strong>{{ admin ? completion.doneAt|format_datetime(pattern: "d. MMMM yyyy, HH:mm 'Uhr'", locale: 'de') : completion.doneAt|format_date(pattern: 'd. MMMM yyyy', locale: 'de') }}</strong>
+                        {{ completion.action.label|trans }}
+                        {%- if admin %} {{ include('plan/_by.html.twig', {completion: completion}) }}{% endif -%}
+                        {%- if points > 0 and completion.countChecked < points %} – {{ '%checked% von %count% Punkten'|trans({'%checked%': completion.countChecked, '%count%': points}) }}{% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>{{ 'Noch nichts erledigt.'|trans }}</p>
+        {% endif %}
+    </section>
+
+    <div class="hc-button-row">
+        <twig:Button variant="secondary" icon="tabler:arrow-left" :href="path('app_plan_index')">{{ 'Zurück zu Routinen & Wartung'|trans }}</twig:Button>
+    </div>
+{% endblock %}

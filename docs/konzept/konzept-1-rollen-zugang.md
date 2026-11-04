@@ -1,6 +1,6 @@
 # Konzept 1 – Rollen, Rechte, Personen anlegen, Anmeldung, E-Mail
 
-Stand: 03.11.2026 (M5: Aufgaben weitergeben) · Status: Entwurf · App-Name: **HomeCrew**
+Stand: 03.11.2026 (M6: Schalter „wiederkehrende Aufgaben") · Status: Entwurf · App-Name: **HomeCrew**
 
 ## 1. Grundsätze
 - **Eine Installation = ein Haushalt** (keine Mandanten; weitere Haushalte = eigene Instanz).
@@ -36,7 +36,7 @@ Legende: ✅ ja · ⚙️ per Schalter (Standard aus) · 👁 nur eigene · – 
 | Einmalige Aufgaben anlegen | ✅ | ✅ | ✅ | ✅ (ohne „privat") |
 | Aufgaben bearbeiten | ✅ alle sichtbaren | 👁 selbst angelegte | 👁 selbst angelegte | – |
 | Aufgaben weitergeben | ✅ alle sichtbaren | 👁 wofür zuständig | 👁 wofür zuständig | 👁 wofür zuständig (Rolle Assistenz, „wer da ist", einzelne Assistenz) |
-| Wiederkehrende Aufgaben / Wartungspläne | ✅ | ⚙️ | ⚙️ | – |
+| Wiederkehrende Aufgaben / Wartungspläne anlegen und ändern („Routinen & Wartung" sehen: alle) | ✅ | ⚙️ | ⚙️ | – |
 | **Melden** (leer · kaputt · fehlt, „nicht möglich") | ✅ | ✅ | ✅ | ✅ |
 | **Offene Meldungen sehen** | ✅ alle, mit Absender | ✅ (ohne Absender) | ✅ (ohne Absender) | ✅ (ohne Absender) |
 | **Meldungs-Log, Meldungen weitergeben/schließen** | ✅ | – | – | – |
@@ -61,7 +61,7 @@ Legende: ✅ ja · ⚙️ per Schalter (Standard aus) · 👁 nur eigene · – 
 | Druckansichten | ✅ | ✅ | ✅ | ✅ |
 | Verwaltung, Personen, Geräte, Einstellungen | ✅ | – | – | – |
 
-**Schalter pro Person**: wiederkehrende Aufgaben · Anleitungen veröffentlichen · Termine anlegen · KI (Standard an) · KI per Sprache bestätigen · PIN-Anmeldung (Standard aus).
+**Schalter pro Person**: wiederkehrende Aufgaben (anlegen und jeden sichtbaren Plan ändern wie Admins, auch nach PIN-Anmeldung – Entscheidung 03.11., M6) · Anleitungen veröffentlichen · Termine anlegen · KI (Standard an) · KI per Sprache bestätigen · PIN-Anmeldung (Standard aus).
 
 ## 4. Personen anlegen
 1. Admin legt an: **Rolle**, ggf. **Admin-Recht**, **Benutzername** (vom Admin), **Anzeigename**, Eintritt.

@@ -1089,6 +1089,7 @@ CREATE TABLE task (
   id                   BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT,
   template_id          BIGINT UNSIGNED   NULL,          -- NULL = einmalige Aufgabe
   occurrence_date      DATE              NULL,          -- ursprünglicher Termin laut Vorlage (bleibt beim Verschieben gleich)
+  is_modified          TINYINT(1)        NOT NULL DEFAULT 0,   -- einzeln geändert (verschoben, weitergegeben, bearbeitet) → bei Planänderung nicht neu erzeugt
   title                VARCHAR(150)      NOT NULL,
   description          TEXT              NULL,
   category             VARCHAR(15)       NOT NULL,
@@ -1138,7 +1139,8 @@ CREATE TABLE task (
   CONSTRAINT ck_task_duerule  CHECK (due_rule IN ('datum','naechster_dienst')),
   CONSTRAINT ck_task_status   CHECK (status IN ('offen','erledigt','uebersprungen','nicht_moeglich')),
   CONSTRAINT ck_task_via      CHECK (created_via IN ('app','ki','system')),
-  CONSTRAINT ck_task_window   CHECK (window_start IS NULL OR window_start <= due_date)
+  CONSTRAINT ck_task_window   CHECK (window_start IS NULL OR window_start <= due_date),
+  CONSTRAINT ck_task_modified CHECK (occurrence_date IS NOT NULL OR is_modified = 0)   -- nur Vorkommen eines Plans sind „einzeln geändert"
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='Aufgabe: einmalig oder Vorkommen einer Vorlage, auch Gesprächspunkte';
 

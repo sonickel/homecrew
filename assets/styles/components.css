@@ -1203,3 +1203,61 @@
         column-gap: var(--hc-space-5);
     }
 }
+
+@layer components {
+    /* "Heute" for admins: "Routinen & Wartung: 2 überfällig" as a link with symbol and word */
+    .hc-today__notice {
+        margin: 0 0 var(--hc-space-5);
+    }
+
+    .hc-today__notice a {
+        min-height: var(--hc-target);
+    }
+
+    /* Checklist of a task or plan; ticked off or not with a symbol (the word for screen readers) */
+    .hc-checklist {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .hc-checklist li {
+        display: flex;
+        align-items: center;
+        gap: var(--hc-space-2);
+        min-height: var(--hc-target);
+    }
+
+    .hc-checklist svg {
+        flex: none;
+        width: 1.5em;
+        height: 1.5em;
+    }
+
+    .hc-facts .hc-checklist li {
+        min-height: 0;
+    }
+
+    /* "Verlauf" of a plan: one line per completion */
+    .hc-history {
+        max-width: var(--hc-measure);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        border-top: var(--hc-line-width) solid var(--hc-line);
+    }
+
+    .hc-history li {
+        padding: var(--hc-space-2) 0;
+        border-bottom: var(--hc-line-width) solid var(--hc-line);
+    }
+
+    /* Ended plans, folded away below the others */
+    .hc-plans-ended summary {
+        display: flex;
+        align-items: center;
+        min-height: var(--hc-target);
+        font-weight: 700;
+        cursor: pointer;
+    }
+}

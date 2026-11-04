@@ -1,6 +1,6 @@
 # Konzept 11 – Admin-Menü und Pflegemasken
 
-Stand: 02.11.2026 (M4: Geräte, Notfall-Infos) · Status: Entwurf · App: **HomeCrew**
+Stand: 03.11.2026 (M6: Wartungspläne) · Status: Entwurf · App: **HomeCrew**
 Antwort auf die Frage „Sind für alles Pflegemasken vorgesehen?": **Ja.** Alles, was in der Datenbank steht, kann ein Admin in der App pflegen – ohne Datenbank-Werkzeug.
 
 ## 1. Aufbau
@@ -27,7 +27,7 @@ Antwort auf die Frage „Sind für alles Pflegemasken vorgesehen?": **Ja.** Alle
 | | Dienstplan | feste Tage je Person, Einzeldienste, Absagen („trotzdem bezahlt?") | 1 |
 | | **Externe Dienste** | Physio, Caritas, Pflegedienst …: Name (ohne Klarnamen), Art, dienstliche Telefonnummer, **Hinweis fürs Team**, Farbe, aktiv | 1 |
 | | **Termine & Besuche (Serien)** | Serie anlegen (Besuch oder Termin, Wochentage/Rhythmus, Uhrzeit, Dauer, Beginn/Ende, Pause, Sichtbarkeit; bei Terminen Zuständigkeit/Begleitung), einzelne Vorkommen absagen/verschieben, Serie beenden | 1 |
-| | Wartungspläne / wiederkehrende Aufgaben | anlegen, Zuständigkeit, Sichtbarkeit, Pausieren, Fotos/Videos, **Vorschlag bei „nicht möglich"** (Liste + Artikel); Verlauf mit Person bzw. „Team-Tablet" | 1 |
+| | Wartungspläne / wiederkehrende Aufgaben | anlegen, Zuständigkeit, Sichtbarkeit, Pausieren, Fotos/Videos, **Vorschlag bei „nicht möglich"** (Liste + Artikel); Verlauf mit Person bzw. „Team-Tablet" – als eigene Seiten unter `/routinen` (auch für Personen mit Schalter, die keine Verwaltung haben; Menüeintrag führt dorthin, M6) | 1 |
 | | Listen | Listen anlegen (Name, zuständige Rolle/Person), Lieblingsartikel | 1 |
 | | Abwesenheit des Managers | Zeitraum, Aufgaben pausieren, Dienste, Besuche absagen | 1 |
 | **Wissen** | Anleitungen | Freigaben (auch Vorschläge vom Team-Tablet), Archiv, „nicht übersetzen" | 1 |

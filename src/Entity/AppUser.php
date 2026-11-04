@@ -278,6 +278,19 @@ class AppUser implements UserInterface, PasswordAuthenticatedUserInterface
         $this->isAdmin = $isAdmin;
     }
 
+    /**
+     * Switch "wiederkehrende Aufgaben": create and change plans like an admin (admins may always).
+     */
+    public function canManageRecurringTasks(): bool
+    {
+        return $this->canManageRecurringTasks;
+    }
+
+    public function setCanManageRecurringTasks(bool $canManageRecurringTasks): void
+    {
+        $this->canManageRecurringTasks = $canManageRecurringTasks;
+    }
+
     public function getUsername(): string
     {
         return $this->username;

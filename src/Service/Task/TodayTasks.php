@@ -41,13 +41,13 @@ final readonly class TodayTasks
     }
 
     /**
-     * Every open task the viewer may see, also those not showing yet.
+     * Every open task the viewer may see, also one-off tasks not showing yet.
      */
     public function allOpen(Viewer $viewer): TaskGroups
     {
         $today = $this->today();
 
-        return TaskGroups::sort($this->taskRepository->findOpenVisibleTo($viewer), $today);
+        return TaskGroups::sort($this->taskRepository->findOpenVisibleTo($viewer, $today), $today);
     }
 
     public function today(): string

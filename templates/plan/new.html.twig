@@ -1,0 +1,8 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Neuer Plan'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Neuer Plan'|trans" :intro="'Eine Aufgabe, die regelmäßig wiederkommt – nach Kalender oder einige Tage nach der letzten Erledigung.'|trans" />
+    {{ include('plan/_form.html.twig', {submit_label: 'Plan anlegen', cancel_path: path('app_plan_index')}) }}
+{% endblock %}

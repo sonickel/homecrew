@@ -47,4 +47,10 @@ final class Permission
 
     /** Change an open task (subject: Task): admins and the person who created it. */
     public const string TASK_EDIT = 'TASK_EDIT';
+
+    /** "Routinen & Wartung" (no subject): every person and the team tablet; a plan (subject: TaskTemplate): whoever sees it. */
+    public const string PLAN_VIEW = 'PLAN_VIEW';
+
+    /** Create plans (no subject) or change, pause, end one they see (subject: TaskTemplate): admins and persons with the switch "wiederkehrende Aufgaben". */
+    public const string PLAN_MANAGE = 'PLAN_MANAGE';
 }

@@ -10,6 +10,7 @@ use App\Enum\UserRole;
 use App\Service\Household\DayText;
 use App\Service\Household\HouseholdContext;
 use App\Service\Viewer\ViewerProvider;
+use App\Service\Visibility\Assignable;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Attribute\AsTwigFunction;
 
@@ -78,10 +79,29 @@ final readonly class TaskPresenter
         };
     }
 
-    #[AsTwigFunction('task_assignee')]
-    public function assignee(Task $task): string
+    /**
+     * "Zuletzt: vor 14 Tagen" for an occurrence of a plan – only the day, for everybody (konzept-12 §6);
+     * null for one-off tasks and plans never done.
+     */
+    #[AsTwigFunction('task_last_done')]
+    public function lastDone(Task $task): ?string
     {
-        return Assignment::of($task)->label();
+        $doneAt = $task->getTemplate()?->getLastDoneAt();
+        if (null === $doneAt) {
+            return null;
+        }
+        $day = $doneAt->setTimezone($this->household->timezone())->format('Y-m-d');
+
+        return $this->translator->trans('Zuletzt: %ago%', ['%ago%' => DayText::ago($day, $this->today())]);
+    }
+
+    /**
+     * Who is responsible for a task or plan.
+     */
+    #[AsTwigFunction('task_assignee')]
+    public function assignee(Assignable $item): string
+    {
+        return Assignment::of($item)->label();
     }
 
     /**

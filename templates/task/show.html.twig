@@ -8,13 +8,17 @@
         <p class="hc-status hc-status--{{ status.modifier }} hc-text-1">{{ ux_icon(status.icon, {'aria-hidden': 'true'}) }}<span>{{ status.text }}</span></p>
     </twig:PageHeader>
 
+    {% set checklist = task.open and task.items is not empty and is_granted('TASK_ACT', task) %}
     {% if task.open %}
         <div class="hc-button-row">
             {% if is_granted('TASK_ACT', task) %}
-                <form method="post" action="{{ path('app_task_complete', {id: task.id}) }}">
-                    <input type="hidden" name="_token" value="{{ csrf_token('submit') }}" data-controller="csrf-protection">
-                    <twig:Button type="submit" icon="tabler:check">{{ 'Erledigt'|trans }}</twig:Button>
-                </form>
+                {# With a checklist "Erledigt" is below the points #}
+                {% if not checklist %}
+                    <form method="post" action="{{ path('app_task_complete', {id: task.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('submit') }}" data-controller="csrf-protection">
+                        <twig:Button type="submit" icon="tabler:check">{{ 'Erledigt'|trans }}</twig:Button>
+                    </form>
+                {% endif %}
                 <form method="post" action="{{ path('app_task_skip', {id: task.id}) }}">
                     <input type="hidden" name="_token" value="{{ csrf_token('submit') }}" data-controller="csrf-protection">
                     <twig:Button type="submit" variant="secondary" icon="tabler:player-skip-forward">{{ 'Überspringen'|trans }}</twig:Button>
@@ -34,7 +38,41 @@
         <div class="hc-prose hc-task-description">{{ task.description|nl2br }}</div>
     {% endif %}
 
+    {% if task.items is not empty %}
+        <section class="hc-section" aria-labelledby="checkliste">
+            <h2 id="checkliste">{{ 'Checkliste'|trans }}</h2>
+            {% if checklist %}
+                {# Tick off what was done – "Erledigt" saves the ticks (a tap on "Heute" ticks off every point) #}
+                <form class="hc-form" method="post" action="{{ path('app_task_complete', {id: task.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('submit') }}" data-controller="csrf-protection">
+                    <input type="hidden" name="checkliste" value="1">
+                    <fieldset class="hc-option">
+                        <legend class="hc-visually-hidden">{{ 'Was ist erledigt?'|trans }}</legend>
+                        {% for item in task.items %}
+                            <label class="hc-option__row"><input type="checkbox" name="punkte[]" value="{{ item.id }}"><span>{{ item.label }}</span></label>
+                        {% endfor %}
+                    </fieldset>
+                    <twig:Button type="submit" icon="tabler:check">{{ 'Erledigt'|trans }}</twig:Button>
+                </form>
+            {% else %}
+                <ul class="hc-checklist">
+                    {% for item in task.items %}
+                        {% if completion and completion.isChecked(item) %}
+                            <li>{{ ux_icon('tabler:square-check', {'aria-hidden': 'true'}) }}<span><span class="hc-visually-hidden">{{ 'Abgehakt:'|trans }} </span>{{ item.label }}</span></li>
+                        {% else %}
+                            <li>{{ ux_icon('tabler:square', {'aria-hidden': 'true'}) }}<span><span class="hc-visually-hidden">{{ completion ? 'Nicht abgehakt:'|trans : 'Offen:'|trans }} </span>{{ item.label }}</span></li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+    {% endif %}
+
     <dl class="hc-facts">
+        {% if task.template and is_granted('PLAN_VIEW', task.template) %}
+            <dt>{{ 'Gehört zu'|trans }}</dt>
+            <dd><a href="{{ path('app_plan_show', {id: task.template.id}) }}">{{ task.template.title }}</a> ({{ plan_rhythm(task.template) }})</dd>
+        {% endif %}
         <dt>{{ 'Fällig'|trans }}</dt>
         <dd>{{ task_due(task) }}</dd>
         {% if task.open %}

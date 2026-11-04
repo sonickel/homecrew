@@ -22,8 +22,10 @@ final readonly class PurgeDoneTasksHandler
 
     public function __invoke(PurgeDoneTasks $message): int
     {
-        $days = $this->settingRepository->get()->getRetentionDoneTaskDays();
+        $settings = $this->settingRepository->get();
+        $before = $this->clock->now()->modify(\sprintf('-%d days', $settings->getRetentionDoneTaskDays()));
 
-        return $this->taskRepository->deleteClosedOneOffBefore($this->clock->now()->modify(\sprintf('-%d days', $days)));
+        return $this->taskRepository->deleteClosedOneOffBefore($before)
+            + $this->taskRepository->deleteClosedOccurrencesBefore($before, $settings->getCompletionKeepLast());
     }
 }

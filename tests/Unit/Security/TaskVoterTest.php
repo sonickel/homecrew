@@ -7,9 +7,11 @@ namespace App\Tests\Unit\Security;
 use App\Entity\AppUser;
 use App\Entity\Device;
 use App\Entity\Task;
+use App\Entity\TaskTemplate;
 use App\Enum\AssigneeRole;
 use App\Enum\CompletionAction;
 use App\Enum\DeviceMode;
+use App\Enum\RecurrenceType;
 use App\Enum\TaskCategory;
 use App\Enum\UserRole;
 use App\Enum\Visibility;
@@ -30,7 +32,7 @@ use Symfony\Component\Security\Core\Authorization\AccessDecisionManagerInterface
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
 
 /**
- * Who may create, act on, hand on and change tasks (konzept-1 §3, decisions M5).
+ * Who may create, act on, hand on and change tasks (konzept-1 §3, decisions M5 and M6).
  */
 final class TaskVoterTest extends TestCase
 {
@@ -43,8 +45,28 @@ final class TaskVoterTest extends TestCase
             'max' => new AppUser(UserRole::Manager, 'max', 'Max', new \DateTimeImmutable('2026-01-01'), true),
             'papa' => new AppUser(UserRole::Angehoerige, 'papa', 'Papa', new \DateTimeImmutable('2026-01-01')),
             'anna' => new AppUser(UserRole::Assistenz, 'anna', 'Anna', new \DateTimeImmutable('2026-01-01')),
+            'carla' => self::withSwitch(new AppUser(UserRole::Assistenz, 'carla', 'Carla', new \DateTimeImmutable('2026-01-01'))),
             default => new AppUser(UserRole::Assistenz, 'ben', 'Ben', new \DateTimeImmutable('2026-01-01')),
         };
+    }
+
+    /**
+     * Switch "wiederkehrende Aufgaben".
+     */
+    private static function withSwitch(AppUser $person): AppUser
+    {
+        $person->setCanManageRecurringTasks(true);
+
+        return $person;
+    }
+
+    private static function occurrence(): Task
+    {
+        $plan = new TaskTemplate('Bettwäsche wechseln', TaskCategory::Waesche, RecurrenceType::Kalender, 'FREQ=WEEKLY;BYDAY=MO', new \DateTimeImmutable('2026-11-02'), self::person('max'));
+        $task = self::task(AssigneeRole::Assistenz, creator: 'max');
+        $task->belongTo($plan, new \DateTimeImmutable('2026-11-09'));
+
+        return $task;
     }
 
     private static function token(string $who): TokenInterface
@@ -156,6 +178,9 @@ final class TaskVoterTest extends TestCase
         yield 'zuständig, aber nicht Ersteller' => ['anna', self::task(AssigneeRole::Assistenz), VoterInterface::ACCESS_DENIED];
         yield 'Admin per PIN, nicht Ersteller' => ['max-pin', self::task(AssigneeRole::Assistenz), VoterInterface::ACCESS_DENIED];
         yield 'Team-Tablet' => ['tablet', self::task(AssigneeRole::Assistenz, creator: null), VoterInterface::ACCESS_DENIED];
+        yield 'Schalter: Vorkommen eines Plans' => ['carla', self::occurrence(), VoterInterface::ACCESS_GRANTED];
+        yield 'Schalter: fremde einmalige Aufgabe' => ['carla', self::task(AssigneeRole::Assistenz), VoterInterface::ACCESS_DENIED];
+        yield 'ohne Schalter: Vorkommen eines Plans' => ['anna', self::occurrence(), VoterInterface::ACCESS_DENIED];
     }
 
     #[DataProvider('edits')]

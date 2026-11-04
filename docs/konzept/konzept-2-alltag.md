@@ -1,6 +1,6 @@
 # Konzept 2 – Alltag: Heute, Dienstplan, Dienst, Aufgaben & Wartung, Übergabe, Termine, Listen, Druck
 
-Stand: 03.11.2026 (M5: „Heute" und einmalige Aufgaben) · Status: Entwurf · Ausbaustufe 1 · Kalender & Besuche: Konzept 8 · Team-Tablet: Konzept 12 · Meldungen: Konzept 13
+Stand: 03.11.2026 (M6: Wartungspläne und „Routinen & Wartung") · Status: Entwurf · Ausbaustufe 1 · Kalender & Besuche: Konzept 8 · Team-Tablet: Konzept 12 · Meldungen: Konzept 13
 
 ## 1. Szenarien
 | # | Szenario | Erwartung |
@@ -50,12 +50,22 @@ alle · zuständig (+ Admins) · admins · privat (nur Ersteller). Wer eine Aufg
 ### 5.4 Fälligkeit & Wiederholung
 Stichtag, Zeitfenster oder „beim nächsten Dienst von …"; bei einmaligen Aufgaben „Ab wann zeigen?": ab sofort (bis dahin „Wenn Zeit ist") · erst am Fälligkeitstag · ab einem Tag (dann täglich „Heute möglich"); Kalender- oder Intervall-Wiederholung; Ursprungstag gegen Doppelungen; Pausieren; Fotos/Videos am Plan.
 
+**Wiederholung (Entscheidungen 03.11., M6):**
+- **Rhythmen**: täglich bzw. alle n Tage · wöchentlich an gewählten Wochentagen, alle n Wochen · monatlich am Tag 1–31 (in kürzeren Monaten der letzte Tag), alle n Monate · jährlich am Tag des Beginns · **n Tage nach der letzten Erledigung** (optional „schon möglich nach m Tagen"). Dazu Uhrzeit, Beginn, Ende, „schon n Tage vorher möglich" (Kalender) und eine Pause (bis zu einem Tag oder bis auf Weiteres).
+- **Vorlauf**: Vorkommen für die nächsten 14 Tage, mindestens das nächste. Ein Vorkommen erscheint auf „Heute" am Fälligkeitstag bzw. ab Beginn des Zeitfensters; „Offene Aufgaben" zeigt Vorkommen erst ab dann.
+- **Nach Erledigung**: genau ein offenes Vorkommen, fällig n Tage nach dem letzten Abschluss (erledigt oder übersprungen); vor der ersten Erledigung am Beginn; fällt es in eine Pause, am Tag danach.
+- **Einzeln geändert** (verschoben, weitergegeben, bearbeitet) bleibt ein Vorkommen, wenn sich der Plan ändert; alle anderen kommenden Vorkommen übernehmen den Plan, überfällige alles außer ihrem Tag. **Wer ein Vorkommen sehen darf, folgt immer dem Plan** – auch bei einzeln geänderten (Review M6).
+- **Verpasstes wird ersetzt**: Ein überfälliges Vorkommen entfällt, sobald ein späteres desselben Plans fällig ist – pro Plan steht höchstens eines unter „Überfällig". Pausieren und Beenden entfernen offene, nicht einzeln geänderte Vorkommen.
+- **Checkliste**: Ein Tipp auf „Erledigt" hakt alle Punkte ab; auf der Detailseite hakt man einzelne Punkte ab, der Verlauf zeigt dann „3 von 4 Punkten".
+- Pläne werden nicht gelöscht, sondern **beendet** (und bei Bedarf wieder aufgenommen); der Verlauf bleibt.
+
 ### 5.5 Status & „nicht möglich"
 erledigt · übersprungen · **nicht möglich** · verschoben. „Erledigt" und „Überspringen" sofort, **30 Sekunden „Rückgängig"** (nur dieselbe Person bzw. dasselbe Tablet); Verschieben per Tipp in einem kleinen Wochenkalender (Entscheidung 03.11.).
 „Nicht möglich" erzeugt immer eine **Meldung** (Konzept 13): Grund kurz eingeben („Seife leer"), Folgeaktion wählen oder den Vorschlag des Wartungsplans bestätigen – auf eine Liste · Aufgabe für Person/Rolle · Übergabe · nur melden. Die Admins werden benachrichtigt; die Meldung schließt sich, sobald der Listeneintrag abgehakt oder die Aufgabe erledigt ist.
 
 ### 5.6 Übersicht „Routinen & Wartung"
 Liste aller Wartungspläne nach Dringlichkeit: Status (Symbol + Text), Zuständig, Rhythmus, **zuletzt erledigt – nur Datum** (geklärt), letzter Messwert, nächste Fälligkeit, offene Meldung (falls vorhanden); Detail mit Verlauf, Messwert-Kurve, „Jetzt erledigt". **Admins sehen zusätzlich, wer es war** (bei persönlicher Anmeldung bis 90 Tage) bzw. „am Team-Tablet". Die letzten 5 Erledigungen je Plan bleiben erhalten.
+Umsetzung M6: Seite `/routinen` für alle Personen und das Team-Tablet (Kachel auf „Heute"); Reihenfolge Überfällig · Heute fällig · Möglich · Geplant · Pausiert, beendete eingeklappt darunter. Anlegen und Ändern dort für Admins und Personen mit dem Schalter „wiederkehrende Aufgaben" (Verwaltung → Wartungspläne führt hierher). Messwerte und offene Meldungen kommen mit Stufe 2 bzw. M7. Auf „Heute" zeigen Vorkommen „Zuletzt: vor 14 Tagen".
 
 ## 6. Gesprächspunkte
 Fällig beim nächsten Dienst der Person, Sichtbarkeit privat.

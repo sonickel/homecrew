@@ -21,4 +21,16 @@ enum CompletionAction: string
             self::NichtMoeglich => TaskStatus::NichtMoeglich,
         };
     }
+
+    /**
+     * As it reads after a date in the history: "3. November 2026 erledigt".
+     */
+    public function label(): string
+    {
+        return match ($this) {
+            self::Erledigt => 'erledigt',
+            self::Uebersprungen => 'übersprungen',
+            self::NichtMoeglich => 'nicht möglich',
+        };
+    }
 }

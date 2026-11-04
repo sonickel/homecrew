@@ -1,0 +1,69 @@
+{# Plan form ("Neuer Plan", "Bearbeiten"): what – how often – when – who – checklist – details (– pause);
+   the fields of a rhythm show only while it is chosen (reveal_controller.js, "data-reveal-for") #}
+{{ form_start(form, {attr: {class: 'hc-form hc-form--wide', novalidate: 'novalidate', 'data-controller': 'reveal', 'data-action': 'change->reveal#update'}}) }}
+    {{ form_row(form.title) }}
+    {{ form_row(form.description) }}
+
+    <fieldset class="hc-fieldset">
+        <legend>{{ 'Wie oft?'|trans }}</legend>
+        {{ form_row(form.rhythm) }}
+        {{ form_row(form.weekdays) }}
+        <div class="hc-form-row">
+            {{ form_row(form.everyDays) }}
+            {{ form_row(form.everyWeeks) }}
+            {{ form_row(form.monthDay) }}
+            {{ form_row(form.everyMonths) }}
+            {{ form_row(form.afterDays) }}
+            {{ form_row(form.earliestAfterDays) }}
+        </div>
+    </fieldset>
+
+    <fieldset class="hc-fieldset">
+        <legend>{{ 'Wann?'|trans }}</legend>
+        <div class="hc-form-row hc-form-row--pair">
+            {{ form_row(form.startsOn) }}
+            {{ form_row(form.dueTime) }}
+        </div>
+        <div class="hc-form-row">
+            {{ form_row(form.endsOn) }}
+            {{ form_row(form.windowDays) }}
+        </div>
+    </fieldset>
+
+    <fieldset class="hc-fieldset">
+        <legend>{{ 'Wer?'|trans }}</legend>
+        <div class="hc-form-row">
+            {{ form_row(form.assignee) }}
+            {{ form_row(form.visibility) }}
+        </div>
+    </fieldset>
+
+    {{ form_row(form.checklist) }}
+
+    <fieldset class="hc-fieldset">
+        <legend>{{ 'Einzelheiten'|trans }}</legend>
+        <div class="hc-form-row">
+            {{ form_row(form.category) }}
+            {{ form_row(form.estimatedMinutes) }}
+        </div>
+        <div class="hc-form-row">
+            {{ form_row(form.important) }}
+            {{ form_row(form.requiresManager) }}
+        </div>
+    </fieldset>
+
+    {% if form.pausedFrom is defined %}
+        <fieldset class="hc-fieldset">
+            <legend>{{ 'Pause'|trans }}</legend>
+            <div class="hc-form-row">
+                {{ form_row(form.pausedFrom) }}
+                {{ form_row(form.pausedUntil) }}
+            </div>
+        </fieldset>
+    {% endif %}
+
+    <div class="hc-button-row">
+        <twig:Button type="submit">{{ submit_label|trans }}</twig:Button>
+        <twig:Button variant="secondary" :href="cancel_path">{{ 'Abbrechen'|trans }}</twig:Button>
+    </div>
+{{ form_end(form) }}

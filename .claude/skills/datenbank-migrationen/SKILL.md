@@ -6,7 +6,7 @@ description: Wie Doctrine-Entities und Migrationen in HomeCrew aus dem Referenzs
 # Datenbank & Migrationen
 
 ## Referenz
-- `docs/datenbank/schema.sql` ist die **fachliche Referenz** (78 Tabellen, Namen, Typen, Fremdschlüssel, CHECKs). `docs/datenbank/smoke_test.sql` prüft die Regeln (93 Negativtests + Positiv- und Löschfälle).
+- `docs/datenbank/schema.sql` ist die **fachliche Referenz** (78 Tabellen, Namen, Typen, Fremdschlüssel, CHECKs). `docs/datenbank/smoke_test.sql` prüft die Regeln (94 Negativtests + Positiv- und Löschfälle).
 - Smoke-Test (Befehl in Konzept 6 §8) läuft auf MariaDB 11.8.6 grün. Fehler zuerst im Referenzschema beheben (und in `docs/konzept/konzept-6-datenbank.md` vermerken).
 - **Strategie und Mapping-Tabelle: Konzept 6 §6** – vor jeder neuen Tabelle lesen.
 

@@ -16,12 +16,15 @@ use App\Enum\TaskStatus;
 use App\Enum\Visibility;
 use App\Repository\TaskRepository;
 use App\Service\Visibility\Assignable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Schema\DefaultExpression\CurrentTimestamp;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Task (konzept-2 §5): one-off, or an occurrence of a plan (template + occurrence_date), also talking points.
+ * Occurrences come from App\Service\Task\PlanSync and follow their plan until changed one by one (is_modified).
  *
  * Dates are household dates without time zone (DATE/TIME columns): compare them by their Y-m-d string.
  * When it shows on "Heute" (App\Service\Task\TodayTasks): from visible_from (empty = at once), "Heute möglich"
@@ -55,6 +58,10 @@ class Task implements Assignable
     /** Original day of the plan – stays when the task is postponed. */
     #[ORM\Column(name: 'occurrence_date', type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $occurrenceDate = null;
+
+    /** Postponed, handed on or changed one by one – then a change of the plan leaves the occurrence alone. */
+    #[ORM\Column(name: 'is_modified', options: ['default' => false])]
+    private bool $modified = false;
 
     #[ORM\Column(name: 'title', length: 150)]
     private string $title;
@@ -167,12 +174,18 @@ class Task implements Assignable
     )]
     private \DateTimeImmutable $updatedAt;
 
+    /** @var Collection<int, TaskItem> checklist, copied from the plan */
+    #[ORM\OneToMany(targetEntity: TaskItem::class, mappedBy: 'task', cascade: ['persist'], orphanRemoval: true)]
+    #[ORM\OrderBy(['sort' => 'ASC', 'id' => 'ASC'])]
+    private Collection $items;
+
     public function __construct(string $title, TaskCategory $category, \DateTimeImmutable $dueDate, ?AppUser $createdBy = null)
     {
         $this->title = $title;
         $this->category = $category;
         $this->dueDate = self::day($dueDate);
         $this->createdBy = $createdBy;
+        $this->items = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -180,9 +193,63 @@ class Task implements Assignable
         return $this->id;
     }
 
+    /**
+     * Makes the task the occurrence of a plan on its original day (only App\Service\Task\PlanSync creates them).
+     */
+    public function belongTo(TaskTemplate $plan, \DateTimeImmutable $occurrenceDate): void
+    {
+        $this->template = $plan;
+        $this->occurrenceDate = self::day($occurrenceDate);
+        $this->createdVia = CreatedVia::System;
+    }
+
     public function getTemplate(): ?TaskTemplate
     {
         return $this->template;
+    }
+
+    public function getOccurrenceDate(): ?\DateTimeImmutable
+    {
+        return $this->occurrenceDate;
+    }
+
+    public function isModified(): bool
+    {
+        return $this->modified;
+    }
+
+    /**
+     * An occurrence changed one by one keeps its state when the plan changes; one-off tasks have no plan to follow.
+     */
+    public function markModified(): void
+    {
+        if (null !== $this->occurrenceDate) {
+            $this->modified = true;
+        }
+    }
+
+    /**
+     * @return Collection<int, TaskItem>
+     */
+    public function getItems(): Collection
+    {
+        return $this->items;
+    }
+
+    /**
+     * Takes over the plan's checklist – unless it is the same already (no new rows for every run of the generator).
+     */
+    public function copyChecklist(TaskTemplate $plan): void
+    {
+        $labels = static fn (iterable $items): array => array_map(static fn (TaskItem|TaskTemplateItem $item): string => $item->getLabel(), [...$items]);
+        if ($labels($this->items) === $labels($plan->getItems())) {
+            return;
+        }
+
+        $this->items->clear();
+        foreach ($plan->getItems() as $item) {
+            $this->items->add(new TaskItem($this, $item));
+        }
     }
 
     public function getTitle(): string
@@ -262,6 +329,7 @@ class Task implements Assignable
         $this->assignedBy = $by instanceof AppUser ? $by : null;
         $this->assignedByDevice = $by instanceof Device ? $by : null;
         $this->assignedAt = $at;
+        $this->markModified();
     }
 
     public function getAssignedBy(): ?AppUser
@@ -336,6 +404,7 @@ class Task implements Assignable
         $shift = static fn (?\DateTimeImmutable $day): ?\DateTimeImmutable => $day?->modify(\sprintf('%+d days', $days));
         $this->schedule($dueDate, $this->dueTime, $shift($this->windowStart), $shift($this->visibleFrom));
         $this->postponedCount = min(255, $this->postponedCount + 1);
+        $this->markModified();
     }
 
     public function getStatus(): TaskStatus
@@ -364,6 +433,11 @@ class Task implements Assignable
     public function getPostponedCount(): int
     {
         return $this->postponedCount;
+    }
+
+    public function getCreatedVia(): CreatedVia
+    {
+        return $this->createdVia;
     }
 
     public function getCreatedBy(): ?AppUser

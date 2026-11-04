@@ -1,0 +1,6 @@
+{# Who closed it – only for admins: the person, or "am Team-Tablet"; nothing once the person is removed #}
+{%- if completion.user -%}
+    {{ 'von %name%'|trans({'%name%': completion.user.displayName}) }}
+{%- elseif completion.device -%}
+    {{ 'am Team-Tablet'|trans }}
+{%- endif -%}

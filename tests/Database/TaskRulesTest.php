@@ -13,8 +13,9 @@ use App\Enum\Visibility;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
- * Rules of task, task_completion, task_template, guide, asset and shopping_list from docs/datenbank/smoke_test.sql
- * (B07, B08, B25, B27, B29, B53, B57, C4, C5b, C11) and the remaining constraints and delete rules of schema.sql.
+ * Rules of task, task_completion, task_template, the checklists (task_template_item, task_item, task_item_result),
+ * guide, asset, asset_component and shopping_list from docs/datenbank/smoke_test.sql
+ * (B07, B08, B25, B27, B29, B53, B57, B94, C4, C5b, C11) and the remaining constraints and delete rules of schema.sql.
  */
 final class TaskRulesTest extends DatabaseTestCase
 {
@@ -62,6 +63,7 @@ final class TaskRulesTest extends DatabaseTestCase
         yield 'B29 Unbekannte Rolle als Zuständigkeit' => ["INSERT INTO task (title, category, assignee_role, due_date) VALUES ('x', 'haushalt', 'chef', '2026-11-05')", self::CHECK_VIOLATED, 'ck_task_role'];
         yield 'B53 Aufgabe mit alter Sichtbarkeit „team“' => ["INSERT INTO task (title, category, visibility, due_date) VALUES ('x', 'haushalt', 'team', '2026-11-05')", self::CHECK_VIOLATED, 'ck_task_visible'];
         yield 'B57 Zweite Liste mit gleichem Namen' => ["INSERT INTO shopping_list (name) VALUES ('Einkauf'), ('Einkauf')", self::DUPLICATE, 'uq_shopping_list_name'];
+        yield 'B94 Einmalige Aufgabe als „einzeln geändertes“ Vorkommen' => ["INSERT INTO task (title, category, due_date, is_modified) VALUES ('x', 'haushalt', '2026-11-05', 1)", self::CHECK_VIOLATED, 'ck_task_modified'];
         // Further rules of schema.sql that the smoke test does not cover
         yield 'Aufgabe: Zeitfenster beginnt nach dem Fälligkeitstag' => ["INSERT INTO task (title, category, window_start, due_date) VALUES ('x', 'haushalt', '2026-11-06', '2026-11-05')", self::CHECK_VIOLATED, 'ck_task_window'];
         yield 'Aufgabe: unbekannte Kategorie' => ["INSERT INTO task (title, category, due_date) VALUES ('x', 'garten', '2026-11-05')", self::CHECK_VIOLATED, 'ck_task_category'];
@@ -169,8 +171,65 @@ final class TaskRulesTest extends DatabaseTestCase
 
     public function testTaskStaysWhenItsPlanIsDeleted(): void
     {
+        $this->connection()->insert('task_template_item', ['template_id' => $this->templateId, 'label' => 'Reifen vorne links']);
+
         $this->connection()->delete('task_template', ['id' => $this->templateId]);
 
         self::assertNull($this->connection()->fetchOne('SELECT template_id FROM task WHERE id = ?', [$this->taskId]));
+        self::assertSame(0, (int) $this->connection()->fetchOne('SELECT COUNT(*) FROM task_template_item'));
+    }
+
+    public function testAnOccurrenceChangedOneByOneIsMarked(): void
+    {
+        $this->connection()->update('task', ['is_modified' => 1, 'due_date' => '2026-11-07'], ['id' => $this->taskId]);
+
+        self::assertSame(1, (int) $this->connection()->fetchOne('SELECT is_modified FROM task WHERE id = ?', [$this->taskId]));
+    }
+
+    public function testUndoingACompletionDeletesTheChecklistResultsButKeepsThePoints(): void
+    {
+        $this->connection()->insert('task_item', ['task_id' => $this->taskId, 'label' => 'Reifen vorne links']);
+        $itemId = (int) $this->connection()->lastInsertId();
+        $this->connection()->insert('task_completion', ['task_id' => $this->taskId, 'action' => 'erledigt', 'done_at' => '2026-11-05 10:00:00']);
+        $completionId = (int) $this->connection()->lastInsertId();
+        $this->connection()->insert('task_item_result', ['completion_id' => $completionId, 'task_item_id' => $itemId, 'is_checked' => 1]);
+
+        $this->connection()->delete('task_completion', ['id' => $completionId]);
+
+        self::assertSame(0, (int) $this->connection()->fetchOne('SELECT COUNT(*) FROM task_item_result'));
+        self::assertSame(1, (int) $this->connection()->fetchOne('SELECT COUNT(*) FROM task_item'));
+
+        $this->connection()->delete('task', ['id' => $this->taskId]);
+        self::assertSame(0, (int) $this->connection()->fetchOne('SELECT COUNT(*) FROM task_item'));
+    }
+
+    public function testAPointHasOneResultPerCompletion(): void
+    {
+        $this->connection()->insert('task_item', ['task_id' => $this->taskId, 'label' => 'Reifen vorne links']);
+        $itemId = (int) $this->connection()->lastInsertId();
+        $this->connection()->insert('task_completion', ['task_id' => $this->taskId, 'action' => 'erledigt', 'done_at' => '2026-11-05 10:00:00']);
+
+        $this->assertRejected(
+            'INSERT INTO task_item_result (completion_id, task_item_id) VALUES (:completion, :item), (:completion, :item)',
+            self::DUPLICATE,
+            'uq_item_result',
+            ['completion' => (int) $this->connection()->lastInsertId(), 'item' => $itemId],
+        );
+    }
+
+    public function testChecklistPointsStayWhenThePartOfTheAidIsDeleted(): void
+    {
+        $this->connection()->executeStatement("INSERT INTO asset (public_id, name) VALUES (UNHEX(REPLACE(UUID(),'-','')), 'Rollstuhl')");
+        $assetId = (int) $this->connection()->lastInsertId();
+        $this->connection()->insert('asset_component', ['asset_id' => $assetId, 'name' => 'Reifen hinten links']);
+        $componentId = (int) $this->connection()->lastInsertId();
+        $this->connection()->insert('task_template_item', ['template_id' => $this->templateId, 'label' => 'Reifen hinten links', 'asset_component_id' => $componentId]);
+        $this->connection()->insert('task_item', ['task_id' => $this->taskId, 'label' => 'Reifen hinten links', 'asset_component_id' => $componentId]);
+
+        $this->connection()->delete('asset', ['id' => $assetId]);
+
+        self::assertSame(0, (int) $this->connection()->fetchOne('SELECT COUNT(*) FROM asset_component'));
+        self::assertNull($this->connection()->fetchOne('SELECT asset_component_id FROM task_template_item'));
+        self::assertNull($this->connection()->fetchOne('SELECT asset_component_id FROM task_item'));
     }
 }

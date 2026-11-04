@@ -1,16 +1,21 @@
 {# One task: status (symbol + word), title linking to the details, short details, "Erledigt" on the right #}
+{# Occurrences of plans also show when it was done last (only the day) and the size of the checklist #}
 {% set status = task_status(task) %}
 {% set assignee = this.assignee %}
+{% set last_done = task_last_done(task) %}
+{% set points = task.items|length %}
 <li {{ attributes.defaults({class: 'hc-task hc-task--' ~ status.modifier}) }}>
     <div class="hc-task__main">
         <p class="hc-task__when hc-status hc-status--{{ status.modifier }}">{{ ux_icon(status.icon, {'aria-hidden': 'true'}) }}<span>{{ status.text }}</span></p>
         <a class="hc-task__title" href="{{ path('app_task_show', {id: task.id}) }}">{{ task.title }}</a>
-        {% if task.important or assignee or task.estimatedMinutes or task.requiresManager %}
+        {% if task.important or assignee or task.estimatedMinutes or task.requiresManager or last_done or points > 0 %}
             <ul class="hc-task__details">
                 {% if task.important %}<li class="hc-task__important">{{ ux_icon('tabler:star', {'aria-hidden': 'true'}) }}<span>{{ 'Wichtig'|trans }}</span></li>{% endif %}
                 {% if assignee %}<li>{{ 'Zuständig: %name%'|trans({'%name%': assignee|trans}) }}</li>{% endif %}
                 {% if task.estimatedMinutes %}<li>{{ 'ca. %minutes% Min.'|trans({'%minutes%': task.estimatedMinutes}) }}</li>{% endif %}
                 {% if task.requiresManager %}<li>{{ 'Gemeinsam mit %name%'|trans({'%name%': with_manager()}) }}</li>{% endif %}
+                {% if points > 0 %}<li>{{ points == 1 ? 'Checkliste: 1 Punkt'|trans : 'Checkliste: %points% Punkte'|trans({'%points%': points}) }}</li>{% endif %}
+                {% if last_done %}<li>{{ last_done }}</li>{% endif %}
             </ul>
         {% endif %}
     </div>

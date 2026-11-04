@@ -85,6 +85,7 @@ final readonly class AuditLogPresenter
         'display_name' => 'Name',
         'color' => 'Farbe',
         'active_from' => 'Eintritt',
+        'can_manage_recurring_tasks' => 'Wiederkehrende Aufgaben',
     ];
 
     /** Columns of device as the device form names them (App\EventListener\DeviceAuditListener). */

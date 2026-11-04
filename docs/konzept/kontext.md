@@ -1,6 +1,6 @@
 # Projektkontext: HomeCrew – App für Persönliche Assistenz (Übersicht)
 
-Stand: 03.11.2026 (M5) · **Dieses Dokument ist maßgeblich**; Details in den Konzepten (siehe Index). Das Review-Dokument (`docs/archiv/`) zeigt den Diskussionsstand vom Vormittag.
+Stand: 03.11.2026 (M6) · **Dieses Dokument ist maßgeblich**; Details in den Konzepten (siehe Index). Das Review-Dokument (`docs/archiv/`) zeigt den Diskussionsstand vom Vormittag.
 **Phase: Umsetzung Stufe 1 startet** – lokal in WSL (VS Code + Claude Code), Plan in `docs/plan-stufe-1.md`. Konzept bleibt die fachliche Vorgabe.
 
 ## 1. Kurzbeschreibung
@@ -44,6 +44,7 @@ Stand: 03.11.2026 (M5) · **Dieses Dokument ist maßgeblich**; Details in den Ko
 | 02.11. (M3) | **Personen und Zugänge**: Schalter je Person kommen mit ihrer Funktion (M6/M8/M12, KI Stufe 2). **Datenschutzhinweis** als Schritt bei der ersten Anmeldung (Text als Entwurf). **Manager-Schutz**: den Manager bearbeitet nur der Manager selbst; niemand ändert eigene Rolle/Admin-Recht oder sperrt sich selbst. Start-Passwort/-PIN **erzeugt die App**. **Austritt** nur heute oder früher, Zugang sofort weg, zurücknehmbar. Einladungscode nur im URL-Fragment. Änderungen an der eigenen Anmeldung nur nach **frischer Bestätigung** (5 Minuten) |
 | 02.11. (M4) | **Team-Tablet**: Koppeln per Kopplungscode (QR oder abtippen, 10 Minuten, einmal), Geräte-Token im Cookie (DB nur Hash). **Heimnetz** = direkte Gegenstelle und jede weitergeleitete Adresse in `HOME_NETWORKS`, Cloudflare-Anfragen nie. **PIN**: 6 Ziffern, nichts Einfaches, 3 Fehlversuche → 5 Minuten Pause; Schalter „PIN nur im Heimnetz" aus = PIN am gekoppelten Tablet auch unterwegs (Team-Ansicht nie). **Nach PIN-Anmeldung** in „Mein Konto" nur PIN, Darstellung, Datenschutz. Volle Anmeldung am Tablet endet nach 5 Minuten, PIN nach der **Auto-Sperre (1 Minute bis 4 Stunden wählbar)** – zurück zur Startseite des Tablets; eine neue Start-PIN, „PIN-Anmeldung aus" oder Modus „Team" beenden laufende PIN-Anmeldungen sofort. Kachelfarben aus fester Palette. Notfall-Knopf für alle Angemeldeten und das Tablet; Sperrbildschirm nur Kontakte für alle. Referenz korrigiert: `emergency_contact.category` `VARCHAR(15)` |
 | 03.11. (M5) | **„Heute"** zeigt, was man sehen darf **und** wofür man zuständig ist (Gruppen: Überfällig · Heute fällig · Heute möglich = Zeitfenster läuft · Wenn Zeit ist = schon sichtbar, später fällig); **Admins/Manager** sehen getrennt „Aufgaben der Assistenz"; alles Sichtbare unter „Offene Aufgaben". **Sichtbarkeit**: Ersteller sieht eigene Aufgaben immer; „zuständig" streng (Tablet ist nie eine Person); „privat" nur Admins/Angehörige, nicht weitergebbar. **Weitergeben**: Admins alles Sichtbare, alle anderen – auch Assistenz und Team-Tablet – wofür sie zuständig sind; neu `task.assigned_by_device_id`. Bearbeiten: Admins und Ersteller. **„Rückgängig" 30 Sekunden**; Verschieben per Tipp im Wochenkalender. Team-Tablet erreicht nur freigegebene Seiten; volle Admin-Anmeldung am Tablet = alle Rechte wie am PC. Wunsch für M7/M11: Link und ein Foto (auch Kamera) je Listeneintrag |
+| 03.11. (M6) | **Wartungspläne**: Rhythmus nach Kalender (täglich, Wochentage, monatlich am Tag – in kürzeren Monaten der letzte –, jährlich) oder **n Tage nach der letzten Erledigung**; Vorlauf 14 Tage, mindestens das nächste Vorkommen. **Einzeln geänderte Vorkommen** (verschoben, weitergegeben, bearbeitet) bleiben bei Planänderungen – Referenz ergänzt: `task.is_modified`. **Verpasstes wird ersetzt**, sobald das nächste Vorkommen fällig ist. **Schalter „wiederkehrende Aufgaben"** = anlegen und jeden sichtbaren Plan ändern wie Admins (auch nach PIN, nie Team-Tablet). **Checkliste**: ein Tipp auf „Erledigt" hakt alles ab, einzeln auf der Detailseite. „Routinen & Wartung" (`/routinen`) für alle inkl. Team-Tablet, Pflege der Pläne dort; Pläne werden beendet, nicht gelöscht; **wer ein Vorkommen sehen darf, folgt immer dem Plan** (auch bei einzeln geänderten) |
 
 ## 3. Rollen (Kurzfassung)
 - **Manager** – assistierte Person, genau einer, immer Admin.
@@ -81,7 +82,7 @@ Stand: 03.11.2026 (M5) · **Dieses Dokument ist maßgeblich**; Details in den Ko
 - `konzept-13-meldungen.md` – Meldungen, Meldungs-Log, automatischer Abschluss, Benachrichtigungsregeln je Ereignis
 - `../archiv/review-schwachstellen-ideen.md` – Review (Stand Vormittag, nicht maßgeblich)
 - `../plan-stufe-1.md` – Umsetzungsplan Stufe 1 (legt Claude Code an)
-- `/CLAUDE.md` – Anweisungen für Claude Code · `../datenbank/schema.sql` – Referenzschema · `../datenbank/smoke_test.sql` – Test (93 Regeln) · `/.claude/skills/` – Projekt-Skills
+- `/CLAUDE.md` – Anweisungen für Claude Code · `../datenbank/schema.sql` – Referenzschema · `../datenbank/smoke_test.sql` – Test (94 Regeln) · `/.claude/skills/` – Projekt-Skills
 
 ## 6. Offene Fragen
 1. Arbeitsverträge: feste Dienste oder Arbeit auf Abruf?

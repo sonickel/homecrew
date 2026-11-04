@@ -16,7 +16,8 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 /**
  * Tasks (konzept-1 §3, decisions M5): every person and the team tablet sees "Heute" and creates one-off tasks;
  * whoever sees a task completes, skips or postpones it; handing on: admins every task they see, everybody else –
- * also the team tablet – what they are responsible for; changing: admins and the creator. Private tasks are
+ * also the team tablet – what they are responsible for; changing: admins and the creator – occurrences of a plan
+ * also whoever may change the plan (switch "wiederkehrende Aufgaben", decision M6). Private tasks are
  * not handed on (they always belong to their creator).
  *
  * @extends Voter<string, Task|null>
@@ -60,7 +61,9 @@ final class TaskVoter extends Voter
                 && Visibility::Privat !== $subject->getVisibility()
                 && ($viewer->isAdmin() || $this->rules->isForViewer($viewer, $subject)),
             Permission::TASK_EDIT => $subject->isOpen()
-                && ($viewer->isAdmin() || (null !== $subject->getCreatedBy() && $viewer->isPerson($subject->getCreatedBy()))),
+                && ($viewer->isAdmin()
+                    || (null !== $subject->getCreatedBy() && $viewer->isPerson($subject->getCreatedBy()))
+                    || (null !== $subject->getTemplate() && true === $viewer->getPerson()?->canManageRecurringTasks())),
             default => false,
         };
     }

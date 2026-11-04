@@ -19,6 +19,10 @@ use Symfony\Component\Clock\ClockInterface;
 /**
  * What people do with tasks (konzept-2 §5, decisions M5). Completions and hand-overs carry the person –
  * or the team tablet instead of a person. The callers check the rights (App\Security\Voter\TaskVoter).
+ *
+ * Occurrences of a plan (M6): a change one by one marks them (is_modified); afterwards App\Service\Task\PlanSync
+ * brings the plan up to date (next occurrence, "zuletzt erledigt") – under a lock on the plan, taken before the
+ * lock on the task as in PlanSync.
  */
 final readonly class TaskActions
 {
@@ -30,6 +34,7 @@ final readonly class TaskActions
         private EntityManagerInterface $entityManager,
         private TaskCompletionRepository $completionRepository,
         private VisibilityRules $rules,
+        private PlanSync $planSync,
         private ClockInterface $clock,
     ) {
     }
@@ -62,17 +67,25 @@ final readonly class TaskActions
             if (!$assignee->equals(Assignment::of($task))) {
                 $task->handOver($assignee->person, $assignee->role, $viewer->actor(), $this->clock->now());
             }
+            $task->markModified();
         });
     }
 
     /**
      * Completes or skips the task; false when it was closed already (e.g. at the same time at another device).
+     * The checklist: null = every point ticked off (one tap on "Erledigt"), else the ids of the ticked points.
+     *
+     * @param list<int>|null $checkedItemIds
      */
-    public function close(Task $task, CompletionAction $action, Viewer $viewer): bool
+    public function close(Task $task, CompletionAction $action, Viewer $viewer, ?array $checkedItemIds = null): bool
     {
-        return $this->whileOpen($task, function () use ($task, $action, $viewer): void {
+        return $this->whileOpen($task, function () use ($task, $action, $viewer, $checkedItemIds): void {
             $task->close($action);
-            $this->entityManager->persist(new TaskCompletion($task, $action, $viewer->actor(), $this->clock->now()));
+            $completion = new TaskCompletion($task, $action, $viewer->actor(), $this->clock->now());
+            if (CompletionAction::Erledigt === $action) {
+                $completion->tickOff($checkedItemIds);
+            }
+            $this->entityManager->persist($completion);
         });
     }
 
@@ -82,8 +95,7 @@ final readonly class TaskActions
     public function undo(Task $task, Viewer $viewer): bool
     {
         return $this->entityManager->wrapInTransaction(function () use ($task, $viewer): bool {
-            $this->entityManager->lock($task, LockMode::PESSIMISTIC_WRITE);
-            $this->entityManager->refresh($task);
+            $this->lock($task);
             $completion = $this->completionRepository->findForTask($task);
             if (null === $completion
                 || $completion->getAction()->status() !== $task->getStatus()
@@ -94,6 +106,7 @@ final readonly class TaskActions
 
             $this->entityManager->remove($completion);
             $task->reopen();
+            $this->planChanged($task);
 
             return true;
         });
@@ -126,15 +139,41 @@ final readonly class TaskActions
     private function whileOpen(Task $task, \Closure $change): bool
     {
         return $this->entityManager->wrapInTransaction(function () use ($task, $change): bool {
-            $this->entityManager->lock($task, LockMode::PESSIMISTIC_WRITE);
-            $this->entityManager->refresh($task);
+            $this->lock($task);
             if (!$task->isOpen()) {
                 return false;
             }
             $change();
+            $this->planChanged($task);
 
             return true;
         });
+    }
+
+    /**
+     * Locks the task – and before it its plan, in the same order as App\Service\Task\PlanSync.
+     */
+    private function lock(Task $task): void
+    {
+        $plan = $task->getTemplate();
+        if (null !== $plan) {
+            $this->entityManager->lock($plan, LockMode::PESSIMISTIC_WRITE);
+            $this->entityManager->refresh($plan);
+        }
+        $this->entityManager->lock($task, LockMode::PESSIMISTIC_WRITE);
+        $this->entityManager->refresh($task);
+    }
+
+    /**
+     * After a change of an occurrence: the plan's next occurrence and "zuletzt erledigt".
+     */
+    private function planChanged(Task $task): void
+    {
+        $plan = $task->getTemplate();
+        if (null !== $plan) {
+            $this->entityManager->flush();
+            $this->planSync->reconcile($plan);
+        }
     }
 
     /**

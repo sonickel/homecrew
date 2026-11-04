@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}{{ 'Routinen & Wartung'|trans }}{% endblock %}
+
+{% block body %}
+    <twig:PageHeader :title="'Routinen & Wartung'|trans" :intro="'Was regelmäßig ansteht – das Dringendste zuerst.'|trans" />
+
+    <div class="hc-button-row">
+        {% if is_granted('PLAN_MANAGE') %}
+            <twig:Button icon="tabler:plus" :href="path('app_plan_new')">{{ 'Neuer Plan'|trans }}</twig:Button>
+        {% endif %}
+        <twig:Button variant="secondary" icon="tabler:arrow-left" :href="path('app_home')">{{ 'Zurück zu Heute'|trans }}</twig:Button>
+    </div>
+
+    {% if rows.current is not empty %}
+        <ul class="hc-task-list">
+            {% for row in rows.current %}
+                {{ include('plan/_row.html.twig', {row: row}) }}
+            {% endfor %}
+        </ul>
+    {% elseif rows.ended is empty %}
+        <twig:EmptyState icon="tabler:repeat" :message="'Es gibt noch keine wiederkehrenden Aufgaben.'|trans" />
+    {% endif %}
+
+    {% if rows.ended is not empty %}
+        <details class="hc-section hc-plans-ended">
+            <summary>{{ 'Beendet (%count%)'|trans({'%count%': rows.ended|length}) }}</summary>
+            <ul class="hc-task-list">
+                {% for row in rows.ended %}
+                    {{ include('plan/_row.html.twig', {row: row}) }}
+                {% endfor %}
+            </ul>
+        </details>
+    {% endif %}
+{% endblock %}

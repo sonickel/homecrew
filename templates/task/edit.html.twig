@@ -4,5 +4,12 @@
 
 {% block body %}
     <twig:PageHeader :title="'Aufgabe bearbeiten'|trans" :intro="task.title" />
+    {% if task.template %}
+        <twig:Alert :message="'Das ändert nur dieses Mal. Den ganzen Plan änderst du unter „Routinen & Wartung“.'|trans">
+            {% if is_granted('PLAN_MANAGE', task.template) %}
+                <twig:Button variant="secondary" icon="tabler:repeat" :href="path('app_plan_edit', {id: task.template.id})">{{ 'Plan bearbeiten'|trans }}</twig:Button>
+            {% endif %}
+        </twig:Alert>
+    {% endif %}
     {{ include('task/_form.html.twig', {submit_label: 'Speichern', cancel_path: path('app_task_show', {id: task.id})}) }}
 {% endblock %}

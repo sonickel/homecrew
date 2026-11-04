@@ -27,6 +27,23 @@ final class DayText
     }
 
     /**
+     * How long ago: "heute", "gestern", "vor 14 Tagen".
+     *
+     * @param string $day   household date Y-m-d
+     * @param string $today household date Y-m-d
+     */
+    public static function ago(string $day, string $today): string
+    {
+        $days = (int) (new \DateTimeImmutable($day))->diff(new \DateTimeImmutable($today))->format('%r%a');
+
+        return match (true) {
+            $days <= 0 => 'heute',
+            1 === $days => 'gestern',
+            default => \sprintf('vor %d Tagen', $days),
+        };
+    }
+
+    /**
      * "Montag, 2. November" – for headings and details.
      */
     public static function long(\DateTimeImmutable $day): string

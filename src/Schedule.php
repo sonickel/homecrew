@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App;
 
 use App\Message\AnonymizeTaskCompletions;
+use App\Message\GenerateTaskOccurrences;
 use App\Message\PurgeAuditLog;
 use App\Message\PurgeDoneTasks;
 use App\Message\PurgeInvitations;
@@ -30,6 +31,9 @@ final class Schedule implements ScheduleProviderInterface
         return (new SymfonySchedule())
             ->stateful($this->cache) // ensure missed tasks are executed
             ->processOnlyLastMissedRun(true) // ensure only last missed task is run
+
+            // Occurrences of the plans for the new day, before the retention jobs
+            ->add(RecurringMessage::every('1 day', new GenerateTaskOccurrences(), from: new \DateTimeImmutable('03:20', new \DateTimeZone('Europe/Berlin'))))
 
             // Retention jobs at night (household time)
             ->add(RecurringMessage::every('1 day', new PurgeAuditLog(), from: new \DateTimeImmutable('03:30', new \DateTimeZone('Europe/Berlin'))))

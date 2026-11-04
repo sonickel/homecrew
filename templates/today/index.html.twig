@@ -26,6 +26,7 @@
             <nav aria-label="{{ 'Bereiche'|trans }}">
                 <ul class="hc-tiles">
                     <li><a class="hc-tile" href="{{ path('app_task_index') }}">{{ ux_icon('tabler:list-check', {'aria-hidden': 'true'}) }}<span>{{ 'Offene Aufgaben'|trans }}</span></a></li>
+                    <li><a class="hc-tile" href="{{ path('app_plan_index') }}">{{ ux_icon('tabler:repeat', {'aria-hidden': 'true'}) }}<span>{{ 'Routinen & Wartung'|trans }}</span></a></li>
                     <li><a class="hc-tile" href="{{ path('app_emergency') }}">{{ ux_icon('tabler:first-aid-kit', {'aria-hidden': 'true'}) }}<span>{{ 'Notfall'|trans }}</span></a></li>
                 </ul>
             </nav>
@@ -40,6 +41,16 @@
         </aside>
 
         <div class="hc-today__main">
+            {# Only admins, only when something is overdue (konzept-2 §2.6) #}
+            {% if overdue_plans > 0 %}
+                <p class="hc-today__notice">
+                    <a class="hc-status hc-status--late" href="{{ path('app_plan_index') }}">
+                        {{- ux_icon('tabler:alert-triangle', {'aria-hidden': 'true'}) -}}
+                        <span>{{ 'Routinen & Wartung: %plans% überfällig'|trans({'%plans%': overdue_plans}) }}</span>
+                    </a>
+                </p>
+            {% endif %}
+
             <section class="hc-today__block" aria-labelledby="aufgaben-mine">
                 <h2 id="aufgaben-mine">{{ device ? 'Aufgaben'|trans : 'Für dich'|trans }}</h2>
                 {% if mine.count > 0 %}

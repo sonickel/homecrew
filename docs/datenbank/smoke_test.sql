@@ -206,6 +206,10 @@ VALUES ('Reifen prüfen und aufpumpen', 'hilfsmittel', 'messwert', @guide, @asse
 SET @tpl = LAST_INSERT_ID();
 INSERT INTO task_template (title, category, recurrence_type, rrule, window_days, starts_on)
 VALUES ('Seifenspender prüfen', 'haushalt', 'kalender', 'FREQ=WEEKLY;BYDAY=MO', 6, '2026-11-02');
+SET @tpl_soap = LAST_INSERT_ID();
+-- Vorkommen vom Montag 9.11. einzeln auf Mittwoch verschoben: bleibt bei einer Planänderung erhalten
+INSERT INTO task (template_id, occurrence_date, is_modified, title, category, window_start, visible_from, due_date, postponed_count, created_via)
+VALUES (@tpl_soap, '2026-11-09', 1, 'Seifenspender prüfen', 'haushalt', '2026-11-05', '2026-11-05', '2026-11-11', 1, 'system');
 
 INSERT INTO task (template_id, occurrence_date, title, category, proof_type, guide_id, asset_id, window_start, due_date)
 VALUES (@tpl, '2026-11-05', 'Reifen prüfen und aufpumpen', 'hilfsmittel', 'messwert', @guide, @asset, '2026-11-02', '2026-11-05');
@@ -625,6 +629,8 @@ CALL _expect_fail('B92 SMTP mit unbekannter Verschlüsselung',
   'UPDATE app_setting SET smtp_encryption = ''rot13'' WHERE id = 1', 4025);
 CALL _expect_fail('B93 Tablet mit unbekannter Schriftgröße',
   'UPDATE device SET font_size = ''riesig'' WHERE id = @dev', 4025);
+CALL _expect_fail('B94 Einmalige Aufgabe als „einzeln geändertes" Vorkommen',
+  'INSERT INTO task (title, category, due_date, is_modified) VALUES (''x'', ''haushalt'', ''2026-11-05'', 1)', 4025);
 CALL _expect_fail('B47 Zweite Übersetzung derselben Version in dieselbe Sprache',
   'INSERT INTO guide_translation (version_id, language, title) VALUES (@gv1, ''pl'', ''x'')', 1062);
 CALL _expect_fail('B48 „Übersetzung" nach Deutsch',

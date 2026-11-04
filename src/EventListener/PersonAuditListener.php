@@ -22,7 +22,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 final readonly class PersonAuditListener
 {
     /** Columns that are logged. */
-    public const array COLUMNS = ['role', 'is_admin', 'username', 'display_name', 'color', 'active_from'];
+    public const array COLUMNS = ['role', 'is_admin', 'username', 'display_name', 'color', 'active_from', 'can_manage_recurring_tasks'];
 
     public function __construct(
         private Security $security,
